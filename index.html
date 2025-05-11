@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <link rel="icon" type="image/x-icon" href="/the rpg project!!!.ico">
+        <link href="style.css" rel="stylesheet" type="text/css">
+        <title>Restraint...</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <script src="src/utils/break_eternity.js"></script>
+        <script src="src/utils/lz-string.js"></script>
+        <script src="src/utils/util.js"></script>
+
+        <script src="src/features/generatorExtras.js"></script>
+        <script src="src/features/setback.js"></script>
+        <script src="src/features/ascend.js"></script>
+        <script src="src/features/prestige.js"></script>
+        <script src="src/features/main.js"></script>
+        <script src="src/features/stat.js"></script>
+        <script src="src/features/textbook.js"></script>
+        <script src="src/gameHandle.js"></script>
+    </head>
+    <body onload="loadGame()">
+        <canvas id="draw" style="height: 100vh; width: 100vw; position: absolute; top: 0px; left: 0px; z-index: -2;"></canvas>
+        <div style="height: 100vh; width: 100vw; margin: 0px; padding: 0px;">
+            <div id="offlineTime">
+                <div class="flex-vertical">
+                    <span class="whiteText font" style="font-size: 12px">You are in offline time.</span>
+                    <span class="whiteText font" style="font-size: 12px" id="offlineTimeDisplay"></span>
+                    <div id="offlineTimeProgress" style="height: 20px; width: 800px; position: relative; margin: 2px">
+                        <div id="offlineTimeProgressBarBase" style="background-color: #ff0000; position: absolute; top: 0; left: 0; height: 100%; width: 100%;"></div>
+                        <div id="offlineTimeProgressBar" style="background-color: #00ff00;position: absolute; top: 0; left: 0; height: 100%"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="inGame">
+                <div class="flex-vertical">
+                    <span class="whiteText font" style="font-size: 24px;" id="points"></span><span class="whiteText font" style="font-size: 12px;">points</span><span class="font" style="font-size: 12px; color: #ffffff" id="pointsPerSecond"></span>
+                    <span class="whiteText font" style="font-size: 12px" id="chalList"></span>
+                    <div class="flex-horizontal" id="tabList">
+                        <button onclick="player.tab = -1" id="statTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            Statistics
+                        </button>
+                        <button onclick="player.tab = 2" id="textbookTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            Textbook
+                        </button>
+                        <button onclick="player.tab = 0" id="mainTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            Main
+                        </button>
+                        <button onclick="player.tab = 1" id="prestigeTabButton" class="whiteText font" style="background-color: #00408080; border: 3px solid #0080ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            Prestige
+                        </button>
+                        <button onclick="player.tab = 3" id="ascendTabButton" class="whiteText font" style="background-color: #00800080; border: 3px solid #00ff00; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            Ascension
+                        </button>
+                        <button onclick="player.tab = 4" id="setbackTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            Setback
+                        </button>
+                    </div>
+                </div>
+                <div id="statTab">
+                    <div class="flex-horizontal">
+                        <button onclick="player.statTab = 0" id="buyableStatTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            Buyables
+                        </button>
+                        <button onclick="player.statTab = 1" id="factorStatTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            Factors
+                        </button>
+                    </div>
+                    <div id="buyableStat">
+                        <div class="flex-vertical">
+                            <div class="flex-horizontal" id="statUpgradeList"></div>
+                        </div>
+                    </div>
+                    <div id="factorsStat">
+                        <div class="flex-horizontal">
+                            <div class="flex-horizontal" style="flex-wrap: wrap; width: 1400px">
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80808080; border: 3px solid #ffffff; margin: 4px; font-size: 12px; padding: 2px" id="pointFactors"></div>
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #00408080; border: 3px solid #0080ff; margin: 4px; font-size: 12px; padding: 2px" id="prestigeFactors"></div>
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #00804080; border: 3px solid #00ff80; margin: 4px; font-size: 12px; padding: 2px" id="generatorFactors"></div>
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #00800080; border: 3px solid #00ff00; margin: 4px; font-size: 12px; padding: 2px" id="ascendFactors"></div>
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #00408080; border: 3px solid #0080ff; margin: 4px; font-size: 12px; padding: 2px" id="prestigeEssenceFactors"></div>
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80808080; border: 3px solid #ffffff; margin: 4px; font-size: 12px; padding: 2px" id="tier1timeFactors"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="textbookTab">
+                    <div class="flex-vertical" id="informationList"></div>
+                </div>
+                <div id="mainTab">
+                    <div class="flex-horizontal">
+                        <button onclick="player.mainTab = 0" id="mainMainTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            Main
+                        </button>
+                        <button onclick="player.mainTab = 1" id="generatorMainTabButton" class="whiteText font" style="background-color: #80400080; border: 3px solid #ff8000; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            Generator
+                        </button>
+                    </div>
+                    <div id="mainMain">
+                        <div class="flex-vertical">
+                            <span class="whiteText font" style="font-size: 12px">Every <b><span id="upgradeScalingInterval"></span></b> purchases of a buyable, the buyable's effect<span id="upgradeScalingPC1"></span> is boosted by <b><span id="upgradeScalingBoost"></span>&times;</b> but the buyable scales <b><span id="upgradeScalingSpeed"></span>&times;</b> faster.</span>
+                            <span class="whiteText font" style="font-size: 12px" id="upgradePC1Desc">Every generator level increases the buyable's effect by <b>+0.10&times;</b>.</span>
+                            <span class="font" style="color: #0080ff; font-size: 12px" id="prestigeChallengeEffs"></span>
+                            <span class="font" style="color: #ff404c; font-size: 12px" id="hinderanceEffs"></span>
+                            <span class="whiteText font" style="font-size: 12px" id="upgradeInSetback"></span>
+                            <div class="flex-horizontal" id="upgradeList"></div><br>
+                            <button onclick="doPrestigeReset()" id="prestige" class="whiteText font" style="background-color: #00408080; border: 3px solid #0080ff; height: 70px; width: 325px; font-size: 12px; margin: 2px">
+                                Prestige for <b><span id="prestigeAmount"></span></b> prestige points<span id="prestigeEssenceAmount"></span>.<br>
+                                Next prestige point at <span id="prestigeNext"></span> points.
+                                <span id="prestigeEssenceNext"></span>
+                            </button>
+                            <button onclick="toggleCurrentPrestigeChallenge()" id="prestigeChallengeButton" class="whiteText font" style="cursor: pointer; background-color: #00408080; border: 3px solid #0080ff; height: 70px; width: 325px; font-size: 12px; margin: 2px">
+                                You are in <b><span id="prestigeChallengeName"></span></b>.<br>
+                                You need <span id="prestigeChallengeRequirement"></span> points.
+                            </button>
+                            <button onclick="doAscendReset()" id="ascend" class="whiteText font" style="cursor: pointer; background-color: #00800080; border: 3px solid #00ff00; height: 70px; width: 325px; font-size: 12px; margin: 2px">
+                                Ascend for <b><span id="ascendAmount"></span></b> ascension points.<br>
+                                Next ascension point at <span id="ascendNext"></span> points.
+                            </button>
+                        </div>
+                    </div>
+                    <div id="generatorMain">
+                        <div class="flex-vertical">
+                            <div class="flex-horizontal">
+                                <div id="genMainArea">
+                                    <div class="flex-vertical">
+                                        <span class="font" style="font-size: 24px; color: #ffa000" id="genXP"></span><span class="font" style="font-size: 12px; color: #ffa000">generator experience</span>
+                                        <span class="font" style="font-size: 11px; color: #ffffff">You are gaining <b><span id="genXPGain"></span></b>/s due to your total generator levels.</span>
+                                        <span class="font" style="font-size: 11px; color: #ffffff">Generator XP is boosting generator speed by ^<b><span id="genXPSpdEff"></span></b>.</span>
+                                        <span class="font" style="font-size: 11px; color: #ffffff">Generator XP and generator levels are boosting your points by ^<b><span id="genXPPtsEff"></span></b>.</span>
+                                        <div style="display: flex; flex-direction: row; justify-content: center; width: 525px; flex-wrap: wrap" id="genXPUpgList"></div><br>
+                                    </div>
+                                </div>
+                                <div id="genEnhArea">
+                                    <div class="flex-vertical">
+                                        <span class="font" style="font-size: 24px; color: #ffff00" id="genEnhance"></span><span class="font" style="font-size: 12px; color: #ffff00">enhancers</span>
+                                        <span class="font" style="font-size: 11px; color: #ffffff">Enhancers are increasing generator XP by &times;<b><span id="genEnhXPEff"></span></b>.</span>
+                                        <div style="display: flex; flex-direction: row; justify-content: center; width: 525px; flex-wrap: wrap" id="genEnhUpgList"></div><br>
+                                    </div>
+                                </div>
+                            </div>                            
+                            <button onclick="doGenEnhReset()" id="generatorEnhance" class="whiteText font" style="background-color: #80800080; border: 3px solid #ffff00; height: 70px; width: 325px; font-size: 12px; margin: 2px">
+                                Do an ascension reset for <b><span id="enhAmount"></span></b> enhancements.<br>
+                                Next enhance at <span id="enhNext"></span> generator XP.
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="prestigeTab">
+                    <div class="flex-horizontal">
+                        <button onclick="player.prestigeTab = 0" id="mainPrestigeTabButton" class="whiteText font" style="background-color: #00408080; border: 3px solid #0080ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            Main
+                        </button>
+                        <button onclick="player.prestigeTab = 1" id="essencePrestigeTabButton" class="whiteText font" style="background-color: #00408080; border: 3px solid #0080ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            Essence
+                        </button>
+                        <button onclick="player.prestigeTab = 2" id="prestigeChallengeTabButton" class="whiteText font" style="background-color: #00408080; border: 3px solid #0080ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            P. Challenges
+                        </button>
+                    </div>
+                    <div id="mainPrestigeTab">
+                        <div class="flex-vertical">
+                            <span class="font" style="font-size: 24px; color: #0080ff" id="prestigePoints"></span><span class="font" style="font-size: 12px; color: #0080ff">prestige points</span>
+                            <span class="font" style="font-size: 12px; color: #0080ff" id="prestigePointEffect"></span>
+                            <div style="display: flex; flex-direction: row; align-items: center">
+                                <button onclick="respecPrestigeUpgrades()" id="prestigeRespec" class="whiteText font" style="height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
+                                    Respec all prestige buyables and do a prestige reset.
+                                </button>
+                                <button onclick="alert('unimplemented.')" id="prestigeRespec" class="whiteText font" style="height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
+                                    Export prestige upgrade loadout.
+                                </button>
+                                <button onclick="alert('unimplemented.')" id="prestigeRespec" class="whiteText font" style="height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
+                                    Import prestige upgrade loadout.
+                                </button>
+                                <button onclick="alert('unimplemented.')" id="prestigeRespec" class="whiteText font" style="height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
+                                    See prestige upgrade presets.
+                                </button>
+                            </div>
+                            <span class="font" style="font-size: 16px; color: #0080ff">You can only have <b><span id="prestigeUpgradeCap"></span></b> prestige buyables bought!</span>
+                            <div style="display: flex; flex-direction: row; justify-content: center; width: 600px; flex-wrap: wrap" id="prestigeUpgradeList"></div><br>
+                        </div>
+                    </div>
+                    <div id="essencePrestigeTab">
+                        <div class="flex-vertical">
+                            <span class="font" style="font-size: 24px; color: #0080ff" id="prestigeEssence"></span><span class="font" style="font-size: 12px; color: #0080ff">prestige essence</span>
+                            <span class="font" style="font-size: 12px; color: #0080ff" id="prestigeEssenceEffect"></span>
+                        </div>
+                    </div>
+                    <div id="prestigeChallengeTab">
+                        <div class="flex-vertical">
+                            <span class="whiteText font" style="font-size: 12px">Points gained here will not count toward the next prestige layer.</span>
+                            <span class="whiteText font" style="font-size: 12px">You cannot buy Prestige Upgrades in a Prestige Challenge.</span>
+                            <div style="display: flex; flex-direction: row; justify-content: center; width: 1080px; flex-wrap: wrap" id="prestigeChallengeList"></div><br>
+                        </div>
+                    </div>
+                </div>
+                <div id="ascendTab">
+                    <div class="flex-vertical">
+                        <div class="flex-horizontal">
+                            <button onclick="player.ascendTab = 0" id="mainAscendTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                                Main
+                            </button>
+                            <button onclick="player.ascendTab = 1" id="hinderanceAscendTabButton" class="whiteText font" style="background-color: #60001080; border: 3px solid #c00020; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                                Hinderance
+                            </button>
+                        </div>
+                        <div id="mainAscend">
+                            <div class="flex-vertical">
+                                <div class="flex-horizontal">
+                                    <div style="margin: 4px; display: flex; flex-direction: column; align-items: center">
+                                        <span class="font" style="font-size: 24px; color: #00ff00" id="ascendPoints"></span><span class="font" style="font-size: 12px; color: #00ff00">ascension points</span>
+                                    </div>
+                                    <div style="margin: 4px; display: flex; flex-direction: column; align-items: center">
+                                        <span class="font" style="font-size: 24px; color: #00ff00" id="ascendGems"></span><span class="font" style="font-size: 12px; color: #00ff00">ascension gems</span>
+                                    </div>
+                                </div>
+                                <span class="font" style="font-size: 12px; color: #00ff00" id="ascendPointEffect"></span>
+                                <div style="display: flex; flex-direction: row; justify-content: center; width: 850px; flex-wrap: wrap" id="ascendUpgradeList"></div><br>
+                            </div>
+                        </div>
+                        <div id="hinderanceAscend">
+                            <div class="flex-vertical">
+                                <span class="whiteText font" style="font-size: 12px">Points gained here will not count toward the next prestige layer.</span>
+                                <span class="whiteText font" style="font-size: 12px">Hinderances reset your ascension, but are continuous. Your PB in these hinderances determine what rewards you get upon exiting.</span>
+                                <div style="display: flex; flex-direction: row; justify-content: center; width: 1080px; flex-wrap: wrap" id="hinderanceList"></div><br>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="setbackTab">
+                    <div class="flex-vertical">
+                        <div class="flex-horizontal">
+                            <button onclick="player.setbackTab = 0" id="setSBTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                                Settings
+                            </button>
+                            <button onclick="player.setbackTab = 1" id="loadSBTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                                Loadouts
+                            </button>
+                            <button onclick="player.setbackTab = 2" id="dimSBTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                                Dimensions
+                            </button>
+                            <button onclick="player.setbackTab = 3" id="upgSBTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                                Upgrades
+                            </button>
+                        </div>
+                        <div id="setbackTabSettings">
+                            <div class="flex-vertical">
+                                <span class="whiteText font" style="font-size: 12px">Set your setbacks here. The higher these values are and the higher the total of these settings, the more quarks you will produce.</span>
+                                <br>
+                                <span class="font" style="color: #ff4040; font-size: 12px">Your red setback is at difficulty <b><span id="setbackRedValue"></span></b>, which raises point gain to the <b>^<span id="setbackRedEffect"></span></b>, but will produce <b><span id="setbackRedGenerate"></span></b> red quarks per second.</span>
+                                <span class="font" style="color: #40ff40; font-size: 12px">Your green setback is at difficulty <b><span id="setbackGreenValue"></span></b>, which make buyables, prestige points, and generators scale <b><span id="setbackGreenEffect"></span>&times;</b>, but will produce <b><span id="setbackGreenGenerate"></span></b> green quarks per second.</span>
+                                <span class="font" style="color: #4040ff; font-size: 12px">Your blue setback is at difficulty <b><span id="setbackBlueValue"></span></b>, which increases the prestige challenge and ascension reqs. by <b>^<span id="setbackBlueEffect"></span></b>, but will produce <b><span id="setbackBlueGenerate"></span></b> blue quarks per second.</span>
+                                <br>
+                                <span class="whiteText font" style="font-size: 12px">Upon a successful ascension with these setbacks, you will be able to generate quarks in the Loadout.</span>
+                                <br>
+                                <input type="range" min="0" max="10" value="0" style="width: 400px" id="setbackSliderRed">
+                                <input type="range" min="0" max="10" value="0" style="width: 400px" id="setbackSliderGreen">
+                                <input type="range" min="0" max="10" value="0" style="width: 400px" id="setbackSliderBlue">
+                                <br>
+                                <button onclick="toggleSetback()" id="setbackToggle" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 70px; width: 325px; font-size: 12px; margin: 2px">
+                                    Toggle setback. This will do an ascension reset.<br>
+                                    Use the normal ascend button to complete the setback, but click this to exit the setback early.
+                                </button>
+                            </div>
+                        </div>
+                        <div id="setbackTabLoadout">
+                            <div class="flex-vertical">
+                                <span class="whiteText font" style="font-size: 12px">Upon completing an ascension with a setback, you will be able to access their quark generation here.</span>
+                                <span class="whiteText font" style="font-size: 12px">Changing loadouts requires an ascension reset!</span>
+                                <br>
+                                <div style="display: flex; flex-direction: row; justify-content: center; width: 825px; flex-wrap: wrap;" id="setbackLoadoutList"></div>
+                            </div>
+                        </div>
+                        <div id="setbackTabDims">
+                            <div class="flex-vertical">
+                                <div class="flex-horizontal">
+                                    <div style="margin: 4px; display: flex; flex-direction: column; align-items: center">
+                                        <span class="font" style="font-size: 24px; color: #ff4040" id="redQuarks"></span><span class="font" style="font-size: 12px; color: #ff4040">red quarks</span>
+                                    </div>
+                                    <div style="margin: 4px; display: flex; flex-direction: column; align-items: center">
+                                        <span class="font" style="font-size: 24px; color: #ff4040" id="redEnergy"></span><span class="font" style="font-size: 12px; color: #ff4040">red energy</span>
+                                    </div>
+                                    <div style="margin: 4px; display: flex; flex-direction: column; align-items: center">
+                                        <span class="font" style="font-size: 24px; color: #40ff40" id="greenQuarks"></span><span class="font" style="font-size: 12px; color: #40ff40">green quarks</span>
+                                    </div>
+                                    <div style="margin: 4px; display: flex; flex-direction: column; align-items: center">
+                                        <span class="font" style="font-size: 24px; color: #40ff40" id="greenEnergy"></span><span class="font" style="font-size: 12px; color: #40ff40">green energy</span>
+                                    </div>
+                                    <div style="margin: 4px; display: flex; flex-direction: column; align-items: center">
+                                        <span class="font" style="font-size: 24px; color: #4040ff" id="blueQuarks"></span><span class="font" style="font-size: 12px; color: #4040ff">blue quarks</span>
+                                    </div>
+                                    <div style="margin: 4px; display: flex; flex-direction: column; align-items: center">
+                                        <span class="font" style="font-size: 24px; color: #4040ff" id="blueEnergy"></span><span class="font" style="font-size: 12px; color: #4040ff">blue energy</span>
+                                    </div>
+                                </div>
+                                <div class="flex-horizontal">
+                                    <button onclick="player.setbackDimTab = 0" id="SBDimRedTabButton" class="font" style="color: #ff4040; background-color: #80202080; border: 3px solid #ff4040; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                                        Red
+                                    </button>
+                                    <button onclick="player.setbackDimTab = 1" id="SBDimGreenTabButton" class="font" style="color: #40ff40; background-color: #20802080; border: 3px solid #40ff40; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                                        Green
+                                    </button>
+                                    <button onclick="player.setbackDimTab = 2" id="SBDimBlueTabButton" class="font" style="color: #4040ff; background-color: #20208080; border: 3px solid #4040ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                                        Blue
+                                    </button>
+                                </div>
+                                <span class="whiteText font" style="font-size: 12px">Every <b><span id="dimScalingInterval"></span></b> purchases of a dimension, the dimension's multiplier per purchase is boosted by <b>+<span id="dimScalingBoost"></span>&times;</b> but the dimension scales <b><span id="dimScalingSpeed"></span>&times;</b> faster.</span>
+                                <div id="setbackDimRed">
+                                    <div class="flex-vertical">
+                                        <span class="font" style="font-size: 12px; color: #ff4040">You have <b><span id="redQuarkAmt"></span></b> Red Quarks, which boosts Red Energy gain by &times;<b><span id="redQuarkEff"></span></b>.</span>
+                                        <span class="font" style="font-size: 12px; color: #ff4040">You have <b><span id="redEnergyAmt"></span></b> Red Energy, which boosts point gain by &times;<b><span id="redEnergyEff"></span></b>.</span>
+                                        <div id="setbackRedDimList" class="flex-vertical"></div>
+                                    </div>
+                                </div>
+                                <div id="setbackDimGreen">
+                                    <div class="flex-vertical">
+                                        <span class="font" style="font-size: 12px; color: #40ff40">You have <b><span id="greenQuarkAmt"></span></b> Green Quarks, which boosts Green Energy gain by &times;<b><span id="greenQuarkEff"></span></b>.</span>
+                                        <span class="font" style="font-size: 12px; color: #40ff40">You have <b><span id="greenEnergyAmt"></span></b> Green Energy, which multiplies Buyables' cost scaling by &times;<b><span id="greenEnergyEff"></span></b>.</span>
+                                        <div id="setbackGreenDimList" class="flex-vertical"></div>
+                                    </div>
+                                </div>
+                                <div id="setbackDimBlue">
+                                    <div class="flex-vertical">
+                                        <span class="font" style="font-size: 12px; color: #4040ff">You have <b><span id="blueQuarkAmt"></span></b> Blue Quarks, which boosts Blue Energy gain by &times;<b><span id="blueQuarkEff"></span></b>.</span>
+                                        <span class="font" style="font-size: 12px; color: #4040ff">You have <b><span id="blueEnergyAmt"></span></b> Blue Energy, which increases prestige point gain by &times;<b><span id="blueEnergyEff"></span></b>.</span>
+                                        <div id="setbackBlueDimList" class="flex-vertical"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="setbackTabUpgs">
+                            <div class="flex-vertical">
+                                <div class="flex-horizontal">
+                                    <div class="flex-vertical">
+                                        <span class="font" style="font-size: 12px; color: #ff4040">You have <b><span id="redEnergyAmt2"></span></b> Red Energy.</span>
+                                        <div id="redSBUpgrades" style="width: 250px; display: flex; flex-direction: row; justify-content: center; flex-wrap: wrap"></div>
+                                    </div>
+                                    <div class="flex-vertical">
+                                        <span class="font" style="font-size: 12px; color: #40ff40">You have <b><span id="greenEnergyAmt2"></span></b> Green Energy.</span>
+                                        <div id="greenSBUpgrades" style="width: 250px; display: flex; flex-direction: row; justify-content: center; flex-wrap: wrap"></div>
+                                    </div>
+                                    <div class="flex-vertical">
+                                        <span class="font" style="font-size: 12px; color: #4040ff">You have <b><span id="blueEnergyAmt2"></span></b> Blue Energy.</span>
+                                        <div id="blueSBUpgrades" style="width: 250px; display: flex; flex-direction: row; justify-content: center; flex-wrap: wrap"></div>
+                                    </div>
+                                </div>
+                                <div class="flex-vertical">
+                                    <br>
+                                    <b><span id="upgSBDesc" class="font" style="font-size: 12px; color: #ffffff"></span></b>
+                                    <b><span id="upgSBCost" class="font" style="font-size: 12px; color: #ffffff"></span></b>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
