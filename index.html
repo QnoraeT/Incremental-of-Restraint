@@ -20,7 +20,7 @@
         <script src="src/gameHandle.js"></script>
     </head>
     <body onload="loadGame()">
-        <canvas id="draw" style="height: 100vh; width: 100vw; position: absolute; top: 0px; left: 0px; z-index: -2;"></canvas>
+        <canvas id="draw" style="height: 100vh; width: 100vw; position: absolute; top: 0px; left: 0px; z-index: -2; position: fixed"></canvas>
         <div style="height: 100vh; width: 100vw; margin: 0px; padding: 0px;">
             <div id="offlineTime">
                 <div class="flex-vertical">
@@ -37,32 +37,32 @@
                     <span class="whiteText font" style="font-size: 24px;" id="points"></span><span class="whiteText font" style="font-size: 12px;">points</span><span class="font" style="font-size: 12px; color: #ffffff" id="pointsPerSecond"></span>
                     <span class="whiteText font" style="font-size: 12px" id="chalList"></span>
                     <div class="flex-horizontal" id="tabList">
-                        <button onclick="player.tab = -1" id="statTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                        <button onclick="tmp.tab = -1" id="statTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Statistics
                         </button>
-                        <button onclick="player.tab = 2" id="textbookTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                        <button onclick="tmp.tab = 2" id="textbookTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Textbook
                         </button>
-                        <button onclick="player.tab = 0" id="mainTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                        <button onclick="tmp.tab = 0" id="mainTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Main
                         </button>
-                        <button onclick="player.tab = 1" id="prestigeTabButton" class="whiteText font" style="background-color: #00408080; border: 3px solid #0080ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                        <button onclick="tmp.tab = 1" id="prestigeTabButton" class="whiteText font" style="background-color: #00408080; border: 3px solid #0080ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Prestige
                         </button>
-                        <button onclick="player.tab = 3" id="ascendTabButton" class="whiteText font" style="background-color: #00800080; border: 3px solid #00ff00; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                        <button onclick="tmp.tab = 3" id="ascendTabButton" class="whiteText font" style="background-color: #00800080; border: 3px solid #00ff00; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Ascension
                         </button>
-                        <button onclick="player.tab = 4" id="setbackTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                        <button onclick="tmp.tab = 4" id="setbackTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Setback
                         </button>
                     </div>
                 </div>
                 <div id="statTab">
                     <div class="flex-horizontal">
-                        <button onclick="player.statTab = 0" id="buyableStatTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                        <button onclick="tmp.statTab = 0" id="buyableStatTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Buyables
                         </button>
-                        <button onclick="player.statTab = 1" id="factorStatTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                        <button onclick="tmp.statTab = 1" id="factorStatTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Factors
                         </button>
                     </div>
@@ -89,10 +89,10 @@
                 </div>
                 <div id="mainTab">
                     <div class="flex-horizontal">
-                        <button onclick="player.mainTab = 0" id="mainMainTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                        <button onclick="tmp.mainTab = 0" id="mainMainTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Main
                         </button>
-                        <button onclick="player.mainTab = 1" id="generatorMainTabButton" class="whiteText font" style="background-color: #80400080; border: 3px solid #ff8000; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                        <button onclick="tmp.mainTab = 1" id="generatorMainTabButton" class="whiteText font" style="background-color: #80400080; border: 3px solid #ff8000; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Generator
                         </button>
                     </div>
@@ -104,7 +104,7 @@
                             <span class="font" style="color: #ff404c; font-size: 12px" id="hinderanceEffs"></span>
                             <span class="whiteText font" style="font-size: 12px" id="upgradeInSetback"></span>
                             <div class="flex-horizontal" id="upgradeList"></div><br>
-                            <button onclick="doPrestigeReset()" id="prestige" class="whiteText font" style="background-color: #00408080; border: 3px solid #0080ff; height: 70px; width: 325px; font-size: 12px; margin: 2px">
+                            <button onclick="doPrestigeReset()" id="prestige" class="whiteText font" style="cursor: pointer; background-color: #00408080; border: 3px solid #0080ff; height: 70px; width: 325px; font-size: 12px; margin: 2px">
                                 Prestige for <b><span id="prestigeAmount"></span></b> prestige points<span id="prestigeEssenceAmount"></span>.<br>
                                 Next prestige point at <span id="prestigeNext"></span> points.
                                 <span id="prestigeEssenceNext"></span>
@@ -148,13 +148,13 @@
                 </div>
                 <div id="prestigeTab">
                     <div class="flex-horizontal">
-                        <button onclick="player.prestigeTab = 0" id="mainPrestigeTabButton" class="whiteText font" style="background-color: #00408080; border: 3px solid #0080ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                        <button onclick="tmp.prestigeTab = 0" id="mainPrestigeTabButton" class="whiteText font" style="background-color: #00408080; border: 3px solid #0080ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Main
                         </button>
-                        <button onclick="player.prestigeTab = 1" id="essencePrestigeTabButton" class="whiteText font" style="background-color: #00408080; border: 3px solid #0080ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                        <button onclick="tmp.prestigeTab = 1" id="essencePrestigeTabButton" class="whiteText font" style="background-color: #00408080; border: 3px solid #0080ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Essence
                         </button>
-                        <button onclick="player.prestigeTab = 2" id="prestigeChallengeTabButton" class="whiteText font" style="background-color: #00408080; border: 3px solid #0080ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                        <button onclick="tmp.prestigeTab = 2" id="prestigeChallengeTabButton" class="whiteText font" style="background-color: #00408080; border: 3px solid #0080ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             P. Challenges
                         </button>
                     </div>
@@ -197,10 +197,10 @@
                 <div id="ascendTab">
                     <div class="flex-vertical">
                         <div class="flex-horizontal">
-                            <button onclick="player.ascendTab = 0" id="mainAscendTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            <button onclick="tmp.ascendTab = 0" id="mainAscendTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                                 Main
                             </button>
-                            <button onclick="player.ascendTab = 1" id="hinderanceAscendTabButton" class="whiteText font" style="background-color: #60001080; border: 3px solid #c00020; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            <button onclick="tmp.ascendTab = 1" id="hinderanceAscendTabButton" class="whiteText font" style="background-color: #60001080; border: 3px solid #c00020; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                                 Hinderance
                             </button>
                         </div>
@@ -230,16 +230,16 @@
                 <div id="setbackTab">
                     <div class="flex-vertical">
                         <div class="flex-horizontal">
-                            <button onclick="player.setbackTab = 0" id="setSBTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            <button onclick="tmp.setbackTab = 0" id="setSBTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                                 Settings
                             </button>
-                            <button onclick="player.setbackTab = 1" id="loadSBTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            <button onclick="tmp.setbackTab = 1" id="loadSBTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                                 Loadouts
                             </button>
-                            <button onclick="player.setbackTab = 2" id="dimSBTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            <button onclick="tmp.setbackTab = 2" id="dimSBTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                                 Dimensions
                             </button>
-                            <button onclick="player.setbackTab = 3" id="upgSBTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            <button onclick="tmp.setbackTab = 3" id="upgSBTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                                 Upgrades
                             </button>
                         </div>
@@ -294,13 +294,13 @@
                                     </div>
                                 </div>
                                 <div class="flex-horizontal">
-                                    <button onclick="player.setbackDimTab = 0" id="SBDimRedTabButton" class="font" style="color: #ff4040; background-color: #80202080; border: 3px solid #ff4040; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                                    <button onclick="tmp.setbackDimTab = 0" id="SBDimRedTabButton" class="font" style="color: #ff4040; background-color: #80202080; border: 3px solid #ff4040; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                                         Red
                                     </button>
-                                    <button onclick="player.setbackDimTab = 1" id="SBDimGreenTabButton" class="font" style="color: #40ff40; background-color: #20802080; border: 3px solid #40ff40; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                                    <button onclick="tmp.setbackDimTab = 1" id="SBDimGreenTabButton" class="font" style="color: #40ff40; background-color: #20802080; border: 3px solid #40ff40; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                                         Green
                                     </button>
-                                    <button onclick="player.setbackDimTab = 2" id="SBDimBlueTabButton" class="font" style="color: #4040ff; background-color: #20208080; border: 3px solid #4040ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                                    <button onclick="tmp.setbackDimTab = 2" id="SBDimBlueTabButton" class="font" style="color: #4040ff; background-color: #20208080; border: 3px solid #4040ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                                         Blue
                                     </button>
                                 </div>

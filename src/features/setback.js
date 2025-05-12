@@ -286,9 +286,9 @@ function updateGame_setback() {
         player.setback = [D(html['setbackSliderRed'].el.value), D(html['setbackSliderGreen'].el.value), D(html['setbackSliderBlue'].el.value)]
     }
 
-    tmp.setbackEffects[0] = player.setback[0].div(10).pow_base(0.2)
-    tmp.setbackEffects[1] = player.setback[1].pow(2).pow_base(1.297084).sub(1).div(0.297084).mul(1.5).add(1)
-    tmp.setbackEffects[2] = player.setback[2].div(10).pow_base(16)
+    tmp.setbackEffects[0] = Decimal.div(player.setback[0], 10).pow_base(0.2)
+    tmp.setbackEffects[1] = Decimal.pow(player.setback[1], 2).pow_base(1.297084).sub(1).div(0.297084).mul(1.5).add(1)
+    tmp.setbackEffects[2] = Decimal.div(player.setback[2], 10).pow_base(16)
 
     tmp.trueQuarkTotal = D(0)
     tmp.predictedQuarkTotal = D(0)
@@ -416,21 +416,21 @@ function updateGame_setback() {
 }
 
 function updateHTML_setback() {
-    html['setbackTab'].setDisplay(player.tab === 4)
+    html['setbackTab'].setDisplay(tmp.tab === 4)
     html['setbackTabButton'].setDisplay(Decimal.gte(player.ascend, 10))
 
-    if (player.tab === 4) {
+    if (tmp.tab === 4) {
         html['setSBTabButton'].setDisplay(player.setbackLoadout.length > 0)
         html['loadSBTabButton'].setDisplay(player.setbackLoadout.length > 0)
         html['dimSBTabButton'].setDisplay(player.setbackLoadout.length > 0)
         html['upgSBTabButton'].setDisplay(player.setbackLoadout.length > 0)
     
-        html['setbackTabSettings'].setDisplay(player.setbackTab === 0)
-        html['setbackTabLoadout'].setDisplay(player.setbackTab === 1)
-        html['setbackTabDims'].setDisplay(player.setbackTab === 2)
-        html['setbackTabUpgs'].setDisplay(player.setbackTab === 3)
+        html['setbackTabSettings'].setDisplay(tmp.setbackTab === 0)
+        html['setbackTabLoadout'].setDisplay(tmp.setbackTab === 1)
+        html['setbackTabDims'].setDisplay(tmp.setbackTab === 2)
+        html['setbackTabUpgs'].setDisplay(tmp.setbackTab === 3)
         
-        if (player.setbackTab === 0) {
+        if (tmp.setbackTab === 0) {
             html['setbackSliderRed'].el.disabled = player.inSetback
             html['setbackSliderGreen'].el.disabled = player.inSetback
             html['setbackSliderBlue'].el.disabled = player.inSetback
@@ -450,11 +450,11 @@ function updateHTML_setback() {
             html['setbackToggle'].changeStyle(!(Decimal.eq(player.setback[0], 0) && Decimal.eq(player.setback[1], 0) && Decimal.eq(player.setback[2], 0)) ? 'pointer' : 'not-allowed')
         }
     
-        if (player.setbackTab === 1) {
+        if (tmp.setbackTab === 1) {
             // the displaying is done in displaySetbackCompleted() !
         }
     
-        if (player.setbackTab === 2) {
+        if (tmp.setbackTab === 2) {
             html['redQuarks'].setTxt(format(player.setbackQuarks[0]))
             html['greenQuarks'].setTxt(format(player.setbackQuarks[1]))
             html['blueQuarks'].setTxt(format(player.setbackQuarks[2]))
@@ -468,10 +468,10 @@ function updateHTML_setback() {
             html['dimScalingBoost'].setTxt(format(tmp.quarkBoostEffect, 2))
     
             for (let i = 0; i < tmp.quarkNamesC.length; i++) {
-                html[`setbackDim${tmp.quarkNamesC[i]}`].setDisplay(i === player.setbackDimTab)
+                html[`setbackDim${tmp.quarkNamesC[i]}`].setDisplay(i === tmp.setbackDimTab)
             }
     
-            let ok = player.setbackDimTab
+            let ok = tmp.setbackDimTab
     
             html[`${tmp.quarkNames[ok]}QuarkAmt`].setTxt(format(player.setbackQuarks[ok]))
             html[`${tmp.quarkNames[ok]}EnergyAmt`].setTxt(format(player.setbackEnergy[ok]))
@@ -491,7 +491,7 @@ function updateHTML_setback() {
             }
         }
     
-        if (player.setbackTab === 3) {
+        if (tmp.setbackTab === 3) {
             for (let i = 0; i < player.setback.length; i++) {
                 html[`${tmp.quarkNames[i]}EnergyAmt2`].setTxt(format(player.setbackEnergy[i]))
             }

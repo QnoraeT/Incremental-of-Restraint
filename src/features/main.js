@@ -486,12 +486,12 @@ function updateGame_main() {
 
 function updateHTML_main() {
     let txt = ``
-    html['mainTab'].setDisplay(player.tab === 0)
-    if (player.tab === 0) {
+    html['mainTab'].setDisplay(tmp.tab === 0)
+    if (tmp.tab === 0) {
         html['mainMainTabButton'].setDisplay(player.setbackUpgrades.includes(`r10`))
-        html['mainMain'].setDisplay(player.mainTab === 0)
+        html['mainMain'].setDisplay(tmp.mainTab === 0)
     
-        if (player.mainTab === 0) {
+        if (tmp.mainTab === 0) {
             txt = ``
             if (player.prestigeChallenge === 11) {
                 txt = `PC11 Effect: ^${format(tmp.pc11Eff, 6)}, (${format(player.timeSinceBuyableBought, 3)}s / 0.010s)`
@@ -545,8 +545,7 @@ function updateHTML_main() {
                     html[`upgrade${i}generatorProgressNumber`].setDisplay(player.prestigeChallengeCompleted.includes(0))
                     html[`upgrade${i}generatorTiers`].setDisplay(Decimal.gte(player.generatorFeatures.enhancerBuyables[2], 1))
                     html[`upgrade${i}generatorTierProgressNumber`].setDisplay(Decimal.gte(player.generatorFeatures.enhancerBuyables[2], 1))
-                    
-            
+
                     if (player.prestigeChallengeCompleted.includes(0)) {
                         if (tmp.buyables[i].genLevels.gte(20)) {
                             if (tmp.buyables[i].genLevels.gte(100000)) {

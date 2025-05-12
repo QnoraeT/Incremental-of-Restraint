@@ -439,15 +439,15 @@ function updateGame_ascend() {
 }
 
 function updateHTML_ascend() {
-    html['ascendTab'].setDisplay(player.tab === 3)
+    html['ascendTab'].setDisplay(tmp.tab === 3)
     html['ascendTabButton'].setDisplay(Decimal.gte(player.bestPointsInAscend, 1e21) || Decimal.gt(player.ascend, 0))
 
-    if (player.tab === 3) {
+    if (tmp.tab === 3) {
         html['mainAscendTabButton'].setDisplay(player.setbackUpgrades.includes(`b5`))
         html['hinderanceAscendTabButton'].setDisplay(player.setbackUpgrades.includes(`b5`))
-        html['mainAscend'].setDisplay(player.ascendTab === 0)
-        html['hinderanceAscend'].setDisplay(player.ascendTab === 1)
-        if (player.ascendTab === 0) {
+        html['mainAscend'].setDisplay(tmp.ascendTab === 0)
+        html['hinderanceAscend'].setDisplay(tmp.ascendTab === 1)
+        if (tmp.ascendTab === 0) {
             let notCapped, canBuy
             for (let i = 0; i < ASCENSION_UPGRADES.length; i++) {
                 html[`ascendUpgrade${i}`].setDisplay(ASCENSION_UPGRADES[i].show)
@@ -470,7 +470,7 @@ function updateHTML_ascend() {
             html['ascendPointEffect'].setDisplay(true)
             html['ascendPointEffect'].setTxt(`Producing ${format(tmp.ascendPointEffect, 2)} gems per second`)
         }
-        if (player.ascendTab === 1) {
+        if (tmp.ascendTab === 1) {
             for (let i = 0; i < HINDERANCES.length; i++) {
                 html[`hinderance${i}name`].setTxt(HINDERANCES[i].name)
                 html[`hinderance${i}desc`].setTxt(HINDERANCES[i].desc)

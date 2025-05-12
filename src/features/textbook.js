@@ -66,7 +66,8 @@ const TEXTBOOK = [
         get info() {
             return `
                 Prestige Challenges are places where you do a prestige reset, however, the game will be more limiting. You will need to have your current points surpass the prestige challenge's goal and prestige in order to complete the challenge. Challenges have certain rewards that you gain after you complete them.<br>
-                You will see common abbreviations like "PCx" where x is the number of that prestige challenge. You can see which challenge(s) you're in by seeing the text below your point amount.
+                You will see common abbreviations like "PCx" where x is the number of that prestige challenge. You can see which challenge(s) you're in by seeing the text below your point amount.<br><br>
+                <span style="color: #ffff00"><b>Warning!</b> Entering and exiting a prestige challenge will not count as an actual prestige! <b>You will not gain any prestige-related resources if you enter and exit any prestige challenge!</b></span>
             `
         },
         enabled: false
@@ -98,7 +99,36 @@ const TEXTBOOK = [
         get info() {
             return `
                 Ascension is the game's second prestige layer. You initally gain 1 ascension point, and every time you multiply your point amount by ${format(tmp.ascendReq)}, you gain 1,000× more ascension points. Roughly, your ascension point gain is (x/${format(tmp.ascendReq)})<sup>${format(Decimal.log(1e3, tmp.ascendReq), 4)}</sup><br>
-                Ascension points create Ascension gems, which can be used to buy upgrades. However, ascension upgrades also have other requirements that you must meet before being able to buy them.
+                Ascension points create Ascension gems, which can be used to buy upgrades. However, ascension upgrades also have other requirements that you must meet before being able to buy them.<br><br>
+                Past 10 ascension points, you will unlock Setback.
+            `
+        },
+        enabled: false
+    },
+    {
+        get show() {
+            return Decimal.gt(player.ascend, 10)
+        },
+        title: `Setback`,
+        stage: `Feature of <span style="color: #00ff00">Ascension</span>`,
+        get colors() {
+            return [
+                `#${Math.floor(Math.sin(sessionTime) * 127 + 128).toString(16).padStart(2,"0")}${Math.floor(Math.sin(sessionTime + (Math.PI * 2/3)) * 127 + 128).toString(16).padStart(2,"0")}${Math.floor(Math.sin(sessionTime + (Math.PI * 4/3)) * 127 + 128).toString(16).padStart(2,"0")}`,
+                `#${Math.floor(Math.sin(sessionTime) * 63 + 64).toString(16).padStart(2,"0")}${Math.floor(Math.sin(sessionTime + (Math.PI * 2/3)) * 63 + 64).toString(16).padStart(2,"0")}${Math.floor(Math.sin(sessionTime + (Math.PI * 4/3)) * 63 + 64).toString(16).padStart(2,"0")}80`,
+            ]
+        },
+        get info() {
+            return `
+                Setback is a custom challenge modifier that does as Ascension reset. You currently have 3 different options that range from 1 to 10 that causes different effects and you must do an ascension reset to complete a setback. Upon completing a setback, you have the option to enable/disable it in your loadouts, which generate quarks and energy.<br>
+                There are various upgrades you can buy with energy as well. You may have to swap loadouts so that you can buy the upgrades.<br>
+                <span style="color: #ffff00">Dimensions, Quarks, and Energy reset on Ascensions!</span><br>
+                Dimensions multiply your energy gain as well. They're also subject to a similar interval with buyables, except that every 100 purchases, the dimensions' multiplier per bought (base of 2) increases by +1. The cost scaling per interval is similar to the scaling for buyables. The default interval is every 100 purchases, +1× to mult per bought, and 2× to cost.<br><br>
+                Exact Quark Gain Formula: Total<sup>2</sup>*Power<sup>2</sup>, where Power is the scale from 0 to 10.<br>
+                Exact Dim. Mult. Formula: 1,000<sup>(Power-1)/9</sup><br>
+                <span style="color: #FF8080">Exact Red Energy Formula: 1+log<sub>10</sub>(1+Red Energy)</span><br>
+                <span style="color: #80FF80">Exact Green Energy Formula: 1+log<sub>10</sub>(1+log<sub>10</sub>(1+Green Energy)/20)</span><br>
+                <span style="color: #8080FF">Exact Blue Energy Formula: 1+log<sub>10</sub>(1+Blue Energy)<sup>2</sup>/200</span><br>
+                Exact Dimension Costs: 10<sup>Dim#<sup>2</sup></sup>*10<sup>Bought*(2+Dim#)</sup>
             `
         },
         enabled: false

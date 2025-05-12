@@ -467,21 +467,42 @@ function updateGame_prestige() {
         tmp.prestigeUpgDescs[i] = PRESTIGE_UPGRADES[i].desc
     }
 
+    for (let i = 0; i < PRESTIGE_CHALLENGES.length; i++) {
+        tmp.prestigeChal[i] = {
+            entered: false,
+            trapped: false,
+            depth: D(0)
+        }
+
+        if (player.prestigeChallenge === i) {
+            tmp.prestigeChal[i].entered = true
+            tmp.prestigeChal[i].depth = Decimal.add(tmp.prestigeChal[i].depth, 1)
+        }
+    }
+
     if (player.prestigeChallenge === 11) {
         tmp.pc11Eff = Decimal.add(player.timeSinceBuyableBought, 0.001).div(0.011).min(1).mul(Decimal.sub(1, Decimal.div(1, Decimal.max(player.points, 0).add(1).log10().add(1).log10().add(1).log10().add(1))).mul(0.875).add(0.125))
     }
 
     player.timeInPrestige = Decimal.add(player.timeInPrestige, Decimal.mul(delta, tmp.timeSpeedTiers[0]))
 
+    tmp.prestigeEssenceFactors = []
     tmp.peGain = player.setbackUpgrades.includes(`b1`)
         ? Decimal.max(player.bestPointsInPrestige, 10).log(1e6).log2().pow_base(10)
         : D(0)
-    tmp.peGain = tmp.peGain.pow(HINDERANCES[0].eff)
+    tmp.prestigeEssenceFactors.push(`Base: 10<sup>log<sub>2</sub>(log<sub>1,000,000</sub>(${format(player.bestPointsInPrestige)}))</sup> → ${format(tmp.peGain, 2)}`)
+    if (Decimal.gte(player.hinderanceScore[0], HINDERANCES[0].start)) {
+        tmp.peGain = tmp.peGain.pow(HINDERANCES[0].eff)
+        tmp.prestigeEssenceFactors.push(`H1 PB: ^${format(HINDERANCES[0].eff, 3)} → ${format(tmp.peGain, 2)}`)
+    }
+    tmp.prestigeEssenceFactors.push(`Current P. Essence: -${format(player.prestigeEssence, 2)} → ${format(tmp.peGain.sub(player.prestigeEssence).max(0), 2)}`)
     tmp.peGain = tmp.peGain.sub(player.prestigeEssence).floor().max(0)
 
     tmp.peNext = tmp.peGain
     tmp.peNext = tmp.peNext.add(1).floor().add(player.prestigeEssence)
-    tmp.peNext = tmp.peNext.root(HINDERANCES[0].eff)
+    if (Decimal.gte(player.hinderanceScore[0], HINDERANCES[0].start)) {
+        tmp.peNext = tmp.peNext.root(HINDERANCES[0].eff)
+    }
     tmp.peNext = tmp.peNext.log(10).pow_base(2).pow_base(1e6)
 
     tmp.peEffect = Decimal.max(player.prestigeEssence, 0).add(1)
@@ -562,7 +583,7 @@ function updateGame_prestige() {
     }
     if (Decimal.gt(player.hinderanceScore[1], HINDERANCES[1].start)) {
         tmp.prestigeAmount = tmp.prestigeAmount.mul(HINDERANCES[1].eff)
-        tmp.prestigeFactors.push(`H1 PB: ×${format(HINDERANCES[1].eff, 2)} → ${format(tmp.prestigeAmount, 2)}`)
+        tmp.prestigeFactors.push(`H2 PB: ×${format(HINDERANCES[1].eff, 2)} → ${format(tmp.prestigeAmount, 2)}`)
     }
     if (player.inSetback) {
         tmp.prestigeAmount = tmp.prestigeAmount.div(tmp.setbackEffects[1])
@@ -570,10 +591,10 @@ function updateGame_prestige() {
     }
     if (player.currentHinderance === 1) {
         tmp.prestigeAmount = tmp.prestigeAmount.root(2)
-        tmp.prestigeFactors.push(`H1 Effect: ^${format(0.5, 2)} → ${format(tmp.prestigeAmount, 2)}`)
+        tmp.prestigeFactors.push(`H2 Effect: ^${format(0.5, 2)} → ${format(tmp.prestigeAmount, 2)}`)
     }
     tmp.prestigeAmount = cheatDilateBoost(tmp.prestigeAmount)
-    tmp.prestigeFactors.push(`Current P. Points.: -${format(player.prestige, 2)} → ${format(tmp.prestigeAmount.sub(player.prestige).max(0), 2)}`)
+    tmp.prestigeFactors.push(`Current P. Points: -${format(player.prestige, 2)} → ${format(tmp.prestigeAmount.sub(player.prestige).max(0), 2)}`)
     tmp.prestigeAmount = tmp.prestigeAmount.sub(player.prestige).floor().max(0)
 
     tmp.prestigeNext = tmp.prestigeAmount.add(player.prestige).add(1)
@@ -609,19 +630,19 @@ function updateGame_prestige() {
 }
 
 function updateHTML_prestige() {
-    html['prestigeTab'].setDisplay(player.tab === 1)
+    html['prestigeTab'].setDisplay(tmp.tab === 1)
     html['prestigeTabButton'].setDisplay(Decimal.gt(player.prestige, 0) || Decimal.gt(player.ascend, 0))
 
-    if (player.tab === 1) {
+    if (tmp.tab === 1) {
         html['mainPrestigeTabButton'].setDisplay(Decimal.gte(player.prestige, 3) || Decimal.gt(player.ascend, 0))
-        html['mainPrestigeTab'].setDisplay(player.prestigeTab === 0)
+        html['mainPrestigeTab'].setDisplay(tmp.prestigeTab === 0)
     
-        html['prestigeChallengeTab'].setDisplay(player.prestigeTab === 2)
+        html['prestigeChallengeTab'].setDisplay(tmp.prestigeTab === 2)
         html['prestigeChallengeTabButton'].setDisplay(Decimal.gte(player.prestige, 3) || Decimal.gt(player.ascend, 0))
         html['essencePrestigeTabButton'].setDisplay(player.setbackUpgrades.includes(`b1`))
-        html['essencePrestigeTab'].setDisplay(player.prestigeTab === 1)
+        html['essencePrestigeTab'].setDisplay(tmp.prestigeTab === 1)
     
-        if (player.prestigeTab === 0) {
+        if (tmp.prestigeTab === 0) {
             for (let i = 0; i < PRESTIGE_UPGRADES.length; i++) {
                 let show = true
                 if (i >= 9 && i <= 11) {
@@ -651,11 +672,11 @@ function updateHTML_prestige() {
             }
             html['prestigeUpgradeCap'].setTxt(`${format(tmp.totalPrestigeUpgrades)} / ${format(tmp.prestigeUpgradeCap)}`)
         }
-        if (player.prestigeTab === 1) {
+        if (tmp.prestigeTab === 1) {
             html['prestigeEssence'].setTxt(format(player.prestigeEssence))
             html['prestigeEssenceEffect'].setTxt(`Boosting points by ×${format(tmp.peEffect, 2)}`)
         }
-        if (player.prestigeTab === 2) {
+        if (tmp.prestigeTab === 2) {
             for (let i = 0; i < PRESTIGE_CHALLENGES.length; i++) {
                 html[`prestigeChallenge${i}name`].setTxt(PRESTIGE_CHALLENGES[i].name)
                 html[`prestigeChallenge${i}desc`].setTxt(PRESTIGE_CHALLENGES[i].desc)

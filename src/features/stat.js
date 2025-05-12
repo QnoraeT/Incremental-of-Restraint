@@ -54,12 +54,12 @@ function updateGame_stats() {
 }
 
 function updateHTML_stats() {
-    html['statTab'].setDisplay(player.tab === -1)
+    html['statTab'].setDisplay(tmp.tab === -1)
 
-    if (player.tab === -1) {
-        html['buyableStat'].setDisplay(player.statTab === 0)
-        html['factorsStat'].setDisplay(player.statTab === 1)
-        if (player.statTab === 0) {
+    if (tmp.tab === -1) {
+        html['buyableStat'].setDisplay(tmp.statTab === 0)
+        html['factorsStat'].setDisplay(tmp.statTab === 1)
+        if (tmp.statTab === 0) {
             for (let i = 0; i < player.buyables.length; i++) {
                 if (buyableEnabled(i)) {
                     html[`statUpgrade${i}`].setDisplay(true)
@@ -87,7 +87,7 @@ function updateHTML_stats() {
                 }
             }
         }
-        if (player.statTab === 1) {
+        if (tmp.statTab === 1) {
             let txt = `<b style="font-size: 14px">Point Gain</b>`
             for (let i = 0; i < tmp.pointFactors.length; i++) {
                 txt += `<li>${tmp.pointFactors[i]}</li>`

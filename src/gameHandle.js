@@ -29,9 +29,6 @@ function initPlayer() {
         },
         lastTick: Date.now(),
         version: 0,
-        tab: 0,
-        statTab: 0,
-        mainTab: 0,
         points: D(0),
         bestPointsInPrestige: D(0),
         bestPointsInAscend: D(0),
@@ -43,7 +40,6 @@ function initPlayer() {
         timeSinceBuyableBought: D(0),
         prestige: D(0),
         prestigeEssence: D(0),
-        prestigeTab: 0,
         timeInPrestige: D(0),
         prestigeUpgrades: [
             D(0), D(0), D(0), 
@@ -58,13 +54,10 @@ function initPlayer() {
         darts: D(0),
         hinderanceScore: [D(0), D(0), D(0)],
         currentHinderance: null,
-        ascendTab: 0,
         ascend: D(0),
         timeInAscend: D(0),
         ascendGems: D(0),
         ascendUpgrades: [],
-        setbackTab: 0,
-        setbackDimTab: 0,
         setback: [D(0), D(0), D(0)],
         currentSetback: null,
         setbackLoadout: [],
@@ -87,9 +80,9 @@ function initPlayer() {
             [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)]
         ],
         quarkDimsAuto: [
-            [false, false, false, false, false, false, false],
-            [false, false, false, false, false, false, false],
-            [false, false, false, false, false, false, false]
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false]
         ],
         setbackUpgradeSelected: null,
         setbackUpgrades: [],
@@ -114,6 +107,13 @@ function initTmp() {
             tickLength: 0.05,
             returnTime: 0,
         },
+        tab: 0,
+        statTab: 0,
+        mainTab: 0,
+        prestigeTab: 0,
+        ascendTab: 0,
+        setbackTab: 0,
+        setbackDimTab: 0,
         timeSpeedTiers: [D(1)],
         timeFactors: [[]],
         pointGen: D(1),
@@ -131,6 +131,7 @@ function initTmp() {
         prestigePointEffect: D(1),
         prestigeUpgEffs: [],
         prestigeUpgDescs: [],
+        prestigeChal: [],
         totalPrestigeUpgrades: D(0),
         peGain: D(0),
         peNext: D(0),
@@ -284,6 +285,28 @@ const gameVars = {
     saveDisabled: false
 };
 
+function updatePlayer() {
+    if (player.version === 0) {
+        delete player.tab
+        delete player.statTab
+        delete player.mainTab
+        delete player.prestigeTab
+        delete player.ascendTab
+        delete player.setbackTab
+        delete player.setbackDimTab
+        player.version = 1
+    }
+    if (player.version === 1) {
+
+        // player.version = 2
+    }
+    if (player.version === 2) {
+
+        // player.version = 3
+    }
+
+}
+
 function loadGame() {
     player = initPlayer()
     tmp = initTmp()
@@ -298,6 +321,8 @@ function loadGame() {
             gameVars.saveDisabled = true;
         }
     }
+
+    updatePlayer()
 
     initHTML()
 
@@ -529,7 +554,7 @@ function updateHTML() {
         arr.push(`<span style="color: #0080ff">PC${player.prestigeChallenge + 1}: ${PRESTIGE_CHALLENGES[player.prestigeChallenge].name}</span>`)
     }
     if (player.inSetback) {
-        arr.push(`<span style="color: #${new Decimal(player.setback[0]).mul(25).toNumber().toString(16)}${new Decimal(player.setback[1]).mul(25).toNumber().toString(16)}${new Decimal(player.setback[2]).mul(25).toNumber().toString(16)}">Setback (${format(player.setback[0])}, ${format(player.setback[1])}, ${format(player.setback[2])})</span>`)
+        arr.push(`<span style="color: #${new Decimal(player.setback[0]).mul(12).add(128).toNumber().toString(16)}${new Decimal(player.setback[1]).mul(12).add(128).toNumber().toString(16)}${new Decimal(player.setback[2]).mul(12).add(128).toNumber().toString(16)}">Setback (${format(player.setback[0])}, ${format(player.setback[1])}, ${format(player.setback[2])})</span>`)
     }
     if (player.currentHinderance !== null) {
         arr.push(`<span style="color: #ff0020">H${player.currentHinderance + 1}: ${HINDERANCES[player.currentHinderance].name}</span>`)
@@ -550,13 +575,19 @@ function updateHTML() {
 
     html['chalList'].setHTML(txt)
 
-    html['textbookTab'].setDisplay(player.tab === 2)
-    if (player.tab === 2) {
+    html['textbookTab'].setDisplay(tmp.tab === 2)
+    if (tmp.tab === 2) {
         for (let i = 0; i < TEXTBOOK.length; i++) {
             html[`textbookButton${i}`].setDisplay(TEXTBOOK[i].show)
-            html[`textbook${i}`].setDisplay(TEXTBOOK[i].enabled)
-            if (TEXTBOOK[i].enabled) {
-                html[`textbook${i}`].setHTML(TEXTBOOK[i].info)
+            if (TEXTBOOK[i].show) {
+                html[`textbookButton${i}`].changeStyle('background-color', TEXTBOOK[i].colors[1])
+                html[`textbookButton${i}`].changeStyle('border', `3px solid ${TEXTBOOK[i].colors[0]}`)
+                html[`textbook${i}`].setDisplay(TEXTBOOK[i].enabled)
+                if (TEXTBOOK[i].enabled) {
+                    html[`textbook${i}`].changeStyle('background-color', TEXTBOOK[i].colors[1])
+                    html[`textbook${i}`].changeStyle('border', `3px solid ${TEXTBOOK[i].colors[0]}`)
+                    html[`textbook${i}`].setHTML(TEXTBOOK[i].info)
+                }
             }
         }
     }

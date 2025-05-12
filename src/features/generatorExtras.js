@@ -219,9 +219,9 @@ function updateGame_generatorExtras() {
 
 function updateHTML_generatorExtras() {
     html['generatorMainTabButton'].setDisplay(player.setbackUpgrades.includes(`r10`))
-    html['generatorMain'].setDisplay(player.mainTab === 1)
+    html['generatorMain'].setDisplay(tmp.mainTab === 1)
 
-    if (player.mainTab === 1) {
+    if (tmp.mainTab === 1) {
         html['genXP'].setTxt(format(player.generatorFeatures.xp, 2))
         html['genXPGain'].setTxt(format(tmp.generatorFeatures.gain, 2))
         html['genXPSpdEff'].setTxt(format(tmp.generatorFeatures.xpEffGenerators, 3))
