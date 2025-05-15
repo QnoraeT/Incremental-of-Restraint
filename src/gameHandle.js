@@ -36,6 +36,7 @@ function initPlayer() {
         buyablePoints: [D(0), D(0), D(0), D(0), D(0), D(0)],
         buyableTierPoints: [D(0), D(0), D(0), D(0), D(0), D(0)],
         buyableAutobought: [D(0), D(0), D(0), D(0), D(0), D(0)],
+        bestTotalGenLvs: D(0),
         buyableAuto: [false, false, false, false, false],
         timeSinceBuyableBought: D(0),
         prestige: D(0),
@@ -213,6 +214,13 @@ function initTmp() {
     obj.buyables = resetMainBuyables()
     obj.generatorFeatures.genXPBuyables = resetGenXPBuyables()
     obj.generatorFeatures.genEnhBuyables = resetGenEnhBuyables()
+    for (let i = PRESTIGE_CHALLENGES.length - 1; i >= 0; i--) {
+        obj.prestigeChal[i] = {
+            entered: false,
+            trapped: false,
+            depth: D(0)
+        }
+    }
     return obj
 }
 
@@ -297,14 +305,25 @@ function updatePlayer() {
         player.version = 1
     }
     if (player.version === 1) {
-
-        // player.version = 2
+        player.bestTotalGenLvs = D(0)
+        player.version = 2
     }
     if (player.version === 2) {
 
         // player.version = 3
     }
+    if (player.version === 3) {
 
+        // player.version = 4
+    }
+    if (player.version === 4) {
+
+        // player.version = 5
+    }
+    if (player.version === 5) {
+
+        // player.version = 6
+    }
 }
 
 function loadGame() {
@@ -356,50 +375,62 @@ function initHTML() {
     document.body.style.backgroundColor = "#000000"
     document.body.style.margin = "0px"
     document.body.style.padding = "0px"
-    toHTMLvar('offlineTime')
-    toHTMLvar('inGame')
-    toHTMLvar('offlineTimeProgress')
-    toHTMLvar('offlineTimeProgressBar')
-    toHTMLvar('offlineTimeProgressBarBase')
-    toHTMLvar('offlineTimeDisplay')
+    try {
+        toHTMLvar('offlineTime')
+        toHTMLvar('inGame')
+        toHTMLvar('offlineTimeProgress')
+        toHTMLvar('offlineTimeProgressBar')
+        toHTMLvar('offlineTimeProgressBarBase')
+        toHTMLvar('offlineTimeDisplay')
 
-    html['inGame'].setDisplay(false)
-    html['offlineTime'].setDisplay(false)
+        html['inGame'].setDisplay(false)
+        html['offlineTime'].setDisplay(false)
 
-    toHTMLvar('points')
-    toHTMLvar('pointsPerSecond')
-    toHTMLvar('chalList')
+        toHTMLvar('points')
+        toHTMLvar('pointsPerSecond')
+        toHTMLvar('chalList')
 
-    initHTML_generatorExtras()
-    initHTML_setback()
-    initHTML_ascend()
-    initHTML_prestige()
-    initHTML_main()
-    initHTML_stats()
+        initHTML_generatorExtras()
+        initHTML_setback()
+        initHTML_ascend()
+        initHTML_prestige()
+        initHTML_main()
+        initHTML_stats()
 
-    toHTMLvar('textbookTabButton')
-    toHTMLvar('textbookTab')
-    toHTMLvar('informationList')
+        toHTMLvar('textbookTabButton')
+        toHTMLvar('textbookTab')
+        toHTMLvar('informationList')
 
-    let txt = ``
-    for (let i = 0; i < TEXTBOOK.length; i++) {
-        txt += `
-            <button onclick="TEXTBOOK[${i}].enabled = !TEXTBOOK[${i}].enabled" id="textbookButton${i}" class="whiteText font" style="background-color: ${TEXTBOOK[i].colors[1]}; border: 3px solid ${TEXTBOOK[i].colors[0]}; height: 55px; width: 300px; font-size: 16px; margin-top: 2px; margin-bottom: 4px; cursor: pointer">
-                <b>${TEXTBOOK[i].title}</b><br>
-                <span style="font-size: 12px">${TEXTBOOK[i].stage}</span>
-            </button>
-            <div id="textbook${i}" class="whiteText font" style="background-color: ${TEXTBOOK[i].colors[1]}; border: 3px solid ${TEXTBOOK[i].colors[0]}; width: 1000px; padding: 4px; margin-top: -7px; margin-bottom: 3px; font-size: 12px; text-align: center"></div>
+        let txt = ``
+        for (let i = 0; i < TEXTBOOK.length; i++) {
+            txt += `
+                <button onclick="TEXTBOOK[${i}].enabled = !TEXTBOOK[${i}].enabled" id="textbookButton${i}" class="whiteText font" style="background-color: ${TEXTBOOK[i].colors[1]}; border: 3px solid ${TEXTBOOK[i].colors[0]}; height: 55px; width: 300px; font-size: 16px; margin-top: 2px; margin-bottom: 4px; cursor: pointer">
+                    <b>${TEXTBOOK[i].title}</b><br>
+                    <span style="font-size: 12px">${TEXTBOOK[i].stage}</span>
+                </button>
+                <div id="textbook${i}" class="whiteText font" style="background-color: ${TEXTBOOK[i].colors[1]}; border: 3px solid ${TEXTBOOK[i].colors[0]}; width: 1000px; padding: 4px; margin-top: -7px; margin-bottom: 3px; font-size: 12px; text-align: center"></div>
+            `
+        }
+        html['informationList'].setHTML(txt)
+        for (let i = 0; i < TEXTBOOK.length; i++) {
+            toHTMLvar(`textbook${i}`)
+            toHTMLvar(`textbookButton${i}`)
+        }
+
+        draw = document.getElementById('draw');
+        pen = draw.getContext("2d");
+        initDots()
+    } catch(e) {
+        document.body.innerHTML = `
+            <span style="font-size: 12px; text-align: center" class="whiteText font flex-vertical">
+                <b>Frick.</b>&nbsp;An error has occurred during start up of the game!<br><br>
+                ${e}<br><br>
+                Check the console by right click → Inspect, or by pressing Ctrl + Shift + I (Windows).
+            </span>
         `
+        console.error(e)
+        throw new Error('stopped.')
     }
-    html['informationList'].setHTML(txt)
-    for (let i = 0; i < TEXTBOOK.length; i++) {
-        toHTMLvar(`textbook${i}`)
-        toHTMLvar(`textbookButton${i}`)
-    }
-
-    draw = document.getElementById('draw');
-    pen = draw.getContext("2d");
-    initDots()
 }
 
 let gameStopped = false
@@ -548,29 +579,49 @@ function updateHTML() {
     html["points"].setTxt(`${format(player.points, 2)}`)
     html["pointsPerSecond"].setTxt(`${format(tmp.pointGen, 2)}/s`)
 
-    const arr = []
+    const trappedArr = []
+    for (let i = 0; i < PRESTIGE_CHALLENGES.length; i++) {
+        if (tmp.prestigeChal[i].trapped) {
+            trappedArr.push(`<span style="color: #0080ff"><b>PC${i + 1}</b>: ${PRESTIGE_CHALLENGES[i].name} <b>×${format(tmp.prestigeChal[i].depth)}</b></span>`)
+        }
+    }
+    const enteredArr = []
     txt = ``
     if (player.prestigeChallenge !== null) {
-        arr.push(`<span style="color: #0080ff">PC${player.prestigeChallenge + 1}: ${PRESTIGE_CHALLENGES[player.prestigeChallenge].name}</span>`)
+        enteredArr.push(`<span style="color: #0080ff"><b>PC${player.prestigeChallenge + 1}</b>: ${PRESTIGE_CHALLENGES[player.prestigeChallenge].name}</span>`)
     }
     if (player.inSetback) {
-        arr.push(`<span style="color: #${new Decimal(player.setback[0]).mul(12).add(128).toNumber().toString(16)}${new Decimal(player.setback[1]).mul(12).add(128).toNumber().toString(16)}${new Decimal(player.setback[2]).mul(12).add(128).toNumber().toString(16)}">Setback (${format(player.setback[0])}, ${format(player.setback[1])}, ${format(player.setback[2])})</span>`)
+        enteredArr.push(`<span style="color: #${new Decimal(player.setback[0]).mul(12).add(128).toNumber().toString(16)}${new Decimal(player.setback[1]).mul(12).add(128).toNumber().toString(16)}${new Decimal(player.setback[2]).mul(12).add(128).toNumber().toString(16)}"><b>Setback</b> (${format(player.setback[0])}, ${format(player.setback[1])}, ${format(player.setback[2])})</span>`)
     }
     if (player.currentHinderance !== null) {
-        arr.push(`<span style="color: #ff0020">H${player.currentHinderance + 1}: ${HINDERANCES[player.currentHinderance].name}</span>`)
+        enteredArr.push(`<span style="color: #ff0020"><b>H${player.currentHinderance + 1}</b>: ${HINDERANCES[player.currentHinderance].name}</span>`)
     }
-    if (arr.length === 0) {
-        txt = `You are currently without obstructions.`
-    } else if (arr.length === 1) {
-        txt = `You are in ${arr[0]}.`
-    } else if (arr.length === 2) {
-        txt = `You are in ${arr[0]} and ${arr[1]}.`
+    if (enteredArr.length === 0) {
+        txt = `You currently have no obstructions.`
+    } else if (enteredArr.length === 1) {
+        txt = `You have entered ${enteredArr[0]}.`
+    } else if (enteredArr.length === 2) {
+        txt = `You have entered ${enteredArr[0]} and ${enteredArr[1]}.`
     } else {
-        txt = `You are in `
-        for (let i = 0; i < arr.length - 1; i++) {
-            txt += `${arr[i]}, `
+        txt = `You have entered `
+        for (let i = 0; i < enteredArr.length - 1; i++) {
+            txt += `${enteredArr[i]}, `
         }
-        txt += `and ${arr[arr.length - 1]}.`
+        txt += `and ${enteredArr[enteredArr.length - 1]}.`
+    }
+    if (trappedArr.length > 0) {
+        txt += `<br>You are trapped in `
+        if (trappedArr.length === 1) {
+            txt += `${trappedArr[0]}.`
+        } else if (trappedArr.length === 2) {
+            txt += `${trappedArr[0]} and ${trappedArr[1]}`
+        } else {
+            txt += ``
+            for (let i = 0; i < trappedArr.length - 1; i++) {
+                txt += `${trappedArr[i]}, `
+            }
+            txt += `and ${trappedArr[trappedArr.length - 1]}`
+        }
     }
 
     html['chalList'].setHTML(txt)
@@ -596,7 +647,7 @@ function updateHTML() {
 function calcTimeSpeed() {
     // tier 2 timespeed multiplies tier 1 timespeed
     tmp.timeSpeedTiers[0] = D(1)
-    if (player.prestigeChallenge === 11) {
-        tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].div(1e3)
+    if (tmp.prestigeChal[11].depth) {
+        tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].div(tmp.prestigeChal[11].depth.pow_base(1e3))
     }
 }

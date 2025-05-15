@@ -84,7 +84,7 @@ const TEXTBOOK = [
                 Generators are unlocked from PC1 which increases each buyable's effect gradually over time.<br>
                 Generator Speed similarly calculated to the buyable's effect, that being x*${format(tmp.bybBoostEffect, 2)}<sup>⌊x/${format(tmp.bybBoostInterval)}⌋</sup><br>
                 The requirements of each generator level scale factorially. (Lv 1 needs 2 XP, Lv 2 needs 6 XP, etc.), but this requirement gradually scales faster and faster.<br><br>
-                Exact requirement formula: 1,000,000(e<sup>x/1,000,000</sup>-1)!
+                Exact requirement formula: 1,000(e<sup>x/1,000</sup>-1)!
             `
         },
         enabled: false
@@ -120,15 +120,35 @@ const TEXTBOOK = [
         get info() {
             return `
                 Setback is a custom challenge modifier that does as Ascension reset. You currently have 3 different options that range from 1 to 10 that causes different effects and you must do an ascension reset to complete a setback. Upon completing a setback, you have the option to enable/disable it in your loadouts, which generate quarks and energy.<br>
+                The higher the individual AND total difficulty, the higher your quark gain and multipliers are.<br>
                 There are various upgrades you can buy with energy as well. You may have to swap loadouts so that you can buy the upgrades.<br>
                 <span style="color: #ffff00">Dimensions, Quarks, and Energy reset on Ascensions!</span><br>
                 Dimensions multiply your energy gain as well. They're also subject to a similar interval with buyables, except that every 100 purchases, the dimensions' multiplier per bought (base of 2) increases by +1. The cost scaling per interval is similar to the scaling for buyables. The default interval is every 100 purchases, +1× to mult per bought, and 2× to cost.<br><br>
                 Exact Quark Gain Formula: Total<sup>2</sup>*Power<sup>2</sup>, where Power is the scale from 0 to 10.<br>
-                Exact Dim. Mult. Formula: 1,000<sup>(Power-1)/9</sup><br>
-                <span style="color: #FF8080">Exact Red Energy Formula: 1+log<sub>10</sub>(1+Red Energy)</span><br>
-                <span style="color: #80FF80">Exact Green Energy Formula: 1+log<sub>10</sub>(1+log<sub>10</sub>(1+Green Energy)/20)</span><br>
+                Exact Dim. Mult. Formula: 2<sup>0.75*Power+0.25*Total</sup><br>
+                <span style="color: #FF8080">Exact Red Energy Formula: (1+log<sub>10</sub>(1+Red Energy))<sup>Every OoM^2 (1e10, 1e100, etc.), this power increases by 1, starting at 1.</sup></span><br>
+                <span style="color: #80FF80">Exact Green Energy Formula: 1+log<sub>10</sub>(1+Green Energy)/10</span><br>
                 <span style="color: #8080FF">Exact Blue Energy Formula: 1+log<sub>10</sub>(1+Blue Energy)<sup>2</sup>/200</span><br>
                 Exact Dimension Costs: 10<sup>Dim#<sup>2</sup></sup>*10<sup>Bought*(2+Dim#)</sup>
+            `
+        },
+        enabled: false
+    },
+        {
+        get show() {
+            return player.setbackUpgrades.includes('r10')
+        },
+        title: `Generator Experience`,
+        stage: `Feature of <span style="color: #00ff00">Ascension</span>`,
+        colors: ['#FF4000', '#80200080'],
+        get info() {
+            return `
+                Generator Experience starts generating as soon as you grab the 10th upgrade of Red. Generator Experience gain is based off of your generator levels. Remember to cycle through prestige upgrade sets!<br>
+                Generator Experience boosts your generation speed. Your points will also be boosted if you have >200 total generator levels. You may also buy generator experience buyables to further increase your generator experience gain.<br>
+                Past 1.000 Dc Generator Experience, you can do an ascension reset for generator enhancements, which boost your generator experience gain and unlock new buyables, one of them has an especially powerful unlock!<br><br>
+                Exact Generator Experience gain: (t/200)*10<sup>t/200</sup>, where t is your total generator levels.<br>
+                Exact Generator Experience effect to generator speed: ^1+ln(1+0.05log<sub>10</sub>(1+GE))<br>
+                Exact Generator Experience effect to points: ^1+0.05(1+log<sub>10</sub>(1+log<sub>10</sub>(GE)))*log<sub>2</sub>(t/200)<br>
             `
         },
         enabled: false

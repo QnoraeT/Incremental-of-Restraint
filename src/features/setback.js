@@ -220,19 +220,15 @@ function initHTML_setback() {
 
         toHTMLvar(`${color}Quarks`)
         toHTMLvar(`${color}Energy`)
-        toHTMLvar(`${color}QuarkAmt`)
-        toHTMLvar(`${color}EnergyAmt`)
         toHTMLvar(`${color}EnergyAmt2`)
         toHTMLvar(`${color}QuarkEff`)
         toHTMLvar(`${color}EnergyEff`)
-        
+
         toHTMLvar(`setback${capsColor}DimList`)
         toHTMLvar(`setback${capsColor}Value`)
         toHTMLvar(`setback${capsColor}Effect`)
         toHTMLvar(`setback${capsColor}Generate`)
         toHTMLvar(`setbackSlider${capsColor}`)
-        toHTMLvar(`SBDim${capsColor}TabButton`)
-        toHTMLvar(`setbackDim${capsColor}`)
 
         toHTMLvar(`${color}SBUpgrades`)
 
@@ -250,24 +246,30 @@ function initHTML_setback() {
             toHTMLvar(`${color}SBUpg${j}`)
         }
 
-        txt = ``
+        txt = `
+            <button onclick="buyMaxSBDim(${i})" id="${capsColor}Buymax" class="whiteText font" style="height: 45px; width: 250px; font-size: 9px; margin: 2px">
+                Buy Max all ${capsColor} Dims.<br>
+                You can buy ~<span id="${color}BMTotalEst"></span> dimensions currently.
+            </button>
+        `
         for (let j = 0; j < player.quarkDimsBought[i].length; j++) {
             txt += `
-                <button onclick="buySBDim(${i}, ${j})" id="${capsColor}Dim${j}" class="whiteText font" style="height: 50px; width: 300px; font-size: 10px; margin: 2px">
-                    ${capsColor} Dimension ${j + 1}: ×<span id="${capsColor}Dim${j}amount"></span><br>
-                    Mult: ×<span id="${capsColor}Dim${j}mult"></span><br>
-                    Cost: <span id="${capsColor}Dim${j}cost"></span>
+                <button onclick="buySBDim(${i}, ${j})" id="${color}Dim${j}" class="whiteText font" style="height: 45px; width: 250px; font-size: 9px; margin: 2px">
+                    ${capsColor} Dimension ${j + 1}: ×<span id="${color}Dim${j}amount"></span><br>
+                    Mult: ×<span id="${color}Dim${j}mult"></span><br>
+                    Cost: <span id="${color}Dim${j}cost"></span>
                 </button>
             `
         }
         html[`setback${capsColor}DimList`].setHTML(txt)
 
         for (let j = 0; j < player.quarkDimsBought[i].length; j++) {
-            toHTMLvar(`${capsColor}Dim${j}`)
-            toHTMLvar(`${capsColor}Dim${j}amount`)
-            toHTMLvar(`${capsColor}Dim${j}mult`)
-            toHTMLvar(`${capsColor}Dim${j}cost`)
+            toHTMLvar(`${color}Dim${j}`)
+            toHTMLvar(`${color}Dim${j}amount`)
+            toHTMLvar(`${color}Dim${j}mult`)
+            toHTMLvar(`${color}Dim${j}cost`)
         }
+        toHTMLvar(`${color}BMTotalEst`)
     }
 
     displaySetbackCompleted()
@@ -278,8 +280,8 @@ function updateGame_setback() {
     tmp.quarkEffs[1] = Decimal.max(player.setbackQuarks[1], 0)
     tmp.quarkEffs[2] = Decimal.max(player.setbackQuarks[2], 0)
 
-    tmp.energyEffs[0] = Decimal.max(player.setbackEnergy[0], 0).add(1).log10().add(1)
-    tmp.energyEffs[1] = Decimal.max(player.setbackEnergy[1], 0).add(1).log10().div(20).add(1).log10().add(1).recip()
+    tmp.energyEffs[0] = Decimal.max(player.setbackEnergy[0], 0).add(1).log10().add(1).pow(Decimal.max(player.setbackEnergy[0], 10).log10().log10().floor().add(1))
+    tmp.energyEffs[1] = Decimal.max(player.setbackEnergy[1], 0).add(1).log10().div(10).add(1).recip()
     tmp.energyEffs[2] = Decimal.max(player.setbackEnergy[2], 0).add(1).log10().pow(2).div(200).add(1)
 
     if (!player.inSetback) {
@@ -287,7 +289,7 @@ function updateGame_setback() {
     }
 
     tmp.setbackEffects[0] = Decimal.div(player.setback[0], 10).pow_base(0.2)
-    tmp.setbackEffects[1] = Decimal.pow(player.setback[1], 2).pow_base(1.297084).sub(1).div(0.297084).mul(1.5).add(1)
+    tmp.setbackEffects[1] = Decimal.pow(player.setback[1], 2).pow_base(1.11946792).sub(1).div(0.11946792).mul(1.5).add(1)
     tmp.setbackEffects[2] = Decimal.div(player.setback[2], 10).pow_base(16)
 
     tmp.trueQuarkTotal = D(0)
@@ -295,14 +297,14 @@ function updateGame_setback() {
     for (let i = 0; i < player.setback.length; i++) {
         tmp.trueQuarkGain[i] = player.currentSetback === null ? D(0) : player.setbackLoadout[player.currentSetback][i]
         tmp.predictedQuarkGain[i] = player.setback[i]
-        
+
         tmp.trueQuarkTotal = tmp.trueQuarkTotal.add(tmp.trueQuarkGain[i])
         tmp.predictedQuarkTotal = tmp.predictedQuarkTotal.add(tmp.predictedQuarkGain[i])
     }
 
     tmp.trueQuarkTotal = tmp.trueQuarkTotal.pow(2);
     tmp.predictedQuarkTotal = tmp.predictedQuarkTotal.pow(2);
-    
+
     for (let i = 0; i < player.setback.length; i++) {
         tmp.trueQuarkGain[i] = Decimal.pow(tmp.trueQuarkGain[i], 2).mul(tmp.trueQuarkTotal)
         tmp.trueQuarkGain[i] = cheatDilateBoost(tmp.trueQuarkGain[i])
@@ -318,13 +320,18 @@ function updateGame_setback() {
     for (let i = 0; i < player.setback.length; i++) {
         tmp.quarkEffs[i] = cheatDilateBoost(tmp.quarkEffs[i])
         tmp.quarkEffs[i] = tmp.quarkEffs[i].mul(tmp.timeSpeedTiers[0])
-        
+
         player.setbackEnergy[i] = Decimal.add(player.setbackEnergy[i], tmp.quarkEffs[i].mul(delta))
     }
 
     tmp.quarkBoostInterval = D(100)
     tmp.quarkBoostEffect = D(1)
     tmp.quarkBoostCost = D(2)
+
+    tmp.trueQuarkTotal = D(0)
+    for (let i = 0; i < player.setback.length; i++) {
+        tmp.trueQuarkTotal = tmp.trueQuarkTotal.add(player.currentSetback === null ? D(0) : player.setbackLoadout[player.currentSetback][i])
+    }
 
     for (let i = 0; i < player.setback.length; i++) {
         for (let j = player.quarkDimsBought[i].length - 1; j >= 0; j--) {
@@ -385,7 +392,7 @@ function updateGame_setback() {
             tmp.quarkDim[i][j].mult = D(1)
             tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(Decimal.pow(baseMultBoost, player.quarkDimsBought[i][j]))
             if (player.currentSetback !== null) {
-                tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(Decimal.max(player.setbackLoadout[player.currentSetback][i], 1).sub(1).div(9).pow_base(1000))
+                tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(Decimal.pow(2, Decimal.mul(player.setbackLoadout[i][j], 0.75).add(tmp.trueQuarkTotal.mul(0.25))))
             }
             if (i === 0) {
                 if (player.setbackUpgrades.includes(`r6`)) {
@@ -462,31 +469,25 @@ function updateHTML_setback() {
             html['redEnergy'].setTxt(format(player.setbackEnergy[0]))
             html['greenEnergy'].setTxt(format(player.setbackEnergy[1]))
             html['blueEnergy'].setTxt(format(player.setbackEnergy[2]))
-    
+
             html['dimScalingInterval'].setTxt(format(tmp.quarkBoostInterval))
             html['dimScalingSpeed'].setTxt(format(tmp.quarkBoostCost, 2))
             html['dimScalingBoost'].setTxt(format(tmp.quarkBoostEffect, 2))
-    
-            for (let i = 0; i < tmp.quarkNamesC.length; i++) {
-                html[`setbackDim${tmp.quarkNamesC[i]}`].setDisplay(i === tmp.setbackDimTab)
-            }
-    
-            let ok = tmp.setbackDimTab
-    
-            html[`${tmp.quarkNames[ok]}QuarkAmt`].setTxt(format(player.setbackQuarks[ok]))
-            html[`${tmp.quarkNames[ok]}EnergyAmt`].setTxt(format(player.setbackEnergy[ok]))
-            html[`${tmp.quarkNames[ok]}QuarkEff`].setTxt(format(tmp.quarkEffs[ok]))
-            html[`${tmp.quarkNames[ok]}EnergyEff`].setTxt(format(tmp.energyEffs[ok], 3))
-    
-            for (let i = 0; i < player.quarkDimsBought[ok].length; i++) {
-                html[`${tmp.quarkNamesC[ok]}Dim${i}`].setDisplay(i === 0 ? true : Decimal.gt(player.quarkDimsBought[ok][i - 1], 0) || Decimal.gt(player.quarkDimsAccumulated[ok][i - 1], 0))
-                if (i === 0 ? true : Decimal.gt(player.quarkDimsBought[ok][i - 1], 0) || Decimal.gt(player.quarkDimsAccumulated[ok][i - 1], 0)) {
-                    html[`${tmp.quarkNamesC[ok]}Dim${i}`].changeStyle('background-color', `#${Decimal.gte(player.setbackEnergy[ok], tmp.quarkDim[ok][i].cost) ? tmp.quarkColors[ok].fill.canBuy : tmp.quarkColors[ok].fill.cannotBuy}80`)
-                    html[`${tmp.quarkNamesC[ok]}Dim${i}`].changeStyle('border', `3px solid #${Decimal.gte(player.setbackEnergy[ok], tmp.quarkDim[ok][i].cost) ? tmp.quarkColors[ok].border.canBuy : tmp.quarkColors[ok].border.cannotBuy}`)
-                    html[`${tmp.quarkNamesC[ok]}Dim${i}`].changeStyle('cursor', Decimal.gte(player.setbackEnergy[ok], tmp.quarkDim[ok][i].cost) ? 'pointer' : 'not-allowed')
-                    html[`${tmp.quarkNamesC[ok]}Dim${i}amount`].setTxt(`${format(player.quarkDimsBought[ok][i])} (${format(player.quarkDimsAccumulated[ok][i])})`)
-                    html[`${tmp.quarkNamesC[ok]}Dim${i}mult`].setTxt(`${format(tmp.quarkDim[ok][i].mult, 2)}`)
-                    html[`${tmp.quarkNamesC[ok]}Dim${i}cost`].setTxt(`${format(tmp.quarkDim[ok][i].cost)} ${tmp.quarkNamesC[ok]} Energy`)
+
+            for (let col = 0; col < 3; col++) {
+                html[`${tmp.quarkNames[col]}QuarkEff`].setTxt(format(tmp.quarkEffs[col]))
+                html[`${tmp.quarkNames[col]}EnergyEff`].setTxt(format(tmp.energyEffs[col], 3))
+
+                for (let i = 0; i < player.quarkDimsBought[col].length; i++) {
+                    html[`${tmp.quarkNames[col]}Dim${i}`].setDisplay(i === 0 ? true : Decimal.gt(player.quarkDimsBought[col][i - 1], 0) || Decimal.gt(player.quarkDimsAccumulated[col][i - 1], 0))
+                    if (i === 0 ? true : Decimal.gt(player.quarkDimsBought[col][i - 1], 0) || Decimal.gt(player.quarkDimsAccumulated[col][i - 1], 0)) {
+                        html[`${tmp.quarkNames[col]}Dim${i}`].changeStyle('background-color', `#${Decimal.gte(player.setbackEnergy[col], tmp.quarkDim[col][i].cost) ? tmp.quarkColors[col].fill.canBuy : tmp.quarkColors[col].fill.cannotBuy}80`)
+                        html[`${tmp.quarkNames[col]}Dim${i}`].changeStyle('border', `3px solid #${Decimal.gte(player.setbackEnergy[col], tmp.quarkDim[col][i].cost) ? tmp.quarkColors[col].border.canBuy : tmp.quarkColors[col].border.cannotBuy}`)
+                        html[`${tmp.quarkNames[col]}Dim${i}`].changeStyle('cursor', Decimal.gte(player.setbackEnergy[col], tmp.quarkDim[col][i].cost) ? 'pointer' : 'not-allowed')
+                        html[`${tmp.quarkNames[col]}Dim${i}amount`].setTxt(`${format(player.quarkDimsBought[col][i])} (${format(player.quarkDimsAccumulated[col][i])})`)
+                        html[`${tmp.quarkNames[col]}Dim${i}mult`].setTxt(`${format(tmp.quarkDim[col][i].mult, 2)}`)
+                        html[`${tmp.quarkNames[col]}Dim${i}cost`].setTxt(`${format(tmp.quarkDim[col][i].cost)} ${tmp.quarkNamesC[col]} Energy`)
+                    }
                 }
             }
         }
@@ -525,19 +526,20 @@ function toggleSetback() {
 function displaySetbackCompleted() {
     let txt = ``
     for (let i = 0; i < player.setbackLoadout.length; i++) {
+        const total = Decimal.add(player.setbackLoadout[i][0]).add(player.setbackLoadout[i][1]).add(player.setbackLoadout[i][2])
         txt += `
             <div style="background-color: #${player.currentSetback === i ? '006060' : '404040'}80; border: 3px solid #${player.currentSetback === i ? '00ff' : 'ffff'}ff; width: 400px; height: 190px">
                 <div class="font flex-vertical" style="font-size: 12px;">
-                    <span style="color: #ffffff; font-size: 16px">Total Difficulty: <b>${format(Decimal.add(player.setbackLoadout[i][0]).add(player.setbackLoadout[i][1]).add(player.setbackLoadout[i][2]))}</b></span>
+                    <span style="color: #ffffff; font-size: 16px">Total Difficulty: <b>${format(total)}</b></span>
                     <span style="color: #ff4040; font-size: 14px">Red: <b>${format(player.setbackLoadout[i][0])}</b></span>
-                    <span style="color: #ff4040; font-size: 12px">This will generate <b>${format(Decimal.add(player.setbackLoadout[i][0]).add(player.setbackLoadout[i][1]).add(player.setbackLoadout[i][2]).pow(2).mul(Decimal.pow(player.setbackLoadout[i][0], 2)))}</b> base red quarks per second.</span>
-                    <span style="color: #ff4040; font-size: 12px">Red multipliers are increased by <b>${format(Decimal.max(player.setbackLoadout[i][0], 1).sub(1).div(9).pow_base(1000), 2)}×</b>.</span>
+                    <span style="color: #ff4040; font-size: 12px">This will generate <b>${format(total.pow(2).mul(Decimal.pow(player.setbackLoadout[i][0], 2)))}</b> base red quarks per second.</span>
+                    <span style="color: #ff4040; font-size: 12px">Red multipliers are increased by <b>${format(Decimal.pow(2, Decimal.mul(player.setbackLoadout[i][0], 0.75).add(total.mul(0.25))), 2)}×</b>.</span>
                     <span style="color: #40ff40; font-size: 14px">Green: <b>${format(player.setbackLoadout[i][1])}</b></span>
-                    <span style="color: #40ff40; font-size: 12px">This will generate <b>${format(Decimal.add(player.setbackLoadout[i][0]).add(player.setbackLoadout[i][1]).add(player.setbackLoadout[i][2]).pow(2).mul(Decimal.pow(player.setbackLoadout[i][1], 2)))}</b> base green quarks per second.</span>
-                    <span style="color: #40ff40; font-size: 12px">Green multipliers are increased by <b>${format(Decimal.max(player.setbackLoadout[i][1], 1).sub(1).div(9).pow_base(1000), 2)}×</b>.</span>
+                    <span style="color: #40ff40; font-size: 12px">This will generate <b>${format(total.pow(2).mul(Decimal.pow(player.setbackLoadout[i][1], 2)))}</b> base green quarks per second.</span>
+                    <span style="color: #40ff40; font-size: 12px">Green multipliers are increased by <b>${format(Decimal.pow(2, Decimal.mul(player.setbackLoadout[i][1], 0.75).add(total.mul(0.25))), 2)}×</b>.</span>
                     <span style="color: #4040ff; font-size: 14px">Blue: <b>${format(player.setbackLoadout[i][2])}</b></span>
-                    <span style="color: #4040ff; font-size: 12px">This will generate <b>${format(Decimal.add(player.setbackLoadout[i][0]).add(player.setbackLoadout[i][1]).add(player.setbackLoadout[i][2]).pow(2).mul(Decimal.pow(player.setbackLoadout[i][2], 2)))}</b> base blue quarks per second.</span>
-                    <span style="color: #4040ff; font-size: 12px">Blue multipliers are increased by <b>${format(Decimal.max(player.setbackLoadout[i][2], 1).sub(1).div(9).pow_base(1000), 2)}×</b>.</span>
+                    <span style="color: #4040ff; font-size: 12px">This will generate <b>${format(total.pow(2).mul(Decimal.pow(player.setbackLoadout[i][2], 2)))}</b> base blue quarks per second.</span>
+                    <span style="color: #4040ff; font-size: 12px">Blue multipliers are increased by <b>${format(Decimal.pow(2, Decimal.mul(player.setbackLoadout[i][2], 0.75).add(total.mul(0.25))), 2)}×</b>.</span>
                 </div>
                 <div class="flex-horizontal">
                     <button onclick="useSetback(${i})" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 25px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">

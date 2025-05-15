@@ -65,12 +65,12 @@ const GEN_ENH_BUYABLES = [
             return target
         },
         get eff() {
-            let eff = D(0.2)
+            let eff = D(0.05)
             eff = eff.mul(player.generatorFeatures.enhancerBuyables[0])
             return eff
         },
         get desc() {
-            return `Generator Buyable 1's effect base is boosted by +${format(tmp.generatorFeatures.genEnhBuyables[0].eff, 1)}.`
+            return `Generator Buyable 1's effect base is boosted by +${format(tmp.generatorFeatures.genEnhBuyables[0].eff, 2)}.`
         }
     },
     {
@@ -88,7 +88,7 @@ const GEN_ENH_BUYABLES = [
             return target
         },
         get eff() {
-            let eff = Decimal.div(player.timeInAscend, 60).add(1).ln().pow_base(1e6)
+            let eff = Decimal.div(player.timeInAscend, 30).add(1).ln().pow_base(1e20)
             eff = eff.pow(player.generatorFeatures.enhancerBuyables[1])
             return eff
         },
@@ -102,12 +102,12 @@ const GEN_ENH_BUYABLES = [
         },
         get cost() {
             let cost = D(player.generatorFeatures.enhancerBuyables[2])
-            cost = cost.pow10().pow10()
+            cost = cost.add(1).pow_base(2).add(1).pow10()
             return cost
         },
         get target() {
             let target = D(player.generatorFeatures.enhancer)
-            target = target.max(10).log10().log10()
+            target = target.max(100).log10().sub(1).log(2).sub(1)
             return target
         },
         get eff() {
@@ -191,17 +191,17 @@ function updateGame_generatorExtras() {
 
         player.generatorFeatures.xp = Decimal.add(player.generatorFeatures.xp, tmp.generatorFeatures.gain.mul(delta))
 
-        tmp.generatorFeatures.xpEffGenerators = player.generatorFeatures.xp.add(1).log10().mul(0.1).add(1).ln().add(1)
+        tmp.generatorFeatures.xpEffGenerators = player.generatorFeatures.xp.add(1).log10().mul(0.05).add(1).ln().add(1)
         tmp.generatorFeatures.xpEffPoints = player.generatorFeatures.xp.add(1).log10().add(1).log10().mul(total.max(1).log2()).mul(0.05).add(1)
 
-        tmp.generatorFeatures.enhancerGain = Decimal.gte(player.generatorFeatures.xp, 1e33) ? Decimal.div(player.generatorFeatures.xp, 1e33).log(1e3).pow_base(2) : D(0)
+        tmp.generatorFeatures.enhancerGain = Decimal.gte(player.generatorFeatures.xp, 1e33) ? Decimal.div(player.generatorFeatures.xp, 1e33).pow(0.02) : D(0)
         tmp.generatorFeatures.enhancerGain = cheatDilateBoost(tmp.generatorFeatures.enhancerGain).floor()
 
         tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerGain.add(1)
         tmp.generatorFeatures.enhancerNext = cheatDilateBoost(tmp.generatorFeatures.enhancerNext, true)
-        tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.log(2).pow_base(1e3).mul(1e33)
-        
-        tmp.generatorFeatures.enhancerEff = Decimal.add(player.generatorFeatures.enhancer, 1).log10().div(10).add(1).ln().mul(40).pow10()
+        tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.root(0.02).mul(1e33)
+
+        tmp.generatorFeatures.enhancerEff = Decimal.add(player.generatorFeatures.enhancer, 1).log10().div(10).add(1).ln().mul(10).pow10()
 
         for (let i = 0; i < GEN_ENH_BUYABLES.length; i++) {
             tmp.generatorFeatures.genEnhBuyables[i].eff = GEN_ENH_BUYABLES[i].eff

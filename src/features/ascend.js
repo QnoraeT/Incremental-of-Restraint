@@ -25,24 +25,13 @@ const ASCENSION_UPGRADES = [
         cap: D(Infinity),
         req: true,
         get cost() {
-            let interval = D(10)
-            let costGrowth = D(2)
-
             let cost = D(player.ascendUpgrades[1])
-            let x = cost.div(interval).floor()
-            let m = cost.sub(x.mul(interval))
-            cost = m.mul(costGrowth.pow(x)).add(costGrowth.pow(x).sub(1).div(costGrowth.sub(1)).mul(interval))
 
-            cost = cost.pow_base(3).mul(50)
+            cost = cost.div(25).exp().sub(1).mul(25).pow_base(2.5).mul(50)
             return cost
         },
         get target() {
-            let interval = D(10)
-            let costGrowth = D(2)
-
-            let target = Decimal.div(player.ascendGems, 50).max(1).log(3)
-            let h = target.mul(costGrowth.sub(1)).div(interval).add(1).log(costGrowth).floor()
-            target = target.add(interval.div(costGrowth.sub(1))).div(costGrowth.pow(h)).add(h.sub(costGrowth.sub(1).recip()).mul(interval))
+            let target = Decimal.div(player.ascendGems, 50).max(1).log(2.5).div(25).add(1).ln().mul(25)
 
             return target
         },
@@ -81,24 +70,13 @@ const ASCENSION_UPGRADES = [
         cap: D(Infinity),
         req: true,
         get cost() {
-            let interval = D(10)
-            let costGrowth = D(2)
-
             let cost = D(player.ascendUpgrades[3])
-            let x = cost.div(interval).floor()
-            let m = cost.sub(x.mul(interval))
-            cost = m.mul(costGrowth.pow(x)).add(costGrowth.pow(x).sub(1).div(costGrowth.sub(1)).mul(interval))
 
-            cost = cost.pow10().mul(10)
+            cost = cost.div(25).exp().sub(1).mul(25).pow_base(3).mul(10)
             return cost
         },
         get target() {
-            let interval = D(10)
-            let costGrowth = D(2)
-
-            let target = Decimal.div(player.ascendGems, 10).max(1).log10()
-            let h = target.mul(costGrowth.sub(1)).div(interval).add(1).log(costGrowth).floor()
-            target = target.add(interval.div(costGrowth.sub(1))).div(costGrowth.pow(h)).add(h.sub(costGrowth.sub(1).recip()).mul(interval))
+            let target = Decimal.div(player.ascendGems, 10).max(1).log(3).div(25).add(1).ln().mul(25)
 
             return target
         },
@@ -235,14 +213,13 @@ const ASCENSION_UPGRADES = [
         cap: D(Infinity),
         req: true,
         get cost() {
-            let cost = D(player.ascendUpgrades[14]).add(2)
-            cost = cost.div(6).exp().sub(1).mul(6).pow(2).mul(2).pow_base(4 + 2).mul(100 * (2 ** 4))
+            let cost = D(player.ascendUpgrades[14])
+            cost = cost.div(8).exp().sub(1).mul(8).pow(2).pow_base(1e8).mul(1e60)
             return cost
         },
         get target() {
             let target = D(player.ascendGems)
-            target = target.div(100 * (2 ** 4)).max(1).log(4 + 2).div(2).root(2).div(6).add(1).ln().mul(6)
-            target = target.sub(2).max(-0.5)
+            target = target.div(1e60).max(1).log(1e8).root(2).div(8).add(1).ln().mul(8)
             return target
         },
         get eff() {
@@ -260,12 +237,12 @@ const ASCENSION_UPGRADES = [
         req: true,
         get cost() {
             let cost = D(player.ascendUpgrades[15])
-            cost = cost.div(6).exp().sub(1).mul(6).pow(2).mul(2).pow_base(5 + 2).mul(100 * (2 ** 5))
+            cost = cost.div(8).exp().sub(1).mul(8).pow(2).pow_base(1e10).mul(1e70)
             return cost
         },
         get target() {
             let target = D(player.ascendGems)
-            target = target.div(100 * (2 ** 5)).max(1).log(5 + 2).div(2).root(2).div(6).add(1).ln().mul(6)
+            target = target.div(1e70).max(1).log(1e10).root(2).div(8).add(1).ln().mul(8)
             return target
         },
         get eff() {
@@ -287,7 +264,7 @@ const HINDERANCES = [
         },
         get eff() {
             let eff = Decimal.max(player.hinderanceScore[0], 1e40)
-            eff = eff.log(1e40).log2().div(5).add(1)
+            eff = eff.log(1e40).log2().div(10).add(1)
             return eff
         }
     },
@@ -300,7 +277,7 @@ const HINDERANCES = [
         },
         get eff() {
             let eff = Decimal.max(player.hinderanceScore[1], 1e75)
-            eff = eff.log(1e75).pow(2)
+            eff = eff.log(1e75)
             return eff
         }
     },
@@ -362,8 +339,8 @@ function initHTML_ascend() {
     for (let i = 0; i < HINDERANCES.length; i++) {
         txt += `
         <button onclick="toggleHinderance(${i})" id="hinderance${i}" class="whiteText font" style="height: 160px; width: 320px; font-size: 10px; margin: 2px; cursor: pointer">
-            <b><span id="hinderance${i}name" style="font-size: 12px"></span></b><br>
-            <span id="hinderance${i}desc"></span><br>
+            <b><span id="hinderance${i}name" style="font-size: 12px">H${i+1}: ${HINDERANCES[i].name}</span></b><br>
+            <span id="hinderance${i}desc">${HINDERANCES[i].desc}</span><br>
             Goal: <span id="hinderance${i}goal"></span> points<br><br>
             Reward: <span id="hinderance${i}reward"></span>
         </button>
@@ -464,7 +441,7 @@ function updateHTML_ascend() {
                     html[`ascendUpgrade${i}`].changeStyle('cursor', notCapped && canBuy ? 'pointer' : 'not-allowed')
                 }
             }
-    
+
             html['ascendPoints'].setTxt(`${format(player.ascend)}`)
             html['ascendGems'].setTxt(`${format(player.ascendGems)}`)
             html['ascendPointEffect'].setDisplay(true)
@@ -472,13 +449,11 @@ function updateHTML_ascend() {
         }
         if (tmp.ascendTab === 1) {
             for (let i = 0; i < HINDERANCES.length; i++) {
-                html[`hinderance${i}name`].setTxt(HINDERANCES[i].name)
-                html[`hinderance${i}desc`].setTxt(HINDERANCES[i].desc)
                 html[`hinderance${i}goal`].setTxt(`${format(player.hinderanceScore[i])} / ${format(HINDERANCES[i].start)}`)
                 html[`hinderance${i}reward`].setTxt(HINDERANCES[i].reward)
-    
+
                 let shown = true
-    
+
                 if (shown) {
                     html[`hinderance${i}`].changeStyle('background-color', (player.currentHinderance === i ? '#b0002080' : '#60001080'))
                     html[`hinderance${i}`].changeStyle('border', `3px solid ${Decimal.gte(player.hinderanceScore[i], HINDERANCES[i].start) ? (player.currentHinderance === i ? '#ff809a' : '#c60078') : (player.currentHinderance === i ? '#ff0030' : '#c00020')}`)
@@ -531,6 +506,20 @@ function doAscendReset(doAnyway = false) {
     doPrestigeReset(true)
 
     displaySetbackCompleted()
+}
+
+function toggleHinderance(i) {
+    if (!(player.prestigeChallenge === i || player.prestigeChallenge === null)) {
+        return;
+    }
+    tmp.ascendAmount = D(0)
+    if (player.currentHinderance === null) {
+        doAscendReset(true)
+        player.currentHinderance = i
+        return;
+    }
+    doAscendReset(true)
+    player.currentHinderance = null
 }
 
 function buyAscendUpgrade(i) {
