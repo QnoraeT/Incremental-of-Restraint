@@ -247,7 +247,7 @@ function initHTML_setback() {
         }
 
         txt = `
-            <button onclick="buyMaxSBDim(${i})" id="${capsColor}Buymax" class="whiteText font" style="height: 45px; width: 250px; font-size: 9px; margin: 2px">
+            <button onclick="buyMaxSBDim(${i})" id="${color}BuyMax" class="whiteText font" style="height: 45px; width: 250px; font-size: 9px; margin: 2px">
                 Buy Max all ${capsColor} Dims.<br>
                 You can buy ~<span id="${color}BMTotalEst"></span> dimensions currently.
             </button>
@@ -269,6 +269,7 @@ function initHTML_setback() {
             toHTMLvar(`${color}Dim${j}mult`)
             toHTMLvar(`${color}Dim${j}cost`)
         }
+        toHTMLvar(`${color}BuyMax`)
         toHTMLvar(`${color}BMTotalEst`)
     }
 
@@ -334,6 +335,7 @@ function updateGame_setback() {
     }
 
     for (let i = 0; i < player.setback.length; i++) {
+        tmp.dimBoughtBM[i] = D(0)
         for (let j = player.quarkDimsBought[i].length - 1; j >= 0; j--) {
             if (tmp.quarkDim[i][j] === undefined) {
                 tmp.quarkDim[i][j] = {
@@ -348,6 +350,8 @@ function updateGame_setback() {
 
             let h = tmp.quarkDim[i][j].target.mul(tmp.quarkBoostCost.sub(1)).div(tmp.quarkBoostInterval).add(1).log(tmp.quarkBoostCost).floor()
             tmp.quarkDim[i][j].target = tmp.quarkDim[i][j].target.add(tmp.quarkBoostInterval.div(tmp.quarkBoostCost.sub(1))).div(tmp.quarkBoostCost.pow(h)).add(h.sub(tmp.quarkBoostCost.sub(1).recip()).mul(tmp.quarkBoostInterval))
+
+            tmp.dimBoughtBM[i] = tmp.dimBoughtBM[i].add(tmp.quarkDim[i][j].target.sub(player.quarkDimsBought[i][j]).add(1).max(0).floor())
 
             checkNaN(tmp.quarkDim[i][j].target, `NaN detected while attempting to calculate target of ${tmp.quarkNamesC[i]} Quark Dimension #${j + 1}`)
 
@@ -431,36 +435,36 @@ function updateHTML_setback() {
         html['loadSBTabButton'].setDisplay(player.setbackLoadout.length > 0)
         html['dimSBTabButton'].setDisplay(player.setbackLoadout.length > 0)
         html['upgSBTabButton'].setDisplay(player.setbackLoadout.length > 0)
-    
+
         html['setbackTabSettings'].setDisplay(tmp.setbackTab === 0)
         html['setbackTabLoadout'].setDisplay(tmp.setbackTab === 1)
         html['setbackTabDims'].setDisplay(tmp.setbackTab === 2)
         html['setbackTabUpgs'].setDisplay(tmp.setbackTab === 3)
-        
+
         if (tmp.setbackTab === 0) {
             html['setbackSliderRed'].el.disabled = player.inSetback
             html['setbackSliderGreen'].el.disabled = player.inSetback
             html['setbackSliderBlue'].el.disabled = player.inSetback
-    
+
             html['setbackRedValue'].setTxt(format(player.setback[0]))
             html['setbackGreenValue'].setTxt(format(player.setback[1]))
             html['setbackBlueValue'].setTxt(format(player.setback[2]))
-    
+
             html['setbackRedEffect'].setTxt(format(tmp.setbackEffects[0], 2))
             html['setbackGreenEffect'].setTxt(format(tmp.setbackEffects[1], 1))
             html['setbackBlueEffect'].setTxt(format(tmp.setbackEffects[2], 2))
-    
+
             html['setbackRedGenerate'].setTxt(format(tmp.predictedQuarkGain[0]))
             html['setbackGreenGenerate'].setTxt(format(tmp.predictedQuarkGain[1]))
             html['setbackBlueGenerate'].setTxt(format(tmp.predictedQuarkGain[2]))
-    
+
             html['setbackToggle'].changeStyle(!(Decimal.eq(player.setback[0], 0) && Decimal.eq(player.setback[1], 0) && Decimal.eq(player.setback[2], 0)) ? 'pointer' : 'not-allowed')
         }
-    
+
         if (tmp.setbackTab === 1) {
             // the displaying is done in displaySetbackCompleted() !
         }
-    
+
         if (tmp.setbackTab === 2) {
             html['redQuarks'].setTxt(format(player.setbackQuarks[0]))
             html['greenQuarks'].setTxt(format(player.setbackQuarks[1]))
@@ -474,7 +478,12 @@ function updateHTML_setback() {
             html['dimScalingSpeed'].setTxt(format(tmp.quarkBoostCost, 2))
             html['dimScalingBoost'].setTxt(format(tmp.quarkBoostEffect, 2))
 
-            for (let col = 0; col < 3; col++) {
+            for (let col = 0; col < player.setback.length; col++) {
+                html[`${tmp.quarkNames[col]}BuyMax`].changeStyle('background-color', `#${tmp.dimBoughtBM[col].gt(0) ? tmp.quarkColors[col].fill.canBuy : tmp.quarkColors[col].fill.cannotBuy}80`)
+                html[`${tmp.quarkNames[col]}BuyMax`].changeStyle('border', `3px solid #${tmp.dimBoughtBM[col].gt(0) ? tmp.quarkColors[col].border.canBuy : tmp.quarkColors[col].border.cannotBuy}`)
+                html[`${tmp.quarkNames[col]}BuyMax`].changeStyle('cursor', tmp.dimBoughtBM[col].gt(0) ? 'pointer' : 'not-allowed')
+                html[`${tmp.quarkNames[col]}BMTotalEst`].setTxt(`${format(tmp.dimBoughtBM[col])}`)
+                
                 html[`${tmp.quarkNames[col]}QuarkEff`].setTxt(format(tmp.quarkEffs[col]))
                 html[`${tmp.quarkNames[col]}EnergyEff`].setTxt(format(tmp.energyEffs[col], 3))
 
@@ -491,19 +500,19 @@ function updateHTML_setback() {
                 }
             }
         }
-    
+
         if (tmp.setbackTab === 3) {
             for (let i = 0; i < player.setback.length; i++) {
                 html[`${tmp.quarkNames[i]}EnergyAmt2`].setTxt(format(player.setbackEnergy[i]))
             }
-    
+
             for (let i = 0; i < SETBACK_UPGRADES.length; i++) {
                 for (let j = 0; j < SETBACK_UPGRADES[i].length; j++) {
                     html[`${tmp.quarkNames[i]}SBUpg${j}`].changeStyle('border', `3px solid #${player.setbackUpgrades.includes(SETBACK_UPGRADES[i][j].id) || (tmp.sbSelectedUpg[0] === i && tmp.sbSelectedUpg[1] === j)? tmp.quarkColors[i].border.complete : (Decimal.gte(player.setbackEnergy[i], SETBACK_UPGRADES[i][j].cost) ? tmp.quarkColors[i].border.canBuy : tmp.quarkColors[i].border.cannotBuy)}`)
                     html[`${tmp.quarkNames[i]}SBUpg${j}`].changeStyle('background-color', `#${player.setbackUpgrades.includes(SETBACK_UPGRADES[i][j].id) ? tmp.quarkColors[i].fill.complete : (Decimal.gte(player.setbackEnergy[i], SETBACK_UPGRADES[i][j].cost) ? tmp.quarkColors[i].fill.canBuy : tmp.quarkColors[i].fill.cannotBuy)}`)
                 }
             }
-    
+
             html['upgSBDesc'].setTxt(tmp.sbSelectedUpg.length === 0 ? '' : `${SETBACK_UPGRADES[tmp.sbSelectedUpg[0]][tmp.sbSelectedUpg[1]].desc}`)
             html['upgSBCost'].setTxt(tmp.sbSelectedUpg.length === 0 ? '' : `Cost: ${format(SETBACK_UPGRADES[tmp.sbSelectedUpg[0]][tmp.sbSelectedUpg[1]].cost)} ${tmp.quarkNames[tmp.sbSelectedUpg[0]]} energy.${player.setbackUpgrades.includes(SETBACK_UPGRADES[tmp.sbSelectedUpg[0]][tmp.sbSelectedUpg[1]].id) ? ' Bought!' : ''}`)
         }
@@ -594,6 +603,16 @@ function buySBDim(i, j) {
         player.quarkDimsBought[i][j] = Decimal.add(player.quarkDimsBought[i][j], 1)
         updateGame_setback()
     }
+}
+
+function buyMaxSBDim(i) {
+    for (let j = player.quarkDimsBought[i].length - 1; j >= 0; j--) {
+        if (Decimal.gte(player.setbackEnergy[i], tmp.quarkDim[i][j].cost)) {
+            player.quarkDimsBought[i][j] = tmp.quarkDim[i][j].target.floor().add(1).max(player.quarkDimsBought[i][j])
+            player.setbackEnergy[i] = player.setbackEnergy[i].sub(tmp.quarkDim[i][j].cost) // this isn't updated but whatever, not like it actually matters too much
+        }
+    }
+    updateGame_setback()
 }
 
 function selectSBUpg(i, j) {

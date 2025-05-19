@@ -9,7 +9,7 @@ const TEXTBOOK = [
         get info() {
             return `
                 This is an incremental game created by TearonQ (@QnoraeT in Github).<br>
-                This game is a challenge for myself, to not use any softcaps, scalings, and the game mustn't inflate, even if you exponentiated the 2nd exponent (dilated) by ^2.00.<br>
+                I imposed a bit of a challenge for myself, to not use any softcaps, scalings, and the game mustn't inflate. Idk, I was bored and I tried doing something.<br>
                 This game is also slower than my other incrementals, but is still pretty active. This may be comparable to randomtuba's Algebraic Progression, but with slightly more head room for optimization.<br><br>
                 <span style="color: #ffff00"><b>Warning!</b> There are no confirmations, except for resetting your save! If you want to do something, this game <b>will</b> do it for you, no questions asked!</span>
                 Inspired by <span style="color: #ffff00">randomtuba</span>, <span style="color: #8000ff">Jacorb</span>, <span style="color: #ff0000">MrRedShark</span>, and more!
@@ -22,7 +22,7 @@ const TEXTBOOK = [
             return true
         },
         title: `Buyables`,
-        stage: `0 - 1,000,000 Points`,
+        stage: `Unlocked instantly`,
         colors: ['#FFFFFF', '#80808080'],
         get info() {
             let txt = ``
@@ -45,7 +45,7 @@ const TEXTBOOK = [
             return true
         },
         title: `Prestige`,
-        stage: `1,000,000 - 1.000 Sx Points`,
+        stage: `Unlocked at 1,000,000 Points`,
         colors: ['#0080FF', '#00408080'],
         get info() {
             return `
@@ -61,7 +61,7 @@ const TEXTBOOK = [
             return Decimal.gte(player.prestige, 3) || Decimal.gt(player.ascend, 0)
         },
         title: `Prestige Challenges`,
-        stage: `Feature of <span style="color: #80c0ff">Prestige</span>`,
+        stage: `Unlocked at 3 <span style="color: #80c0ff">Prestige Points</span>`,
         colors: ['#0080FF', '#00408080'],
         get info() {
             return `
@@ -77,11 +77,11 @@ const TEXTBOOK = [
             return player.prestigeChallengeCompleted.includes(0) || Decimal.gt(player.ascend, 0)
         },
         title: `Generators`,
-        stage: `Feature of Buyables`,
+        stage: `Unlocked by completing <span style="color: #80c0ff">PC1</span>`,
         colors: ['#00FF40', '#00804080'],
         get info() {
             return `
-                Generators are unlocked from PC1 which increases each buyable's effect gradually over time.<br>
+                Generators are extra features that increase each buyable's effect gradually over time.<br>
                 Generator Speed similarly calculated to the buyable's effect, that being x*${format(tmp.bybBoostEffect, 2)}<sup>⌊x/${format(tmp.bybBoostInterval)}⌋</sup><br>
                 The requirements of each generator level scale factorially. (Lv 1 needs 2 XP, Lv 2 needs 6 XP, etc.), but this requirement gradually scales faster and faster.<br><br>
                 Exact requirement formula: 1,000(e<sup>x/1,000</sup>-1)!
@@ -94,7 +94,7 @@ const TEXTBOOK = [
             return Decimal.gt(player.ascend, 0)
         },
         title: `Ascension`,
-        stage: `1.000 Sx - 9.999e999 Points`,
+        stage: `Unlocked by reaching 1.000 Sx Points`,
         colors: ['#00FF00', '#00800080'],
         get info() {
             return `
@@ -110,13 +110,8 @@ const TEXTBOOK = [
             return Decimal.gt(player.ascend, 10)
         },
         title: `Setback`,
-        stage: `Feature of <span style="color: #00ff00">Ascension</span>`,
-        get colors() {
-            return [
-                `#${Math.floor(Math.sin(sessionTime) * 127 + 128).toString(16).padStart(2,"0")}${Math.floor(Math.sin(sessionTime + (Math.PI * 2/3)) * 127 + 128).toString(16).padStart(2,"0")}${Math.floor(Math.sin(sessionTime + (Math.PI * 4/3)) * 127 + 128).toString(16).padStart(2,"0")}`,
-                `#${Math.floor(Math.sin(sessionTime) * 63 + 64).toString(16).padStart(2,"0")}${Math.floor(Math.sin(sessionTime + (Math.PI * 2/3)) * 63 + 64).toString(16).padStart(2,"0")}${Math.floor(Math.sin(sessionTime + (Math.PI * 4/3)) * 63 + 64).toString(16).padStart(2,"0")}80`,
-            ]
-        },
+        stage: `Unlocked by accumulating 10 <span style="color: #80ff80">Ascension Points</span>`,
+        colors: ['rainbow'],
         get info() {
             return `
                 Setback is a custom challenge modifier that does as Ascension reset. You currently have 3 different options that range from 1 to 10 that causes different effects and you must do an ascension reset to complete a setback. Upon completing a setback, you have the option to enable/disable it in your loadouts, which generate quarks and energy.<br>
@@ -134,12 +129,14 @@ const TEXTBOOK = [
         },
         enabled: false
     },
-        {
+    {
         get show() {
             return player.setbackUpgrades.includes('r10')
         },
         title: `Generator Experience`,
-        stage: `Feature of <span style="color: #00ff00">Ascension</span>`,
+        get stage() {
+            return `Unlocked by buying the 10th <span style="color: #ff8080">Red</span> <span class="rainbowText">Setback</span> Upgrade`
+        },
         colors: ['#FF4000', '#80200080'],
         get info() {
             return `
@@ -147,8 +144,68 @@ const TEXTBOOK = [
                 Generator Experience boosts your generation speed. Your points will also be boosted if you have >200 total generator levels. You may also buy generator experience buyables to further increase your generator experience gain.<br>
                 Past 1.000 Dc Generator Experience, you can do an ascension reset for generator enhancements, which boost your generator experience gain and unlock new buyables, one of them has an especially powerful unlock!<br><br>
                 Exact Generator Experience gain: (t/200)*10<sup>t/200</sup>, where t is your total generator levels.<br>
-                Exact Generator Experience effect to generator speed: ^1+ln(1+0.05log<sub>10</sub>(1+GE))<br>
-                Exact Generator Experience effect to points: ^1+0.05(1+log<sub>10</sub>(1+log<sub>10</sub>(GE)))*log<sub>2</sub>(t/200)<br>
+                Exact Generator Experience effect to generator speed: ^1+ln(1+0.05log<sub>10</sub>(1+XP))<br>
+                Exact Generator Experience effect to points: ^1+0.05(1+log<sub>10</sub>(1+log<sub>10</sub>(XP)))*log<sub>2</sub>(t/200)<br>
+            `
+        },
+        enabled: false
+    },
+        {
+        get show() {
+            return player.setbackUpgrades.includes('b5')
+        },
+        title: `Hinderances`,
+        get stage() {
+            return `Unlocked by buying the 5th <span style="color: #8080ff">Blue</span> <span class="rainbowText">Setback</span> Upgrade`
+        },
+        colors: ['#FF0040', '#80002080'],
+        get info() {
+            return `
+                Hinderances are a special type of challenge that does an Ascension reset. These are similar to Prestige Challenges, but their goal is not set in stone. Your best Points in these hinderances determines what rewards you gain.
+            `
+        },
+        enabled: false
+    },
+    {
+        get show() {
+            return Decimal.gt(player.generatorFeatures.enhancer, 0)
+        },
+        title: `Generator Enhancers`,
+        get stage() {
+            return `Unlocked by reaching 1.000 Dc <span style="color: #ffa080">Generator Experience</span>`
+        },
+        colors: ['#FFFF00', '#80800080'],
+        get info() {
+            return `
+                Generator Enhancers are an extra sub-layer that does an ascension reset and resets your Generator Experience.<br>
+                Enhancers give a passive boost based on your total amount, and you also unlock a couple of extra buyables. The third enhancer buyable is especially important.<br>
+                <span style="text-decoration: underline;">Note that normal ascension resets do not reset Generator Experience! Only if you reset for Generator Enhancers will it reset. You can use this property to your advantage.</span><br><br>
+                Exact Generator Enhancer gain: (XP/1.000 Dc)<sup>0.02</sup><br>
+                Exact Generator Enhancer effect: 10<sup>10ln(1+log<sub>10</sub>(1+Enhancers)/10)</sup><br>
+                ${Decimal.gt(player.generatorFeatures.enhancerBuyables[2], 0) ? 'Exact Tier Point gain: (1+(Buyable Bought)/1000)<sup>(Enhancer Buyable #3 Bought)</sup>-1<br>Exact requirement formula: 100(1.01<sup>x</sup>-1)-1' : ''}
+            `
+        },
+        enabled: false
+    },
+        {
+        get show() {
+            return true
+        },
+        title: `Transcension`,
+        get stage() {
+            return `Unlocked by reaching 1.000e2,400 Points`
+        },
+        colors: ['#8000FF', '#40008080'],
+        get info() {
+            return `
+                Transcension is the third prestige layer that resets everything before it. Its gain is simple, past 1.000e2,400 points, your Points<sup>0.0005</sup> determines transcension point gain.<br>
+                You also have transcension milestones. Each has a total transcension point requirement that decreases by /2 per transcension. Transcension milestones are the beginning source of QoL progress for this layer.<br>
+                Transcension upgrades (yes, I know, basic name) are in a tree formation. Very creative and unique totally. I totally didn't run out of ideas. Moving on... Transcension upgrades need transcension points and sometimes also need a requirement, like how Ascension upgrades are, however, they are more expansive. Some upgrades can be boosted by using strings.<br>
+                Strings are earned by reaching specific milestones. There are three types of strings. Dotted Strings, Blue Strings, and String Factories. Each string can boost different upgrades depending on where they're allocated. Upgrades can themselves be boosted by strings, but they have a cap of 1 boost. Every 10 of that upgrade's string adds 1 to the boost cap. (Ex. An upgrade needs Dotted Strings to be boosted. If you have 10 total dotted strings, this upgrade can now be boosted twice.)
+                <br><br>
+                Exact Dotted String requirements: 10<sup>10,000*1.2<sup>D.S.</sup></sup> Points<br>
+                Exact Blue String requirements: 10,000,000(5(1.2<sup>B.S.</sup>-1)+1) Prestige Points<br>
+                Exact String Factory requirements: 5,000+200*S.F. Best of all Generator Levels<br>
             `
         },
         enabled: false

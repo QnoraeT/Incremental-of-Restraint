@@ -213,7 +213,7 @@ function updateGame_main() {
                     if (player.prestigeChallengeCompleted.includes(12)) {
                         upgGen = upgGen.mul(tmp.buyables[i].effect)
                         if (i === 0) {
-                            tmp.generatorFactors.push(`PC12: ×${format(tmp.buyables[i].effect, 2)} → ${format(upgGen)}`)
+                            tmp.generatorFactors.push(`PC12 Reward: ×${format(tmp.buyables[i].effect, 2)} → ${format(upgGen)}`)
                         }
                     }
                     if (Decimal.gt(player.generatorFeatures.enhancerBuyables[1], 0)) {
@@ -264,7 +264,7 @@ function updateGame_main() {
                             upgGen = D(0)
                         }
                         if (i === 0) {
-                            tmp.generatorFactors.push(`PC12: log<sub>10</sub>(${format(upgGen.layeradd10(tmp.prestigeChal[12].depth).sub(1))}) → ${format(upgGen)}`)
+                            tmp.generatorFactors.push(`PC12: log${tmp.prestigeChal[12].depth.neq(1) ? '<sup>' + format(tmp.prestigeChal[12].depth, 2) + '</sup>' : ''}<sub>10</sub>(${format(upgGen.layeradd10(tmp.prestigeChal[12].depth).sub(1))}) → ${format(upgGen)}`)
                         }
                         upgGen = upgGen.mul(tmp.buyables[i].effect)
                         if (i === 0) {
@@ -489,6 +489,7 @@ function updateGame_main() {
     if (player.prestigeChallenge === null) {
         player.bestPointsInAscend = Decimal.max(player.points, player.bestPointsInAscend)
     }
+    player.bestPointsInTranscend = Decimal.max(player.points, player.bestPointsInTranscend)
 }
 
 function updateHTML_main() {
@@ -543,6 +544,11 @@ function updateHTML_main() {
             html['ascendNext'].setTxt(`${format(tmp.ascendNext)}`)
 
             html['ascend'].setDisplay(Decimal.gte(player.bestPointsInAscend, 1e18) || Decimal.gt(player.ascend, 0))
+
+            html['transcendAmount'].setTxt(`${format(tmp.transcendAmount)}`)
+            html['transcendNext'].setTxt(`${format(tmp.transcendNext)}`)
+
+            html['transcend'].setDisplay(Decimal.gte(player.bestPointsInTranscend, 'e1500') || Decimal.gt(player.transcendResetCount, 0))
 
             for (let i = 0; i < player.buyables.length; i++) {
                 if (buyableEnabled(i)) {

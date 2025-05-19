@@ -201,7 +201,7 @@ function updateGame_generatorExtras() {
         tmp.generatorFeatures.enhancerNext = cheatDilateBoost(tmp.generatorFeatures.enhancerNext, true)
         tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.root(0.02).mul(1e33)
 
-        tmp.generatorFeatures.enhancerEff = Decimal.add(player.generatorFeatures.enhancer, 1).log10().div(10).add(1).ln().mul(10).pow10()
+        tmp.generatorFeatures.enhancerEff = Decimal.add(player.generatorFeatures.totalEnh, 1).log10().div(10).add(1).ln().mul(10).pow10()
 
         for (let i = 0; i < GEN_ENH_BUYABLES.length; i++) {
             tmp.generatorFeatures.genEnhBuyables[i].eff = GEN_ENH_BUYABLES[i].eff
@@ -276,6 +276,7 @@ function doGenEnhReset(doAnyway = false) {
     }
 
     player.generatorFeatures.enhancer = Decimal.add(player.generatorFeatures.enhancer, tmp.generatorFeatures.enhancerGain)
+    player.generatorFeatures.totalEnh = Decimal.add(player.generatorFeatures.totalEnh, tmp.generatorFeatures.enhancerGain)
 
     player.generatorFeatures.xp = D(0)
     for (let i = 0; i < GEN_XP_BUYABLES.length; i++) {

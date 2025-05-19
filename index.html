@@ -10,6 +10,7 @@
         <script src="src/utils/lz-string.js"></script>
         <script src="src/utils/util.js"></script>
 
+        <script src="src/features/transcend.js"></script>
         <script src="src/features/generatorExtras.js"></script>
         <script src="src/features/setback.js"></script>
         <script src="src/features/ascend.js"></script>
@@ -54,6 +55,9 @@
                         </button>
                         <button onclick="tmp.tab = 4" id="setbackTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Setback
+                        </button>
+                        <button onclick="tmp.tab = 5" id="transcendTabButton" class="whiteText font" style="background-color: #40008080; border: 3px solid #8000ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            Transcension
                         </button>
                     </div>
                 </div>
@@ -116,6 +120,10 @@
                             <button onclick="doAscendReset()" id="ascend" class="whiteText font" style="cursor: pointer; background-color: #00800080; border: 3px solid #00ff00; height: 70px; width: 325px; font-size: 12px; margin: 2px">
                                 Ascend for <b><span id="ascendAmount"></span></b> ascension points.<br>
                                 Next ascension point at <span id="ascendNext"></span> points.
+                            </button>
+                            <button onclick="doTranscendReset()" id="transcend" class="whiteText font" style="cursor: pointer; background-color: #40008080; border: 3px solid #8000ff; height: 70px; width: 325px; font-size: 12px; margin: 2px">
+                                Transcend for <b><span id="transcendAmount"></span></b> transcension points.<br>
+                                Next ascension point at <span id="transcendNext"></span> points.
                             </button>
                         </div>
                     </div>
@@ -334,6 +342,27 @@
                                     <b><span id="upgSBCost" class="font" style="font-size: 12px; color: #ffffff"></span></b>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="transcendTab">
+                    <div class="flex-vertical">
+                        <div class="flex-horizontal">
+                            <div style="margin: 4px" class="flex-vertical">
+                                <span class="font" style="font-size: 24px; color: #8000ff" id="transcendPoints"></span><span class="font" style="font-size: 12px; color: #8000ff">transcend points</span>
+                                <span class="font" style="font-size: 12px; color: #8000ff" id="transcendPointEffect"></span>
+                            </div>
+                        </div>
+                        <div class="flex-horizontal">
+                            <button onclick="tmp.transTab = 0" id="upgradeTransTabButton" class="whiteText font" style="background-color: #40008080; border: 3px solid #8000ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                                Upgrades
+                            </button>
+                            <button onclick="tmp.transTab = 1" id="milestoneTransTabButton" class="whiteText font" style="background-color: #40008080; border: 3px solid #8000ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                                Milestones
+                            </button>
+                        </div>
+                        <div id="UpgradeTransTab">
+
                         </div>
                     </div>
                 </div>

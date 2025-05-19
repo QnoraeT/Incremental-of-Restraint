@@ -444,7 +444,6 @@ function updateHTML_ascend() {
 
             html['ascendPoints'].setTxt(`${format(player.ascend)}`)
             html['ascendGems'].setTxt(`${format(player.ascendGems)}`)
-            html['ascendPointEffect'].setDisplay(true)
             html['ascendPointEffect'].setTxt(`Producing ${format(tmp.ascendPointEffect, 2)} gems per second`)
         }
         if (tmp.ascendTab === 1) {
@@ -454,12 +453,10 @@ function updateHTML_ascend() {
 
                 let shown = true
 
+                html[`hinderance${i}`].setDisplay(shown)
                 if (shown) {
                     html[`hinderance${i}`].changeStyle('background-color', (player.currentHinderance === i ? '#b0002080' : '#60001080'))
                     html[`hinderance${i}`].changeStyle('border', `3px solid ${Decimal.gte(player.hinderanceScore[i], HINDERANCES[i].start) ? (player.currentHinderance === i ? '#ff809a' : '#c60078') : (player.currentHinderance === i ? '#ff0030' : '#c00020')}`)
-                    html[`hinderance${i}`].setDisplay(true)
-                } else {
-                    html[`hinderance${i}`].setDisplay(false)
                 }
             }
         }

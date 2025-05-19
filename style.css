@@ -18,3 +18,54 @@
     /* font-family: "Trebuchet MS", sans-serif; */
     font-family: Verdana
 }
+
+@keyframes rainbowText {
+    0%   { color: #f00; }
+    20%  { color: #ff0; }
+    30%  { color: #0f0; }
+    40%  { color: #0ff; }
+    60%  { color: #00f; }
+    80%  { color: #f0f; }
+    100% { color: #f00; }
+}
+
+@keyframes rainbowBorder {
+    0%   { border: 3px solid #f00; }
+    20%  { border: 3px solid #ff0; }
+    30%  { border: 3px solid #0f0; }
+    40%  { border: 3px solid #0ff; }
+    60%  { border: 3px solid #00f; }
+    80%  { border: 3px solid #f0f; }
+    100% { border: 3px solid #f00; }
+}
+
+@keyframes rainbowFill {
+    0%   { background-color: #8008; }
+    20%  { background-color: #8808; }
+    30%  { background-color: #0808; }
+    80%  { background-color: #0888; }
+    60%  { background-color: #0088; }
+    80%  { background-color: #8088; }
+    100% { background-color: #8008; }
+}
+
+.rainbowText {
+    animation-name: rainbowText;
+    animation-duration: 8s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+
+.rainbowBorder {
+    animation-name: rainbowBorder;
+    animation-duration: 8s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+
+.rainbowFill {
+    animation-name: rainbowFill;
+    animation-duration: 8s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}

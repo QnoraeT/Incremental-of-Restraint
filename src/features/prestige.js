@@ -683,13 +683,11 @@ function updateHTML_prestige() {
                     shown = Decimal.gte(player.ascendUpgrades[13], i - 8)
                 }
 
+                html[`prestigeChallenge${i}`].setDisplay(shown)
                 if (shown) {
                     html[`prestigeChallenge${i}`].changeStyle('background-color', !player.prestigeChallengeCompleted.includes(i) ? (player.prestigeChallenge === i ? '#00408080' : '#00008080') : '#00808080')
                     html[`prestigeChallenge${i}`].changeStyle('border', `3px solid ${!player.prestigeChallengeCompleted.includes(i) ? (player.prestigeChallenge === i ? '#0080ff' : '#0000ff') : '#00ffff'}`)
                     html[`prestigeChallenge${i}`].changeStyle('cursor', !player.prestigeChallengeCompleted.includes(i) ? 'pointer' : 'not-allowed')
-                    html[`prestigeChallenge${i}`].setDisplay(true)
-                } else {
-                    html[`prestigeChallenge${i}`].setDisplay(false)
                 }
             }
         }
@@ -728,8 +726,11 @@ function hasPrestigeUpgrade(i) {
     return Decimal.gte(player.prestigeUpgrades[i], 1)
 }
 
-function prestigeUpgradeCostScaling(i, oneBefore) {
+function prestigeUpgradeCostScaling(i, oneBefore = true) {
     let bought = player.prestigeUpgrades[i]
+    if (bought === null) {
+        bought = D(0)
+    }
     if (oneBefore) {
         bought = Decimal.sub(bought, 1)
     }

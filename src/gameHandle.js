@@ -29,9 +29,13 @@ function initPlayer() {
         },
         lastTick: Date.now(),
         version: 0,
+        timeInPrestige: D(0),
+        timeInAscend: D(0),
+        timeInTranscension: D(0),
         points: D(0),
         bestPointsInPrestige: D(0),
         bestPointsInAscend: D(0),
+        bestPointsInTranscend: D(0),
         buyables: [D(0), D(0), D(0), D(0), D(0), D(0)],
         buyablePoints: [D(0), D(0), D(0), D(0), D(0), D(0)],
         buyableTierPoints: [D(0), D(0), D(0), D(0), D(0), D(0)],
@@ -41,7 +45,6 @@ function initPlayer() {
         timeSinceBuyableBought: D(0),
         prestige: D(0),
         prestigeEssence: D(0),
-        timeInPrestige: D(0),
         prestigeUpgrades: [
             D(0), D(0), D(0), 
             D(0), D(0), D(0), 
@@ -56,7 +59,6 @@ function initPlayer() {
         hinderanceScore: [D(0), D(0), D(0)],
         currentHinderance: null,
         ascend: D(0),
-        timeInAscend: D(0),
         ascendGems: D(0),
         ascendUpgrades: [],
         setback: [D(0), D(0), D(0)],
@@ -91,8 +93,14 @@ function initPlayer() {
             xp: D(0),
             buyable: [D(0), D(0)],
             enhancer: D(0),
+            totalEnh: D(0),
             enhancerBuyables: [D(0), D(0), D(0)]
-        }
+        },
+        transcendPoints: D(0),
+        transcendPointTotal: D(0),
+        transcendResetCount: D(0),
+        transcendUpgrades: [],
+        transcendUpgradesUnlocked: {} // FILL THIS WITH VALUES
     }
 
     return obj
@@ -158,6 +166,7 @@ function initTmp() {
         quarkBoostCost: D(2),
         quarkEffs: [D(1), D(1), D(1)],
         energyEffs: [D(1), D(1), D(1)],
+        dimBoughtBM: [D(0), D(0), D(0)],
         quarkNames: ['red', 'green', 'blue'],
         quarkNamesC: ['Red', 'Green', 'Blue'],
         quarkColors: [
@@ -209,7 +218,14 @@ function initTmp() {
             enhancerNext: D(0),
             enhancerEff: D(1),
             genEnhBuyables: []
-        }
+        },
+        transcendReq: D(0),
+        transcendAmount: D(0),
+        transcendFactors: [],
+        transcendNext: D(0),
+        transcendUsed: D(0),
+        transcendEffect: D(1),
+        transEffs: []
     }
     obj.buyables = resetMainBuyables()
     obj.generatorFeatures.genXPBuyables = resetGenXPBuyables()
@@ -309,20 +325,36 @@ function updatePlayer() {
         player.version = 2
     }
     if (player.version === 2) {
-
-        // player.version = 3
+        player.generatorFeatures.totalEnh = D(0)
+        player.version = 3
     }
     if (player.version === 3) {
-
-        // player.version = 4
+        player.transcendPoints = D(0)
+        player.transcendPointTotal = D(0)
+        player.transcendResetCount = D(0)
+        player.transcendUpgrades = []
+        player.bestPointsInTranscend = D(0)
+        player.version = 4
     }
     if (player.version === 4) {
-
-        // player.version = 5
+        player.timeInTranscension = D(0)
+        player.version = 5
     }
     if (player.version === 5) {
 
         // player.version = 6
+    }
+    if (player.version === 6) {
+
+        // player.version = 7
+    }
+    if (player.version === 7) {
+
+        // player.version = 8
+    }
+    if (player.version === 8) {
+
+        // player.version = 9
     }
 }
 
@@ -390,6 +422,7 @@ function initHTML() {
         toHTMLvar('pointsPerSecond')
         toHTMLvar('chalList')
 
+        initHTML_transcend()
         initHTML_generatorExtras()
         initHTML_setback()
         initHTML_ascend()
@@ -403,18 +436,30 @@ function initHTML() {
 
         let txt = ``
         for (let i = 0; i < TEXTBOOK.length; i++) {
-            txt += `
-                <button onclick="TEXTBOOK[${i}].enabled = !TEXTBOOK[${i}].enabled" id="textbookButton${i}" class="whiteText font" style="background-color: ${TEXTBOOK[i].colors[1]}; border: 3px solid ${TEXTBOOK[i].colors[0]}; height: 55px; width: 300px; font-size: 16px; margin-top: 2px; margin-bottom: 4px; cursor: pointer">
-                    <b>${TEXTBOOK[i].title}</b><br>
-                    <span style="font-size: 12px">${TEXTBOOK[i].stage}</span>
-                </button>
-                <div id="textbook${i}" class="whiteText font" style="background-color: ${TEXTBOOK[i].colors[1]}; border: 3px solid ${TEXTBOOK[i].colors[0]}; width: 1000px; padding: 4px; margin-top: -7px; margin-bottom: 3px; font-size: 12px; text-align: center"></div>
-            `
+            if (TEXTBOOK[i].colors.length === 1) {
+                console.log(`${TEXTBOOK[i].colors[0]}Border`)
+                txt += `
+                    <div onclick="TEXTBOOK[${i}].enabled = !TEXTBOOK[${i}].enabled" id="textbookButton${i}" class="flex-vertical whiteText font ${TEXTBOOK[i].colors[0]}Border ${TEXTBOOK[i].colors[0]}Fill" style="padding: 4px; height: 40px; width: 400px; font-size: 16px; margin-top: 2px; margin-bottom: 4px; cursor: pointer">
+                        <b style="margin-bottom: 4px">${TEXTBOOK[i].title}</b>
+                        <span id="textbookStage${i}" style="font-size: 12px">${TEXTBOOK[i].stage}</span>
+                    </div>
+                    <div id="textbook${i}" class="whiteText font ${TEXTBOOK[i].colors[0]}Border ${TEXTBOOK[i].colors[0]}Fill" style="width: 1000px; padding: 4px; margin-top: -7px; margin-bottom: 3px; font-size: 12px; text-align: center"></div>
+                `
+            } else {
+                txt += `
+                    <div onclick="TEXTBOOK[${i}].enabled = !TEXTBOOK[${i}].enabled" id="textbookButton${i}" class="flex-vertical whiteText font" style="background-color: ${TEXTBOOK[i].colors[1]}; border: 3px solid ${TEXTBOOK[i].colors[0]}; padding: 4px; height: 40px; width: 400px; font-size: 16px; margin-top: 2px; margin-bottom: 4px; cursor: pointer">
+                        <b style="margin-bottom: 4px">${TEXTBOOK[i].title}</b>
+                        <span id="textbookStage${i}" style="font-size: 12px">${TEXTBOOK[i].stage}</span>
+                    </div>
+                    <div id="textbook${i}" class="whiteText font" style="background-color: ${TEXTBOOK[i].colors[1]}; border: 3px solid ${TEXTBOOK[i].colors[0]}; width: 1000px; padding: 4px; margin-top: -7px; margin-bottom: 3px; font-size: 12px; text-align: center"></div>
+                `
+            }
         }
         html['informationList'].setHTML(txt)
         for (let i = 0; i < TEXTBOOK.length; i++) {
             toHTMLvar(`textbook${i}`)
             toHTMLvar(`textbookButton${i}`)
+            toHTMLvar(`textbookStage${i}`)
         }
 
         draw = document.getElementById('draw');
@@ -541,6 +586,7 @@ function gameLoop() {
     // tick game
     try {
         calcTimeSpeed()
+        updateGame_transcend()
         updateGame_generatorExtras()
         updateGame_setback()
         updateGame_ascend()
@@ -569,6 +615,7 @@ function gameLoop() {
 
 function updateHTML() {
     let txt = ``
+    updateHTML_transcend()
     updateHTML_generatorExtras()      
     updateHTML_setback()
     updateHTML_ascend()
@@ -631,12 +678,9 @@ function updateHTML() {
         for (let i = 0; i < TEXTBOOK.length; i++) {
             html[`textbookButton${i}`].setDisplay(TEXTBOOK[i].show)
             if (TEXTBOOK[i].show) {
-                html[`textbookButton${i}`].changeStyle('background-color', TEXTBOOK[i].colors[1])
-                html[`textbookButton${i}`].changeStyle('border', `3px solid ${TEXTBOOK[i].colors[0]}`)
+                html[`textbookStage${i}`].setHTML(TEXTBOOK[i].stage)
                 html[`textbook${i}`].setDisplay(TEXTBOOK[i].enabled)
                 if (TEXTBOOK[i].enabled) {
-                    html[`textbook${i}`].changeStyle('background-color', TEXTBOOK[i].colors[1])
-                    html[`textbook${i}`].changeStyle('border', `3px solid ${TEXTBOOK[i].colors[0]}`)
                     html[`textbook${i}`].setHTML(TEXTBOOK[i].info)
                 }
             }
