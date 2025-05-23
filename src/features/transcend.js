@@ -2,24 +2,75 @@
 const TRANSCENSION_MILESTONES = [
     {
         baseReq: D(2),
-        desc: "Autobuyers for all buyables are always unlocked."
+        desc: "Autobuyers for all buyables are always unlocked and start with a speed of 2/s."
     },
     {
         baseReq: D(4),
-        desc: "Autobuyers for all buyables are always unlocked."
+        desc: ""
     },
+    {
+        baseReq: D(10),
+        desc: "Enhancement resets no longer do an ascension reset as well."
+    },
+    {
+        baseReq: D(20),
+        desc: "All Setback Dimension 1s and Red Dimensions 2-4 now have autobuyers that run at 4/s, and Ascension Buyables 15 & 16 gain 2 free levels."
+    },
+    {
+        baseReq: D(50),
+        desc: "All Setback Dimension 2s and Green Dimensions 3-5 now have autobuyers that run at 4/s, and keep the first 5 Red and green Setback upgrades."
+    },
+    {
+        baseReq: D(128),
+        desc: "All Setback Dimension 3s and Blue Dimensions 4-6 now have autobuyers that run at 4/s, and Hinderance 3's secondary effect is always active."
+    },
+    {
+        baseReq: D(400),
+        desc: "All Setback Dimension 7s now have autobuyers that run at 4/s, All Setback Dimension 1s have their autobuyers sped up to 10/s, and Hinderance 1's PB starts off at the goal."
+    },
+    {
+        baseReq: D(1e3),
+        desc: "All Setback Dimension 8s now have autobuyers that run at 4/s, All Setback Dimension 2s have their autobuyers sped up to 10/s, and Hinderance 2's PB starts off at the goal."
+    },
+    {
+        baseReq: D(1e4),
+        desc: "All Setback Dimensions 3-4 have their autobuyers sped up to 10/s, and all Ascension Buyables can be autobought with no limit."
+    },
+    {
+        baseReq: D(1e6),
+        desc: "All Setback Dimensions 5-8 have their autobuyers sped up to 10/s, and Ascension Points are automatically generated at a rate of 1%/s."
+    },
+    {
+        baseReq: D(1e8),
+        desc: "Generator XP buyables can now be autobought with no limit, and Red and Green Setback Upgrades 6-10 and Blue Setback Upgrades 1-5 are kept on transcension resets."
+    },
+    {
+        baseReq: D(1e10),
+        desc: "Ascension Buyables 9-16 are kept on Transcension resets."
+    },
+    {
+        baseReq: D(1e12),
+        desc: "Hinderances keep at least ^0.5 of your highest PB in them after a Transcension reset."
+    },
+    {
+        baseReq: D(1e15),
+        desc: "Enhancers are automatically generated at a rate of 1%/s, and your Generator XP gain is based on your best XP rate."
+    },
+    {
+        baseReq: D(1e20),
+        desc: "Start off with a (10, 10, 10) setback loadout automatically equipped, and all Enhancer buyables can be automatically bought with no limit."
+    }
 ]
 
 const TRANSCENSION_UPGRADES = [
     // * Unlocks is an array that's basically stages for when its unlocked
-    // * item 0 is if its shown, item 1 if it can be bought, and item 2 if it can be bought ignoring restrictions
+    // * item 0 is if its shown, item 1 if it can be bought as long as it has prereq
     [
         {
             id: "base",
             cost: D(1),
             prereq: null,
-            restricts: null,
-            unlocks: [true, true, true],
+            unlocks: [true, true],
             name: "Patience",
             get desc() {
                 return `Point gain is boosted by ${format(tmp.transEffs[0][0], 2)}× based off time since a transcension.`
@@ -31,11 +82,10 @@ const TRANSCENSION_UPGRADES = [
     ],
     [
         {
-            id: "main1",
+            id: "point1",
             cost: D(1),
             prereq: ["base"],
-            restricts: null,
-            unlocks: [true, true, true],
+            unlocks: [true, true],
             name: "Double the fun?",
             get desc() {
                 return `All buyables' effect bases are doubled.`
@@ -45,9 +95,8 @@ const TRANSCENSION_UPGRADES = [
         {
             id: "prest1",
             cost: D(1),
-            prereq: ["base"],
-            restricts: null,
-            unlocks: [true, true, true],
+            prereq: ["point1"],
+            unlocks: [true, true],
             name: "Double the prestige?",
             get desc() {
                 return `Prestige point gain is doubled.`
@@ -56,17 +105,16 @@ const TRANSCENSION_UPGRADES = [
         },
         {
             id: "ascend1",
-            cost: D(1),
-            prereq: ["base"],
-            restricts: null,
-            unlocks: [true, true, true],
+            cost: D(2),
+            prereq: ["prest1"],
+            unlocks: [true, true],
             name: "A little more than double the ascension gems?",
             get desc() {
                 return `Ascension Upgrade 4's effect base is doubled.`
             },
             eff: null
         },
-    ]
+    ],
 ]
 
 function initHTML_transcend() {

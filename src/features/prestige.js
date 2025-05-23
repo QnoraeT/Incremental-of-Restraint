@@ -726,7 +726,7 @@ function hasPrestigeUpgrade(i) {
     return Decimal.gte(player.prestigeUpgrades[i], 1)
 }
 
-function prestigeUpgradeCostScaling(i, oneBefore = true) {
+function prestigeUpgradeCostScaling(i, oneBefore = false) {
     let bought = player.prestigeUpgrades[i]
     if (bought === null) {
         bought = D(0)

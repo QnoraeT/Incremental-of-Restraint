@@ -85,7 +85,7 @@ function updateGame_main() {
         tmp.bybBoostEffect = tmp.bybBoostEffect.add(1)
     }
     if (player.prestigeChallengeCompleted.includes(9)) {
-        tmp.bybBoostEffect = tmp.bybBoostEffect.add(2)
+        tmp.bybBoostEffect = tmp.bybBoostEffect.add(3)
     }
 
     if (player.setbackUpgrades.includes(`g7`)) {
@@ -243,13 +243,13 @@ function updateGame_main() {
                     if (tmp.prestigeChal[11].depth.gt(0)) {
                         upgGen = upgGen.pow(tmp.pc11Eff)
                         if (i === 0) {
-                            tmp.generatorFactors.push(`PC11: ^${format(tmp.pc11Eff, 3)} → ${format(upgGen)}`)
+                            tmp.generatorFactors.push(`PC12: ^${format(tmp.pc11Eff, 3)} → ${format(upgGen)}`)
                         }
                     }
                     if (player.prestigeChallengeCompleted.includes(11)) {
                         upgGen = upgGen.pow(1.2)
                         if (i === 0) {
-                            tmp.generatorFactors.push(`PC11 Reward: ^1.200 → ${format(upgGen)}`)
+                            tmp.generatorFactors.push(`PC12 Reward: ^1.200 → ${format(upgGen)}`)
                         }
                     }
                     if (Decimal.gte(player.hinderanceScore[0], HINDERANCES[0].start)) {
@@ -264,11 +264,11 @@ function updateGame_main() {
                             upgGen = D(0)
                         }
                         if (i === 0) {
-                            tmp.generatorFactors.push(`PC12: log${tmp.prestigeChal[12].depth.neq(1) ? '<sup>' + format(tmp.prestigeChal[12].depth, 2) + '</sup>' : ''}<sub>10</sub>(${format(upgGen.layeradd10(tmp.prestigeChal[12].depth).sub(1))}) → ${format(upgGen)}`)
+                            tmp.generatorFactors.push(`PC13: log${tmp.prestigeChal[12].depth.neq(1) ? '<sup>' + format(tmp.prestigeChal[12].depth, 2) + '</sup>' : ''}<sub>10</sub>(${format(upgGen.layeradd10(tmp.prestigeChal[12].depth).sub(1))}) → ${format(upgGen)}`)
                         }
                         upgGen = upgGen.mul(tmp.buyables[i].effect)
                         if (i === 0) {
-                            tmp.generatorFactors.push(`PC12: ×${format(tmp.buyables[i].effect, 2)} → ${format(upgGen)}`)
+                            tmp.generatorFactors.push(`PC13: ×${format(tmp.buyables[i].effect, 2)} → ${format(upgGen)}`)
                         }
                     }
 
@@ -456,11 +456,11 @@ function updateGame_main() {
     }
     if (tmp.prestigeChal[11].depth.gt(0)) {
         tmp.pointGen = tmp.pointGen.pow(tmp.pc11Eff)
-        tmp.pointFactors.push(`PC11: ^${format(tmp.pc11Eff, 3)} → ${format(tmp.pointGen)}`)
+        tmp.pointFactors.push(`PC12: ^${format(tmp.pc11Eff, 3)} → ${format(tmp.pointGen)}`)
     }
     if (player.prestigeChallengeCompleted.includes(11)) {
         tmp.pointGen = tmp.pointGen.pow(1.025)
-        tmp.pointFactors.push(`PC11 Reward: ^${format(1.025, 3)} → ${format(tmp.pointGen)}`)
+        tmp.pointFactors.push(`PC12 Reward: ^${format(1.025, 3)} → ${format(tmp.pointGen)}`)
     }
     if (player.currentHinderance === 0) {
         tmp.pointGen = tmp.pointGen.pow(tmp.dartEffect)

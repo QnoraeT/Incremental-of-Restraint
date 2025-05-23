@@ -396,7 +396,7 @@ function updateGame_setback() {
             tmp.quarkDim[i][j].mult = D(1)
             tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(Decimal.pow(baseMultBoost, player.quarkDimsBought[i][j]))
             if (player.currentSetback !== null) {
-                tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(Decimal.pow(2, Decimal.mul(player.setbackLoadout[i][j], 0.75).add(tmp.trueQuarkTotal.mul(0.25))))
+                tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(Decimal.pow(2, Decimal.mul(player.setbackLoadout[player.currentSetback][i], 0.75).add(tmp.trueQuarkTotal.mul(0.25))))
             }
             if (i === 0) {
                 if (player.setbackUpgrades.includes(`r6`)) {
