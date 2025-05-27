@@ -99,7 +99,7 @@ const TEXTBOOK = [
         get info() {
             return `
                 Ascension is the game's second prestige layer. You initally gain 1 ascension point, and every time you multiply your point amount by ${format(tmp.ascendReq)}, you gain 1,000× more ascension points. Roughly, your ascension point gain is (x/${format(tmp.ascendReq)})<sup>${format(Decimal.log(1e3, tmp.ascendReq), 4)}</sup><br>
-                Ascension points create Ascension gems, which can be used to buy upgrades. However, ascension upgrades also have other requirements that you must meet before being able to buy them.<br><br>
+                Ascension points create Ascension gems, which can be used to buy upgrades. However, Ascension Buyables also have other requirements that you must meet before being able to buy them.<br><br>
                 Past 10 ascension points, you will unlock Setback.
             `
         },
@@ -179,7 +179,8 @@ const TEXTBOOK = [
             return `
                 Generator Enhancers are an extra sub-layer that does an ascension reset and resets your Generator Experience.<br>
                 Enhancers give a passive boost based on your total amount, and you also unlock a couple of extra buyables. The third enhancer buyable is especially important.<br>
-                <span style="text-decoration: underline;">Note that normal ascension resets do not reset Generator Experience! Only if you reset for Generator Enhancers will it reset. You can use this property to your advantage.</span><br><br>
+                <span style="text-decoration: underline;">Note that normal ascension resets do not reset Generator Experience! Only if you reset for Generator Enhancers will it reset. You can use this property to your advantage.</span><br>
+                If you are stuck at ~1.000e1,000, then you might have to grind generator enhancers!<br><br>
                 Exact Generator Enhancer gain: (XP/1.000 Dc)<sup>0.02</sup><br>
                 Exact Generator Enhancer effect: 10<sup>10ln(1+log<sub>10</sub>(1+Enhancers)/10)</sup><br>
                 ${Decimal.gt(player.generatorFeatures.enhancerBuyables[2], 0) ? 'Exact Tier Point gain: (1+(Buyable Bought)/1000)<sup>(Enhancer Buyable #3 Bought)</sup>-1<br>Exact requirement formula: 100(1.01<sup>x</sup>-1)-1' : ''}
@@ -200,7 +201,7 @@ const TEXTBOOK = [
             return `
                 Transcension is the third prestige layer that resets everything before it. Its gain is simple, past 1.000e2,400 points, your Points<sup>0.0005</sup> determines transcension point gain.<br>
                 You also have transcension milestones. Each has a total transcension point requirement that decreases by /2 per transcension. Transcension milestones are the beginning source of QoL progress for this layer.<br>
-                Transcension upgrades (yes, I know, basic name) are in a tree formation. Very creative and unique totally. I totally didn't run out of ideas. Moving on... Transcension upgrades need transcension points and sometimes also need a requirement, like how Ascension upgrades are, however, they are more expansive. Some upgrades can be boosted by using strings.<br>
+                Transcension upgrades (yes, I know, basic name) are in a tree formation. Very creative and unique totally. I totally didn't run out of ideas. Moving on... Transcension upgrades need transcension points and sometimes also need a requirement, like how Ascension Buyables are, however, they are more expansive. Some upgrades can be boosted by using strings.<br>
                 Strings are earned by reaching specific milestones. There are three types of strings. Dotted Strings, Blue Strings, and String Factories. Each string can boost different upgrades depending on where they're allocated. Upgrades can themselves be boosted by strings, but they have a cap of 1 boost. Every 10 of that upgrade's string adds 1 to the boost cap. (Ex. An upgrade needs Dotted Strings to be boosted. If you have 10 total dotted strings, this upgrade can now be boosted twice.)
                 <br><br>
                 Exact Dotted String requirements: 10<sup>10,000*1.2<sup>D.S.</sup></sup> Points<br>
@@ -211,3 +212,53 @@ const TEXTBOOK = [
         enabled: false
     },
 ]
+
+function initHTML_textbook() {
+    toHTMLvar('textbookTabButton')
+    toHTMLvar('textbookTab')
+    toHTMLvar('informationList')
+
+    let txt = ``
+    for (let i = 0; i < TEXTBOOK.length; i++) {
+        if (TEXTBOOK[i].colors.length === 1) {
+            console.log(`${TEXTBOOK[i].colors[0]}Border`)
+            txt += `
+                <div onclick="TEXTBOOK[${i}].enabled = !TEXTBOOK[${i}].enabled" id="textbookButton${i}" class="flex-vertical whiteText font ${TEXTBOOK[i].colors[0]}Border ${TEXTBOOK[i].colors[0]}Fill" style="padding: 4px; height: 40px; width: 400px; font-size: 16px; margin-top: 2px; margin-bottom: 4px; cursor: pointer">
+                    <b style="margin-bottom: 4px">${TEXTBOOK[i].title}</b>
+                    <span id="textbookStage${i}" style="font-size: 12px">${TEXTBOOK[i].stage}</span>
+                </div>
+                <div id="textbook${i}" class="whiteText font ${TEXTBOOK[i].colors[0]}Border ${TEXTBOOK[i].colors[0]}Fill" style="width: 1000px; padding: 4px; margin-top: -7px; margin-bottom: 3px; font-size: 12px; text-align: center"></div>
+            `
+        } else {
+            txt += `
+                <div onclick="TEXTBOOK[${i}].enabled = !TEXTBOOK[${i}].enabled" id="textbookButton${i}" class="flex-vertical whiteText font" style="background-color: ${TEXTBOOK[i].colors[1]}; border: 3px solid ${TEXTBOOK[i].colors[0]}; padding: 4px; height: 40px; width: 400px; font-size: 16px; margin-top: 2px; margin-bottom: 4px; cursor: pointer">
+                    <b style="margin-bottom: 4px">${TEXTBOOK[i].title}</b>
+                    <span id="textbookStage${i}" style="font-size: 12px">${TEXTBOOK[i].stage}</span>
+                </div>
+                <div id="textbook${i}" class="whiteText font" style="background-color: ${TEXTBOOK[i].colors[1]}; border: 3px solid ${TEXTBOOK[i].colors[0]}; width: 1000px; padding: 4px; margin-top: -7px; margin-bottom: 3px; font-size: 12px; text-align: center"></div>
+            `
+        }
+    }
+    html['informationList'].setHTML(txt)
+    for (let i = 0; i < TEXTBOOK.length; i++) {
+        toHTMLvar(`textbook${i}`)
+        toHTMLvar(`textbookButton${i}`)
+        toHTMLvar(`textbookStage${i}`)
+    }
+}
+
+function updateHTML_textbook() {
+    html['textbookTab'].setDisplay(tmp.tab === 2)
+    if (tmp.tab === 2) {
+        for (let i = 0; i < TEXTBOOK.length; i++) {
+            html[`textbookButton${i}`].setDisplay(TEXTBOOK[i].show)
+            html[`textbook${i}`].setDisplay(TEXTBOOK[i].enabled && TEXTBOOK[i].show)
+            if (TEXTBOOK[i].show) {
+                html[`textbookStage${i}`].setHTML(TEXTBOOK[i].stage)
+                if (TEXTBOOK[i].enabled) {
+                    html[`textbook${i}`].setHTML(TEXTBOOK[i].info)
+                }
+            }
+        }
+    }
+}

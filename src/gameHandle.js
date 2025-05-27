@@ -40,10 +40,13 @@ function initPlayer() {
         buyablePoints: [D(0), D(0), D(0), D(0), D(0), D(0)],
         buyableTierPoints: [D(0), D(0), D(0), D(0), D(0), D(0)],
         buyableAutobought: [D(0), D(0), D(0), D(0), D(0), D(0)],
+        buyableInTranscension: [false, false, false, false, false, false],
+        buyableAuto: [false, false, false, false, false, false, false],
         bestTotalGenLvs: D(0),
-        buyableAuto: [false, false, false, false, false],
         timeSinceBuyableBought: D(0),
         prestige: D(0),
+        prestigeCount: D(0),
+        prestigeCountInTrans: D(0),
         prestigeEssence: D(0),
         prestigeUpgrades: [
             D(0), D(0), D(0), 
@@ -59,6 +62,7 @@ function initPlayer() {
         hinderanceScore: [D(0), D(0), D(0)],
         currentHinderance: null,
         ascend: D(0),
+        ascendCount: D(0),
         ascendGems: D(0),
         ascendUpgrades: [],
         setback: [D(0), D(0), D(0)],
@@ -94,7 +98,8 @@ function initPlayer() {
             buyable: [D(0), D(0)],
             enhancer: D(0),
             totalEnh: D(0),
-            enhancerBuyables: [D(0), D(0), D(0)]
+            enhancerBuyables: [D(0), D(0), D(0)],
+            enhanceCount: D(0)
         },
         transcendPoints: D(0),
         transcendPointTotal: D(0),
@@ -123,6 +128,7 @@ function initTmp() {
         ascendTab: 0,
         setbackTab: 0,
         setbackDimTab: 0,
+        transTab: 0,
         timeSpeedTiers: [D(1)],
         timeFactors: [[]],
         pointGen: D(1),
@@ -169,45 +175,7 @@ function initTmp() {
         dimBoughtBM: [D(0), D(0), D(0)],
         quarkNames: ['red', 'green', 'blue'],
         quarkNamesC: ['Red', 'Green', 'Blue'],
-        quarkColors: [
-            {
-                border: {
-                    canBuy: 'FF0000',
-                    cannotBuy: '800000',
-                    complete: 'FF8080'
-                },
-                fill: {
-                    canBuy: '800000',
-                    cannotBuy: '400000',
-                    complete: 'a04040'
-                }
-            },
-            {
-                border: {
-                    canBuy: '00FF00',
-                    cannotBuy: '008000',
-                    complete: '80FF80'
-                },
-                fill: {
-                    canBuy: '008000',
-                    cannotBuy: '004000',
-                    complete: '40a040'
-                }
-            },
-            {
-                border: {
-                    canBuy: '0000FF',
-                    cannotBuy: '000080',
-                    complete: '8080FF'
-                },
-                fill: {
-                    canBuy: '000080',
-                    cannotBuy: '000040',
-                    complete: '4040a0'
-                }
-            },
-            
-        ],
+        quarkColors: ['FF0000', '00FF00', '0000FF'],
         sbSelectedUpg: [],
         generatorFeatures: {
             gain: D(0),
@@ -225,6 +193,7 @@ function initTmp() {
         transcendNext: D(0),
         transcendUsed: D(0),
         transcendEffect: D(1),
+        transcendResetEffect: D(1),
         transEffs: []
     }
     obj.buyables = resetMainBuyables()
@@ -341,12 +310,15 @@ function updatePlayer() {
         player.version = 5
     }
     if (player.version === 5) {
-
-        // player.version = 6
+        player.buyableInTranscension = [false, false, false, false, false, false]
+        player.version = 6
     }
     if (player.version === 6) {
-
-        // player.version = 7
+        player.prestigeCount = D(0)
+        player.ascendCount = D(0)
+        player.enhanceCount = D(0)
+        player.prestigeCountInTrans = D(0)
+        player.version = 7
     }
     if (player.version === 7) {
 
@@ -429,38 +401,7 @@ function initHTML() {
         initHTML_prestige()
         initHTML_main()
         initHTML_stats()
-
-        toHTMLvar('textbookTabButton')
-        toHTMLvar('textbookTab')
-        toHTMLvar('informationList')
-
-        let txt = ``
-        for (let i = 0; i < TEXTBOOK.length; i++) {
-            if (TEXTBOOK[i].colors.length === 1) {
-                console.log(`${TEXTBOOK[i].colors[0]}Border`)
-                txt += `
-                    <div onclick="TEXTBOOK[${i}].enabled = !TEXTBOOK[${i}].enabled" id="textbookButton${i}" class="flex-vertical whiteText font ${TEXTBOOK[i].colors[0]}Border ${TEXTBOOK[i].colors[0]}Fill" style="padding: 4px; height: 40px; width: 400px; font-size: 16px; margin-top: 2px; margin-bottom: 4px; cursor: pointer">
-                        <b style="margin-bottom: 4px">${TEXTBOOK[i].title}</b>
-                        <span id="textbookStage${i}" style="font-size: 12px">${TEXTBOOK[i].stage}</span>
-                    </div>
-                    <div id="textbook${i}" class="whiteText font ${TEXTBOOK[i].colors[0]}Border ${TEXTBOOK[i].colors[0]}Fill" style="width: 1000px; padding: 4px; margin-top: -7px; margin-bottom: 3px; font-size: 12px; text-align: center"></div>
-                `
-            } else {
-                txt += `
-                    <div onclick="TEXTBOOK[${i}].enabled = !TEXTBOOK[${i}].enabled" id="textbookButton${i}" class="flex-vertical whiteText font" style="background-color: ${TEXTBOOK[i].colors[1]}; border: 3px solid ${TEXTBOOK[i].colors[0]}; padding: 4px; height: 40px; width: 400px; font-size: 16px; margin-top: 2px; margin-bottom: 4px; cursor: pointer">
-                        <b style="margin-bottom: 4px">${TEXTBOOK[i].title}</b>
-                        <span id="textbookStage${i}" style="font-size: 12px">${TEXTBOOK[i].stage}</span>
-                    </div>
-                    <div id="textbook${i}" class="whiteText font" style="background-color: ${TEXTBOOK[i].colors[1]}; border: 3px solid ${TEXTBOOK[i].colors[0]}; width: 1000px; padding: 4px; margin-top: -7px; margin-bottom: 3px; font-size: 12px; text-align: center"></div>
-                `
-            }
-        }
-        html['informationList'].setHTML(txt)
-        for (let i = 0; i < TEXTBOOK.length; i++) {
-            toHTMLvar(`textbook${i}`)
-            toHTMLvar(`textbookButton${i}`)
-            toHTMLvar(`textbookStage${i}`)
-        }
+        initHTML_textbook()
 
         draw = document.getElementById('draw');
         pen = draw.getContext("2d");
@@ -622,6 +563,7 @@ function updateHTML() {
     updateHTML_prestige()
     updateHTML_main()
     updateHTML_stats()
+    updateHTML_textbook()
 
     html["points"].setTxt(`${format(player.points, 2)}`)
     html["pointsPerSecond"].setTxt(`${format(tmp.pointGen, 2)}/s`)
@@ -672,20 +614,6 @@ function updateHTML() {
     }
 
     html['chalList'].setHTML(txt)
-
-    html['textbookTab'].setDisplay(tmp.tab === 2)
-    if (tmp.tab === 2) {
-        for (let i = 0; i < TEXTBOOK.length; i++) {
-            html[`textbookButton${i}`].setDisplay(TEXTBOOK[i].show)
-            if (TEXTBOOK[i].show) {
-                html[`textbookStage${i}`].setHTML(TEXTBOOK[i].stage)
-                html[`textbook${i}`].setDisplay(TEXTBOOK[i].enabled)
-                if (TEXTBOOK[i].enabled) {
-                    html[`textbook${i}`].setHTML(TEXTBOOK[i].info)
-                }
-            }
-        }
-    }
 }
 
 function calcTimeSpeed() {

@@ -401,7 +401,7 @@ function initHTML_prestige() {
         toHTMLvar(`prestigeUpgrade${i}eff`)
         toHTMLvar(`prestigeUpgrade${i}cost`)
     }
-    
+
     txt = ``
     for (let i = 0; i < PRESTIGE_CHALLENGES.length; i++) {
         txt += `
@@ -413,7 +413,7 @@ function initHTML_prestige() {
         </button>
         `
     }
-    
+
     html['prestigeChallengeList'].setHTML(txt)
     for (let i = 0; i < PRESTIGE_CHALLENGES.length; i++) {
         toHTMLvar(`prestigeChallenge${i}`)
@@ -429,6 +429,10 @@ function updateGame_prestige() {
         tmp.prestigeChal[i].entered = false
         tmp.prestigeChal[i].trapped = false
         tmp.prestigeChal[i].depth = D(0)
+
+        if (player.prestigeChallenge === i && !prestigeChallengeEnabled(i)) {
+            togglePrestigeChallenge(i)
+        }
 
         if (player.currentHinderance === 2) {
             if (i === 0) {
@@ -663,25 +667,7 @@ function updateHTML_prestige() {
             for (let i = 0; i < PRESTIGE_CHALLENGES.length; i++) {
                 html[`prestigeChallenge${i}goal`].setTxt(format(PRESTIGE_CHALLENGES[i].goal))
 
-                let shown = true
-                if (i === 4) {
-                    shown = player.prestigeChallengeCompleted.includes(0)
-                        && player.prestigeChallengeCompleted.includes(1)
-                        && player.prestigeChallengeCompleted.includes(2)
-                        && player.prestigeChallengeCompleted.includes(3)
-                }
-                if (i === 5) {
-                    shown = Decimal.gte(player.ascendUpgrades[13], 1) && !(player.setbackUpgrades.includes(`b3`) && player.prestigeChallengeCompleted.includes(5))
-                }
-                if (i >= 6 && i <= 8) {
-                    shown = player.setbackUpgrades.includes(`b3`) && player.prestigeChallengeCompleted.includes(i - 1) && !player.prestigeChallengeCompleted.includes(i)
-                }
-                if (i === 9) {
-                    shown = player.setbackUpgrades.includes(`b3`) && player.prestigeChallengeCompleted.includes(i - 1)
-                }
-                if (i >= 10 && i <= 12) {
-                    shown = Decimal.gte(player.ascendUpgrades[13], i - 8)
-                }
+                let shown = prestigeChallengeEnabled(i)
 
                 html[`prestigeChallenge${i}`].setDisplay(shown)
                 if (shown) {
@@ -692,6 +678,29 @@ function updateHTML_prestige() {
             }
         }
     }
+}
+
+function prestigeChallengeEnabled(id) {
+    let shown = true
+    if (id === 4) {
+        shown = player.prestigeChallengeCompleted.includes(0)
+            && player.prestigeChallengeCompleted.includes(1)
+            && player.prestigeChallengeCompleted.includes(2)
+            && player.prestigeChallengeCompleted.includes(3)
+    }
+    if (id === 5) {
+        shown = Decimal.gte(player.ascendUpgrades[13], 1) && !(player.setbackUpgrades.includes(`b3`) && player.prestigeChallengeCompleted.includes(5))
+    }
+    if (id >= 6 && id <= 8) {
+        shown = player.setbackUpgrades.includes(`b3`) && player.prestigeChallengeCompleted.includes(id - 1) && !player.prestigeChallengeCompleted.includes(id)
+    }
+    if (id === 9) {
+        shown = player.setbackUpgrades.includes(`b3`) && player.prestigeChallengeCompleted.includes(id - 1)
+    }
+    if (id >= 10 && id <= 12) {
+        shown = Decimal.gte(player.ascendUpgrades[13], id - 8)
+    }
+    return shown
 }
 
 function toggleCurrentPrestigeChallenge() {
@@ -736,7 +745,7 @@ function prestigeUpgradeCostScaling(i, oneBefore = false) {
     }
     return Decimal.lt(bought, 1)
         ? Decimal.pow10(bought) // for when like maybe idk fractional prestige upgrade amount
-        : Decimal.pow(2, bought.sub(1)).pow10()
+        : Decimal.sub(bought, 1).pow_base(2).pow10()
 }
 
 function togglePrestigeChallenge(i) {

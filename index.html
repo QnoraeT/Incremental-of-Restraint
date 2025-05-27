@@ -37,7 +37,7 @@
                 <div class="flex-vertical">
                     <span class="whiteText font" style="font-size: 24px;" id="points"></span><span class="whiteText font" style="font-size: 12px;">points</span><span class="font" style="font-size: 12px; color: #ffffff" id="pointsPerSecond"></span>
                     <span class="whiteText font" style="font-size: 12px; text-align: center;" id="chalList"></span>
-                    <div class="flex-horizontal" id="tabList">
+                    <div class="flex-horizontal" style="flex-wrap: wrap; width: 100vw" id="tabList">
                         <button onclick="tmp.tab = -1" id="statTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Statistics
                         </button>
@@ -72,7 +72,7 @@
                     </div>
                     <div id="buyableStat">
                         <div class="flex-vertical">
-                            <div class="flex-horizontal" id="statUpgradeList"></div>
+                            <div class="flex-horizontal" style="flex-wrap: wrap; width: 100vw" id="statUpgradeList"></div>
                         </div>
                     </div>
                     <div id="factorsStat">
@@ -107,7 +107,7 @@
                             <span class="font" style="color: #0080ff; font-size: 12px" id="prestigeChallengeEffs"></span>
                             <span class="font" style="color: #ff404c; font-size: 12px" id="hinderanceEffs"></span>
                             <span class="whiteText font" style="font-size: 12px" id="upgradeInSetback"></span>
-                            <div class="flex-horizontal" id="upgradeList"></div><br>
+                            <div class="flex-horizontal" style="flex-wrap: wrap; width: 100vw" id="upgradeList"></div><br>
                             <button onclick="doPrestigeReset()" id="prestige" class="whiteText font" style="cursor: pointer; background-color: #00408080; border: 3px solid #0080ff; height: 70px; width: 325px; font-size: 12px; margin: 2px">
                                 Prestige for <b><span id="prestigeAmount"></span></b> prestige points<span id="prestigeEssenceAmount"></span>.<br>
                                 Next prestige point at <span id="prestigeNext"></span> points.
@@ -227,7 +227,6 @@
                         </div>
                         <div id="hinderanceAscend">
                             <div class="flex-vertical">
-                                <span class="whiteText font" style="font-size: 12px">Points gained here will not count toward the next prestige layer.</span>
                                 <span class="whiteText font" style="font-size: 12px">Hinderances reset your ascension, but are continuous. Your PB in these hinderances determine what rewards you get upon exiting.</span>
                                 <div class="flex-horizontal" style="width: 1080px; flex-wrap: wrap" id="hinderanceList"></div><br>
                             </div>
@@ -352,17 +351,40 @@
                                 <span class="font" style="font-size: 24px; color: #8000ff" id="transcendPoints"></span><span class="font" style="font-size: 12px; color: #8000ff">transcend points</span>
                                 <span class="font" style="font-size: 12px; color: #8000ff" id="transcendPointEffect"></span>
                             </div>
+                            <div style="margin: 4px" class="flex-vertical">
+                                <span class="font" style="font-size: 24px; color: #8000ff" id="transcendResets"></span><span class="font" style="font-size: 12px; color: #8000ff">transcend resets</span>
+                                <span class="font" style="font-size: 12px; color: #8000ff" id="transcendResetEffect"></span>
+                            </div>
                         </div>
                         <div class="flex-horizontal">
-                            <button onclick="tmp.transTab = 0" id="upgradeTransTabButton" class="whiteText font" style="background-color: #40008080; border: 3px solid #8000ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
-                                Upgrades
-                            </button>
-                            <button onclick="tmp.transTab = 1" id="milestoneTransTabButton" class="whiteText font" style="background-color: #40008080; border: 3px solid #8000ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            <button onclick="tmp.transTab = 0" id="milestoneTransTabButton" class="whiteText font" style="background-color: #40008080; border: 3px solid #8000ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                                 Milestones
+                            </button>
+                            <button onclick="tmp.transTab = 1" id="upgradeTransTabButton" class="whiteText font" style="background-color: #40008080; border: 3px solid #8000ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                                Upgrades
                             </button>
                         </div>
                         <div id="UpgradeTransTab">
-
+                            <div class="flex-horizontal">
+                                <div class="flex-vertical" style="background-color: #40008080; border: 3px solid #8000ff; width: 800px; height: 600px;" id="transUpgradeList"></div>
+                                <div class="flex-vertical" style="background-color: #40008080; border: 3px solid #8000ff; width: 400px; height: 600px; margin-left: -3px;" id="transUpgradeInfo">
+                                    <span class="whiteText font" style="font-size: 20px; text-align: center; margin-top: 12px;" id="transUpgName"><b>Click on a transcension upgrade!</b></span>
+                                    <span class="whiteText font" style="font-size: 12px; text-align: center; margin-top: 12px;" id="transUpgDesc">The upgrade's effect appears here.</span>
+                                    <span class="whiteText font" style="font-size: 16px; text-align: center; margin-top: 12px;" id="transUpgCost">Cost: ??? Transcension Points</span>
+                                    <span class="font" style="color: #ff0; font-size: 12px; text-align: center; margin-top: 6px;" id="transUpgCost">If the upgrade has a special requirement, it will show here!</span>
+                                    <button id="buyTransUpgrade" class="whiteText font" style="font-size: 12px; text-align: center; background-color: #40008080; border: 3px solid #8000ff; padding: 6px; margin-top: 16px;">
+                                        Buy <span id="transUpgName2">the upgrade</span>.
+                                    </button>
+                                    <button id="enterTransRestriction" class="whiteText font" style="font-size: 12px; text-align: center; background-color: #40008080; border: 3px solid #8000ff; width: 375px; padding: 4px; margin-top: 6px;">
+                                        If an upgrade requires a special condition, this button will show up and describe what the condition is!
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="MilestoneTransTab">
+                            <div class="flex-vertical">
+                                <div class="flex-vertical" id="transMilestoneList"></div>
+                            </div>
                         </div>
                     </div>
                 </div>

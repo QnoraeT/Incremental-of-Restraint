@@ -290,7 +290,7 @@ function updateGame_setback() {
     }
 
     tmp.setbackEffects[0] = Decimal.div(player.setback[0], 10).pow_base(0.2)
-    tmp.setbackEffects[1] = Decimal.pow(player.setback[1], 2).pow_base(1.11946792).sub(1).div(0.11946792).mul(1.5).add(1)
+    tmp.setbackEffects[1] = Decimal.pow(player.setback[1], 2).pow_base(1.06214316).sub(1).div(0.06214316).mul(1.5).add(1)
     tmp.setbackEffects[2] = Decimal.div(player.setback[2], 10).pow_base(16)
 
     tmp.trueQuarkTotal = D(0)
@@ -479,8 +479,8 @@ function updateHTML_setback() {
             html['dimScalingBoost'].setTxt(format(tmp.quarkBoostEffect, 2))
 
             for (let col = 0; col < player.setback.length; col++) {
-                html[`${tmp.quarkNames[col]}BuyMax`].changeStyle('background-color', `#${tmp.dimBoughtBM[col].gt(0) ? tmp.quarkColors[col].fill.canBuy : tmp.quarkColors[col].fill.cannotBuy}80`)
-                html[`${tmp.quarkNames[col]}BuyMax`].changeStyle('border', `3px solid #${tmp.dimBoughtBM[col].gt(0) ? tmp.quarkColors[col].border.canBuy : tmp.quarkColors[col].border.cannotBuy}`)
+                html[`${tmp.quarkNames[col]}BuyMax`].changeStyle('background-color', `#${colorChange(tmp.quarkColors[col], tmp.dimBoughtBM[col].gt(0) ? 0.5 : 0.25, 1.0)}80`)
+                html[`${tmp.quarkNames[col]}BuyMax`].changeStyle('border', `3px solid #${colorChange(tmp.quarkColors[col], tmp.dimBoughtBM[col].gt(0) ? 1.0 : 0.5, 1.0)}`)
                 html[`${tmp.quarkNames[col]}BuyMax`].changeStyle('cursor', tmp.dimBoughtBM[col].gt(0) ? 'pointer' : 'not-allowed')
                 html[`${tmp.quarkNames[col]}BMTotalEst`].setTxt(`${format(tmp.dimBoughtBM[col])}`)
                 
@@ -490,8 +490,8 @@ function updateHTML_setback() {
                 for (let i = 0; i < player.quarkDimsBought[col].length; i++) {
                     html[`${tmp.quarkNames[col]}Dim${i}`].setDisplay(i === 0 ? true : Decimal.gt(player.quarkDimsBought[col][i - 1], 0) || Decimal.gt(player.quarkDimsAccumulated[col][i - 1], 0))
                     if (i === 0 ? true : Decimal.gt(player.quarkDimsBought[col][i - 1], 0) || Decimal.gt(player.quarkDimsAccumulated[col][i - 1], 0)) {
-                        html[`${tmp.quarkNames[col]}Dim${i}`].changeStyle('background-color', `#${Decimal.gte(player.setbackEnergy[col], tmp.quarkDim[col][i].cost) ? tmp.quarkColors[col].fill.canBuy : tmp.quarkColors[col].fill.cannotBuy}80`)
-                        html[`${tmp.quarkNames[col]}Dim${i}`].changeStyle('border', `3px solid #${Decimal.gte(player.setbackEnergy[col], tmp.quarkDim[col][i].cost) ? tmp.quarkColors[col].border.canBuy : tmp.quarkColors[col].border.cannotBuy}`)
+                        html[`${tmp.quarkNames[col]}Dim${i}`].changeStyle('background-color', `#${colorChange(tmp.quarkColors[col], Decimal.gte(player.setbackEnergy[col], tmp.quarkDim[col][i].cost) ? 0.5 : 0.25, 1.0)}80`)
+                        html[`${tmp.quarkNames[col]}Dim${i}`].changeStyle('border', `3px solid #${colorChange(tmp.quarkColors[col], Decimal.gte(player.setbackEnergy[col], tmp.quarkDim[col][i].cost) ? 1.0 : 0.5, 1.0)}`)
                         html[`${tmp.quarkNames[col]}Dim${i}`].changeStyle('cursor', Decimal.gte(player.setbackEnergy[col], tmp.quarkDim[col][i].cost) ? 'pointer' : 'not-allowed')
                         html[`${tmp.quarkNames[col]}Dim${i}amount`].setTxt(`${format(player.quarkDimsBought[col][i])} (${format(player.quarkDimsAccumulated[col][i])})`)
                         html[`${tmp.quarkNames[col]}Dim${i}mult`].setTxt(`${format(tmp.quarkDim[col][i].mult, 2)}`)
@@ -508,8 +508,17 @@ function updateHTML_setback() {
 
             for (let i = 0; i < SETBACK_UPGRADES.length; i++) {
                 for (let j = 0; j < SETBACK_UPGRADES[i].length; j++) {
-                    html[`${tmp.quarkNames[i]}SBUpg${j}`].changeStyle('border', `3px solid #${player.setbackUpgrades.includes(SETBACK_UPGRADES[i][j].id) || (tmp.sbSelectedUpg[0] === i && tmp.sbSelectedUpg[1] === j)? tmp.quarkColors[i].border.complete : (Decimal.gte(player.setbackEnergy[i], SETBACK_UPGRADES[i][j].cost) ? tmp.quarkColors[i].border.canBuy : tmp.quarkColors[i].border.cannotBuy)}`)
-                    html[`${tmp.quarkNames[i]}SBUpg${j}`].changeStyle('background-color', `#${player.setbackUpgrades.includes(SETBACK_UPGRADES[i][j].id) ? tmp.quarkColors[i].fill.complete : (Decimal.gte(player.setbackEnergy[i], SETBACK_UPGRADES[i][j].cost) ? tmp.quarkColors[i].fill.canBuy : tmp.quarkColors[i].fill.cannotBuy)}`)
+                    html[`${tmp.quarkNames[i]}SBUpg${j}`].changeStyle('border', `3px solid #${colorChange(
+                        tmp.quarkColors[col],
+                        0.5 * (Decimal.gte(player.setbackEnergy[i], SETBACK_UPGRADES[i][j].cost) || player.setbackUpgrades.includes(SETBACK_UPGRADES[i][j].id) ? 2 : 1), 
+                        1 / ((tmp.sbSelectedUpg[0] === i && tmp.sbSelectedUpg[1] === j) ? 2 : 1) / (player.setbackUpgrades.includes(SETBACK_UPGRADES[i][j].id) ? 2 : 1)
+                    )}`)
+
+                    html[`${tmp.quarkNames[i]}SBUpg${j}`].changeStyle('background-color', `#${colorChange(
+                        tmp.quarkColors[col],
+                        0.25 * (Decimal.gte(player.setbackEnergy[i], SETBACK_UPGRADES[i][j].cost) || player.setbackUpgrades.includes(SETBACK_UPGRADES[i][j].id) ? 2 : 1) * (player.setbackUpgrades.includes(SETBACK_UPGRADES[i][j].id) ? 2 : 1),
+                        1.0
+                    )}`)
                 }
             }
 

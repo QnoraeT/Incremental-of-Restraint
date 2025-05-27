@@ -435,7 +435,7 @@ function updateHTML_ascend() {
                     html[`ascendUpgrade${i}cost`].setTxt(`Cost: ${format(ASCENSION_UPGRADES[i].cost)} gems`)
                     html[`ascendUpgrade${i}req`].setTxt(ASCENSION_UPGRADES[i].reqDesc === undefined ? 'No restriction.' : ASCENSION_UPGRADES[i].reqDesc)
                     html[`ascendUpgrade${i}amount`].setTxt(`${format(player.ascendUpgrades[i])} / ${format(ASCENSION_UPGRADES[i].cap)}`)
-        
+
                     html[`ascendUpgrade${i}`].changeStyle('background-color', notCapped ? (canBuy ? '#00C00080' : ASCENSION_UPGRADES[i].req ? '#00800080' : '#80000080') : '#00FF0080')
                     html[`ascendUpgrade${i}`].changeStyle('border', `3px solid ${notCapped ? (canBuy ? '#00C000' : ASCENSION_UPGRADES[i].req ? '#008000' : '#800000') : '#00ff00'}`)
                     html[`ascendUpgrade${i}`].changeStyle('cursor', notCapped && canBuy ? 'pointer' : 'not-allowed')
@@ -494,6 +494,7 @@ function doAscendReset(doAnyway = false) {
     player.prestige = D(0)
     player.prestigeEssence = D(0)
     player.bestPointsInAscend = D(0)
+    player.prestigeCount = D(0)
     tmp.prestigeAmount = D(0)
     tmp.peGain = D(0)
     tmp.prestigeNext = D(0)

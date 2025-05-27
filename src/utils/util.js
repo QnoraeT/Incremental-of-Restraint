@@ -376,3 +376,100 @@ function cheatDilateBoost(x, inv) {
     checkNaN(x, `cheatDilateBoost detected a NaN inside of itself!`)
     return result
 }
+
+function colorChange(color, val, sat) {
+    // #ABCDEF format only
+    if (color[0] === "#") {
+        color = color.slice(1);
+    }
+    const colorInt = parseInt(color, 16);
+    let r = ((colorInt >> 16) % 256) / 256;
+    let g = ((colorInt >> 8) % 256) / 256;
+    let b = (colorInt % 256) / 256;
+    r = 1 - (1 - r) * sat;
+    g = 1 - (1 - g) * sat;
+    b = 1 - (1 - b) * sat;
+    r = Math.min(255, r * val * 256);
+    g = Math.min(255, g * val * 256);
+    b = Math.min(255, b * val * 256);
+    return (
+        "#" +
+        Math.floor(r).toString(16).padStart(2, "0") +
+        Math.floor(g).toString(16).padStart(2, "0") +
+        Math.floor(b).toString(16).padStart(2, "0")
+    );
+};
+
+function mixColor(color, nextColor, type, time) {
+    if (color[0] === "#") {
+        color = color.slice(1);
+    }
+    const colorInt = parseInt(color, 16);
+    if (nextColor[0] === "#") {
+        nextColor = nextColor.slice(1);
+    }
+    const nextColorInt = parseInt(nextColor, 16);
+    let r = ((colorInt >> 16) % 256) / 256;
+    let g = ((colorInt >> 8) % 256) / 256;
+    let b = (colorInt % 256) / 256;
+    const lr = ((nextColorInt >> 16) % 256) / 256;
+    const lg = ((nextColorInt >> 8) % 256) / 256;
+    const lb = (nextColorInt % 256) / 256;
+    r = lerp(time, r, lr, type) * 256;
+    g = lerp(time, g, lg, type) * 256;
+    b = lerp(time, b, lb, type) * 256;
+    return (
+        "#" +
+        Math.floor(r).toString(16).padStart(2, "0") +
+        Math.floor(g).toString(16).padStart(2, "0") +
+        Math.floor(b).toString(16).padStart(2, "0")
+    );
+};
+
+function gRC(time, val, sat) {
+    const s = Math.floor(time) % 6;
+    const t = time % 1;
+    let r = 0;
+    let g = 0;
+    let b = 0;
+    switch (s) {
+        case 0:
+            r = 1;
+            g = t;
+            break;
+        case 1:
+            r = 1 - t;
+            g = 1;
+            break;
+        case 2:
+            g = 1;
+            b = t;
+            break;
+        case 3:
+            g = 1 - t;
+            b = 1;
+            break;
+        case 4:
+            b = 1;
+            r = t;
+            break;
+        case 5:
+            b = 1 - t;
+            r = 1;
+            break;
+        default:
+            throw new Error("Wtf!! Why is there an invalid number?  [" + s + "]");
+    }
+    r = 1 - (1 - r) * sat;
+    g = 1 - (1 - g) * sat;
+    b = 1 - (1 - b) * sat;
+    r = r * val * 255;
+    g = g * val * 255;
+    b = b * val * 255;
+    return (
+        "#" +
+        Math.round(r).toString(16).padStart(2, "0") +
+        Math.round(g).toString(16).padStart(2, "0") +
+        Math.round(b).toString(16).padStart(2, "0")
+    );
+};

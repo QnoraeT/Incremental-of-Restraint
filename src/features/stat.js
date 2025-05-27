@@ -31,8 +31,10 @@ function initHTML_stats() {
                     Effect Base: +<span id="statUpgrade${i}eff"></span><br>
                     Cost Growth: <span id="statUpgrade${i}cost"></span>.
                 </button>
-                <span id="statUpgrade${i}generatorProgressNumber" class="whiteText font" style="font-size: 10px; text-align: center"></span><br>
-                <span id="statUpgrade${i}generatorTierProgressNumber" class="whiteText font" style="font-size: 10px; text-align: center"></span>
+                <div class="flex-vertical">
+                    <span id="statUpgrade${i}generatorProgressNumber" class="whiteText font" style="font-size: 10px; text-align: center"></span>
+                    <span id="statUpgrade${i}generatorTierProgressNumber" class="whiteText font" style="font-size: 10px; text-align: center"></span>
+                </div>
             </div>
         `
     }

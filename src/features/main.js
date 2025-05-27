@@ -29,16 +29,20 @@ function initHTML_main() {
                     Effect: <span id="upgrade${i}eff"></span><br>
                     Cost: <span id="upgrade${i}cost"></span> points
                 </button>
-                <div id="upgrade${i}generators" style="height: 10px; width: 175px; position: relative; margin: 2px">
-                    <div id="upgrade${i}generatorProgressBarBase" style="background-color: #008020; position: absolute; top: 0; left: 0; height: 100%; width: 100%;"></div>
-                    <div id="upgrade${i}generatorProgressBar" style="background-color: #00FF40; position: absolute; top: 0; left: 0; height: 100%"></div>
+                <div class="flex-vertical">
+                    <div id="upgrade${i}generators" style="height: 10px; width: 175px; position: relative; margin: 2px">
+                        <div id="upgrade${i}generatorProgressBarBase" style="background-color: #008020; position: absolute; top: 0; left: 0; height: 100%; width: 100%;"></div>
+                        <div id="upgrade${i}generatorProgressBar" style="background-color: #00FF40; position: absolute; top: 0; left: 0; height: 100%"></div>
+                    </div>
+                    <span id="upgrade${i}generatorProgressNumber" class="whiteText font" style="font-size: 10px; text-align: center"></span>
                 </div>
-                <span id="upgrade${i}generatorProgressNumber" class="whiteText font" style="font-size: 10px; text-align: center"></span>
-                <div id="upgrade${i}generatorTiers" style="height: 10px; width: 175px; position: relative; margin: 2px">
-                    <div id="upgrade${i}generatorTierProgressBarBase" style="background-color: #805000; position: absolute; top: 0; left: 0; height: 100%; width: 100%;"></div>
-                    <div id="upgrade${i}generatorTierProgressBar" style="background-color: #FFA000; position: absolute; top: 0; left: 0; height: 100%"></div>
+                <div class="flex-vertical">
+                    <div id="upgrade${i}generatorTiers" style="height: 10px; width: 175px; position: relative; margin: 2px">
+                        <div id="upgrade${i}generatorTierProgressBarBase" style="background-color: #805000; position: absolute; top: 0; left: 0; height: 100%; width: 100%;"></div>
+                        <div id="upgrade${i}generatorTierProgressBar" style="background-color: #FFA000; position: absolute; top: 0; left: 0; height: 100%"></div>
+                    </div>
+                    <span id="upgrade${i}generatorTierProgressNumber" class="whiteText font" style="font-size: 10px; text-align: center"></span>
                 </div>
-                <span id="upgrade${i}generatorTierProgressNumber" class="whiteText font" style="font-size: 10px; text-align: center"></span>
             </div>
         `
     }
@@ -109,6 +113,7 @@ function updateGame_main() {
 
     let totalGenLevels = D(0)
     tmp.generatorFactors = []
+    let genFactorMade = null
     tmp.pointGen = D(1)
     tmp.pointFactors = []
     tmp.pointFactors.push(`Base: ${format(1)}`)
@@ -200,61 +205,61 @@ function updateGame_main() {
             if (player.prestigeChallengeCompleted.includes(0) || tmp.prestigeChal[10].depth.gt(0)) {
                 upgGen = D(player.buyables[i])
                 upgGen = upgGen.mul(Decimal.div(player.buyables[i], tmp.bybBoostInterval).floor().pow_base(tmp.bybBoostEffect))
-                if (i === 0) {
+                if (genFactorMade === null) {
                     tmp.generatorFactors.push(`Base: ${format(player.buyables[i])}*${format(tmp.bybBoostEffect, 2)}<sup>⌊${format(player.buyables[i])}/${format(tmp.bybBoostInterval)}⌋</sup> → ${format(upgGen)}`)
                 }
                 if (tmp.prestigeChal[10].depth.lte(0)) {
                     if (Decimal.gt(player.ascendUpgrades[1], 0)) {
                         upgGen = upgGen.mul(ASCENSION_UPGRADES[1].eff)
-                        if (i === 0) {
-                            tmp.generatorFactors.push(`Ascension Upgrade 2: ×${format(ASCENSION_UPGRADES[1].eff, 2)} → ${format(upgGen)}`)
+                        if (genFactorMade === null) {
+                            tmp.generatorFactors.push(`Ascension Buyable 2: ×${format(ASCENSION_UPGRADES[1].eff, 2)} → ${format(upgGen)}`)
                         }
                     }
                     if (player.prestigeChallengeCompleted.includes(12)) {
                         upgGen = upgGen.mul(tmp.buyables[i].effect)
-                        if (i === 0) {
+                        if (genFactorMade === null) {
                             tmp.generatorFactors.push(`PC12 Reward: ×${format(tmp.buyables[i].effect, 2)} → ${format(upgGen)}`)
                         }
                     }
                     if (Decimal.gt(player.generatorFeatures.enhancerBuyables[1], 0)) {
                         upgGen = upgGen.mul(tmp.generatorFeatures.genEnhBuyables[1].eff)
-                        if (i === 0) {
+                        if (genFactorMade === null) {
                             tmp.generatorFactors.push(`Gen. Enh. Buyable 2: ×${format(tmp.generatorFeatures.genEnhBuyables[1].eff, 2)} → ${format(upgGen)}`)
                         }
                     }
                     if (hasPrestigeUpgrade(10)) {
                         upgGen = upgGen.pow(tmp.prestigeUpgEffs[10]);
-                        if (i === 0) {
+                        if (genFactorMade === null) {
                             tmp.generatorFactors.push(`Prestige Upgrade 10: ^${format(tmp.prestigeUpgEffs[10], 3)} → ${format(upgGen)}`)
                         }
                     }
                     if (hasPrestigeUpgrade(11)) {
                         upgGen = upgGen.pow(tmp.prestigeUpgEffs[11]);
-                        if (i === 0) {
+                        if (genFactorMade === null) {
                             tmp.generatorFactors.push(`Prestige Upgrade 11: ^${format(tmp.prestigeUpgEffs[11], 3)} → ${format(upgGen)}`)
                         }
                     }
                     if (Decimal.gt(player.generatorFeatures.xp, 0)) {
                         upgGen = upgGen.pow(tmp.generatorFeatures.xpEffGenerators)
-                        if (i === 0) {
+                        if (genFactorMade === null) {
                             tmp.generatorFactors.push(`Generator XP Effect: ^${format(tmp.generatorFeatures.xpEffGenerators, 3)} → ${format(upgGen)}`)
                         }
                     }
                     if (tmp.prestigeChal[11].depth.gt(0)) {
                         upgGen = upgGen.pow(tmp.pc11Eff)
-                        if (i === 0) {
+                        if (genFactorMade === null) {
                             tmp.generatorFactors.push(`PC12: ^${format(tmp.pc11Eff, 3)} → ${format(upgGen)}`)
                         }
                     }
                     if (player.prestigeChallengeCompleted.includes(11)) {
                         upgGen = upgGen.pow(1.2)
-                        if (i === 0) {
+                        if (genFactorMade === null) {
                             tmp.generatorFactors.push(`PC12 Reward: ^1.200 → ${format(upgGen)}`)
                         }
                     }
                     if (Decimal.gte(player.hinderanceScore[0], HINDERANCES[0].start)) {
                         upgGen = upgGen.pow(Decimal.pow(1.02, Decimal.max(player.prestigeEssence, 1).log10().floor()))
-                        if (i === 0) {
+                        if (genFactorMade === null) {
                             tmp.generatorFactors.push(`H1 Reward: ^1.02<sup>⌊log<sub>10</sub>(${format(player.prestigeEssence)})⌋</sup> → ^${format(Decimal.pow(1.02, Decimal.max(player.prestigeEssence, 1).log10().floor()), 3)} → ${format(upgGen)}`)
                         }
                     }
@@ -263,11 +268,11 @@ function updateGame_main() {
                         if (Decimal.isNaN(upgGen)) {
                             upgGen = D(0)
                         }
-                        if (i === 0) {
+                        if (genFactorMade === null) {
                             tmp.generatorFactors.push(`PC13: log${tmp.prestigeChal[12].depth.neq(1) ? '<sup>' + format(tmp.prestigeChal[12].depth, 2) + '</sup>' : ''}<sub>10</sub>(${format(upgGen.layeradd10(tmp.prestigeChal[12].depth).sub(1))}) → ${format(upgGen)}`)
                         }
                         upgGen = upgGen.mul(tmp.buyables[i].effect)
-                        if (i === 0) {
+                        if (genFactorMade === null) {
                             tmp.generatorFactors.push(`PC13: ×${format(tmp.buyables[i].effect, 2)} → ${format(upgGen)}`)
                         }
                     }
@@ -277,14 +282,15 @@ function updateGame_main() {
                         tmp.generatorFactors.push(`Cheats: ... → ${format(upgGen)}`)
                     }
                     upgGen = upgGen.mul(tmp.timeSpeedTiers[0])
-                    if (tmp.timeSpeedTiers[0].neq(1)) {
+                    if (tmp.timeSpeedTiers[0].neq(1) && genFactorMade === null) {
                         tmp.generatorFactors.push(`Tier 1 Time Speed: ×${format(tmp.timeSpeedTiers[0], 2)} → ${format(upgGen)}`)
                     }
 
-                    if (i === 0) {
+                    if (genFactorMade === null) {
                         tmp.generatorSpeed = upgGen
                     }
                 }
+                genFactorMade = i
             }
             if (player.currentHinderance === 1) {
                 player.buyablePoints[i] = Decimal.max(player.buyablePoints[i], 0).add(1).log10().add(1).root(0.9).sub(1).pow10().sub(1).add(upgGen.mul(delta)).add(1).log10().add(1).pow(0.9).sub(1).pow10().sub(1)
@@ -400,7 +406,7 @@ function updateGame_main() {
     }
     if (Decimal.gt(player.ascendUpgrades[0], 0)) {
         tmp.pointGen = tmp.pointGen.mul(ASCENSION_UPGRADES[0].eff)
-        tmp.pointFactors.push(`Ascension Upgrade 1: ×${format(ASCENSION_UPGRADES[0].eff, 2)} → ${format(tmp.pointGen)}`)
+        tmp.pointFactors.push(`Ascension Buyable 1: ×${format(ASCENSION_UPGRADES[0].eff, 2)} → ${format(tmp.pointGen)}`)
     }
     if (Decimal.gt(player.setbackEnergy[0], 0)) {
         tmp.pointGen = tmp.pointGen.mul(tmp.energyEffs[0])

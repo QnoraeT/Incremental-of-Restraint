@@ -52,7 +52,7 @@ const GEN_XP_BUYABLES = [
 const GEN_ENH_BUYABLES = [
     {
         get show() {
-            return Decimal.gt(player.generatorFeatures.enhancer, 0)
+            return Decimal.gt(player.generatorFeatures.totalEnh, 0)
         },
         get cost() {
             let cost = D(player.generatorFeatures.enhancerBuyables[0])
@@ -65,7 +65,7 @@ const GEN_ENH_BUYABLES = [
             return target
         },
         get eff() {
-            let eff = D(0.05)
+            let eff = D(0.1)
             eff = eff.mul(player.generatorFeatures.enhancerBuyables[0])
             return eff
         },
@@ -75,7 +75,7 @@ const GEN_ENH_BUYABLES = [
     },
     {
         get show() {
-            return Decimal.gt(player.generatorFeatures.enhancer, 0)
+            return Decimal.gt(player.generatorFeatures.totalEnh, 0)
         },
         get cost() {
             let cost = D(player.generatorFeatures.enhancerBuyables[1])
@@ -98,16 +98,16 @@ const GEN_ENH_BUYABLES = [
     },
     {
         get show() {
-            return Decimal.gt(player.generatorFeatures.enhancer, 0)
+            return Decimal.gt(player.generatorFeatures.totalEnh, 0)
         },
         get cost() {
             let cost = D(player.generatorFeatures.enhancerBuyables[2])
-            cost = cost.add(1).pow_base(2).add(1).pow10()
+            cost = cost.pow_base(2).add(1).pow10()
             return cost
         },
         get target() {
             let target = D(player.generatorFeatures.enhancer)
-            target = target.max(100).log10().sub(1).log(2).sub(1)
+            target = target.max(100).log10().sub(1).log(2)
             return target
         },
         get eff() {
@@ -201,7 +201,7 @@ function updateGame_generatorExtras() {
         tmp.generatorFeatures.enhancerNext = cheatDilateBoost(tmp.generatorFeatures.enhancerNext, true)
         tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.root(0.02).mul(1e33)
 
-        tmp.generatorFeatures.enhancerEff = Decimal.add(player.generatorFeatures.totalEnh, 1).log10().div(10).add(1).ln().mul(10).pow10()
+        tmp.generatorFeatures.enhancerEff = Decimal.add(player.generatorFeatures.totalEnh, 1).log10().div(10).add(1).ln().mul(50).pow10()
 
         for (let i = 0; i < GEN_ENH_BUYABLES.length; i++) {
             tmp.generatorFeatures.genEnhBuyables[i].eff = GEN_ENH_BUYABLES[i].eff
@@ -239,14 +239,14 @@ function updateHTML_generatorExtras() {
                 html[`genXPBuy${i}eff`].setTxt(GEN_XP_BUYABLES[i].desc)
                 html[`genXPBuy${i}cost`].setTxt(`Cost: ${format(GEN_XP_BUYABLES[i].cost)} generator experience`)
                 html[`genXPBuy${i}amount`].setTxt(`Gen. XP Buyable #${i+1}: ×${format(player.generatorFeatures.buyable[i])}`)
-    
+
                 html[`genXPBuy${i}`].changeStyle('background-color', canBuy ? '#C0780080' : '#40280080')
                 html[`genXPBuy${i}`].changeStyle('border', `3px solid ${canBuy ? '#FFA000' : '#805000'}`)
                 html[`genXPBuy${i}`].changeStyle('cursor', canBuy ? 'pointer' : 'not-allowed')
             }
         }
 
-        html['genEnhArea'].setDisplay(Decimal.gt(player.generatorFeatures.enhancer, 0))
+        html['genEnhArea'].setDisplay(Decimal.gt(player.generatorFeatures.totalEnh, 0))
 
         if (Decimal.gt(player.generatorFeatures.enhancer, 0)) {
             html['genEnhance'].setTxt(format(player.generatorFeatures.enhancer))
@@ -258,7 +258,7 @@ function updateHTML_generatorExtras() {
                     html[`genEnhBuy${i}eff`].setTxt(GEN_ENH_BUYABLES[i].desc)
                     html[`genEnhBuy${i}cost`].setTxt(`Cost: ${format(GEN_ENH_BUYABLES[i].cost)} enhancers`)
                     html[`genEnhBuy${i}amount`].setTxt(`Gen. Enh. Buyable #${i+1}: ×${format(player.generatorFeatures.enhancerBuyables[i])}`)
-        
+
                     html[`genEnhBuy${i}`].changeStyle('background-color', canBuy ? '#C0C00080' : '#40400080')
                     html[`genEnhBuy${i}`].changeStyle('border', `3px solid ${canBuy ? '#FFFF00' : '#808000'}`)
                     html[`genEnhBuy${i}`].changeStyle('cursor', canBuy ? 'pointer' : 'not-allowed')
