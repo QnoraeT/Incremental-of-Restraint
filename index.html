@@ -84,6 +84,7 @@
                                 <div class="flex-vertical whiteText font" style="width: 400px; background-color: #00800080; border: 3px solid #00ff00; margin: 4px; font-size: 12px; padding: 2px" id="ascendFactors"></div>
                                 <div class="flex-vertical whiteText font" style="width: 400px; background-color: #00408080; border: 3px solid #0080ff; margin: 4px; font-size: 12px; padding: 2px" id="prestigeEssenceFactors"></div>
                                 <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80808080; border: 3px solid #ffffff; margin: 4px; font-size: 12px; padding: 2px" id="tier1timeFactors"></div>
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #40008080; border: 3px solid #8000ff; margin: 4px; font-size: 12px; padding: 2px" id="transcendFactors"></div>
                             </div>
                         </div>
                     </div>
@@ -179,13 +180,13 @@
                                 <button onclick="respecPrestigeUpgrades()" id="prestigeRespec" class="whiteText font" style="height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
                                     Respec all prestige buyables and do a prestige reset.
                                 </button>
-                                <button onclick="alert('unimplemented.')" id="prestigeRespec" class="whiteText font" style="height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
+                                <button onclick="alert('unimplemented.')" id="puExport" class="whiteText font" style="height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
                                     Export prestige upgrade loadout.
                                 </button>
-                                <button onclick="alert('unimplemented.')" id="prestigeRespec" class="whiteText font" style="height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
+                                <button onclick="alert('unimplemented.')" id="puImport" class="whiteText font" style="height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
                                     Import prestige upgrade loadout.
                                 </button>
-                                <button onclick="alert('unimplemented.')" id="prestigeRespec" class="whiteText font" style="height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
+                                <button onclick="alert('unimplemented.')" id="puPreset" class="whiteText font" style="height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
                                     See prestige upgrade presets.
                                 </button>
                             </div>
@@ -196,6 +197,9 @@
                     <div id="prestigeChallengeTab">
                         <div class="flex-vertical">
                             <span class="whiteText font" style="font-size: 12px">Points gained here will not count toward the next prestige layer.</span>
+                            <button onclick="respecPrestigeChallenge()" id="prestigeChalRespec" class="whiteText font" style="height: 50px; width: 200px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
+                                Respec all prestige challenge completions and do an ascension reset.
+                            </button>
                             <!-- <span class="whiteText font" style="font-size: 12px">You cannot buy Prestige Upgrades in a Prestige Challenge.</span> -->
                             <div class="flex-horizontal" style="width: 1080px; flex-wrap: wrap" id="prestigeChallengeList"></div><br>
                         </div>
@@ -370,10 +374,11 @@
                                 <div class="flex-vertical" style="background-color: #40008080; border: 3px solid #8000ff; width: 400px; height: 600px; margin-left: -3px;" id="transUpgradeInfo">
                                     <span class="whiteText font" style="font-size: 20px; text-align: center; margin-top: 12px;" id="transUpgName"><b>Click on a transcension upgrade!</b></span>
                                     <span class="whiteText font" style="font-size: 12px; text-align: center; margin-top: 12px;" id="transUpgDesc">The upgrade's effect appears here.</span>
-                                    <span class="whiteText font" style="font-size: 16px; text-align: center; margin-top: 12px;" id="transUpgCost">Cost: ??? Transcension Points</span>
+
                                     <span class="font" style="color: #ff0; font-size: 12px; text-align: center; margin-top: 6px;" id="transUpgCost">If the upgrade has a special requirement, it will show here!</span>
                                     <button id="buyTransUpgrade" class="whiteText font" style="font-size: 12px; text-align: center; background-color: #40008080; border: 3px solid #8000ff; padding: 6px; margin-top: 16px;">
-                                        Buy <span id="transUpgName2">the upgrade</span>.
+                                        Buy <span id="transUpgName2">the upgrade</span>.<br>
+                                        Cost: <span id="transUpgCost">???</span> Transcension Points
                                     </button>
                                     <button id="enterTransRestriction" class="whiteText font" style="font-size: 12px; text-align: center; background-color: #40008080; border: 3px solid #8000ff; width: 375px; padding: 4px; margin-top: 6px;">
                                         If an upgrade requires a special condition, this button will show up and describe what the condition is!

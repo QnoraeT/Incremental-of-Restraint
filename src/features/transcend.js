@@ -27,7 +27,7 @@ const TRANSCENSION_MILESTONES = [
     },
     {
         baseReq: D(128),
-        desc: "All Setback Dimension 3s and Blue Dimensions 4-6 now have autobuyers that run at 4/s, and Hinderance 3's secondary effect is always active."
+        desc: "All Setback Dimension 3s and Blue Dimensions 4-6 now have autobuyers that run at 4/s, and Hinderance 3's PB starts off at the goal."
     },
     {
         baseReq: D(400),
@@ -598,6 +598,14 @@ function initHTML_transcend() {
         toHTMLvar(`transcendMilestone${i}desc`)
         toHTMLvar(`transcendMilestone${i}req`)
     }
+
+    txt = ``
+    for (let i = 0; i < TRANSCENSION_UPGRADES.length; i++) {
+        txt += `
+            <div class="flex-vertical" style="width: 300px; border: 3px dashed #8000ff80" id="transcendUpgCate${i}">
+            </div>
+        `
+    }
 }
 
 function updateGame_transcend() {
@@ -617,7 +625,7 @@ function updateGame_transcend() {
     tmp.transcendNext = cheatDilateBoost(tmp.transcendNext, true)
     tmp.transcendNext = tmp.transcendNext.add(1).root(0.0005).mul(tmp.transcendReq)
 
-    tmp.transcendEffect = Decimal.max(player.transcendPointTotal, 0).add(1).log10().add(1).ln().mul(2).pow10()
+    tmp.transcendEffect = Decimal.max(player.transcendPointTotal, 0).add(1).log10().mul(0.02).add(1).ln().mul(100).pow10()
     tmp.transcendResetEffect = Decimal.max(player.transcendResetCount, 0).pow_base(2) // this is probably risky, i should change this at some point
 }
 
@@ -676,12 +684,21 @@ function doTranscendReset(doAnyway = false) {
     player.timeInTranscension = D(0)
     player.bestTotalGenLvs = D(0)
     for (let i = 0; i < player.buyables.length; i++) {
-        player.buyableTierPoints = D(0)
+        player.buyableTierPoints[i] = D(0)
     }
     player.prestigeCountInTrans = D(0)
     player.currentHinderance = null
     for (let i = 0; i < HINDERANCES.length; i++) {
-        player.hinderanceScore = D(0)
+        player.hinderanceScore[i] = D(0)
+    }
+    if (hasTranscendMilestone(5)) {
+        player.hinderanceScore[2] = HINDERANCES[2].start
+    }
+    if (hasTranscendMilestone(6)) {
+        player.hinderanceScore[0] = HINDERANCES[0].start
+    }
+    if (hasTranscendMilestone(7)) {
+        player.hinderanceScore[1] = HINDERANCES[1].start
     }
     player.ascend = D(0)
     player.ascendCount = D(0)
@@ -691,6 +708,12 @@ function doTranscendReset(doAnyway = false) {
     player.inSetback = false
     player.setbackLoadout = []
     player.setbackUpgrades = []
+    if (hasTranscendMilestone(4)) {
+        for (let i = 0; i < 5; i++) {
+            player.setbackUpgrades.push(`r${i+1}`)
+            player.setbackUpgrades.push(`g${i+1}`)
+        }
+    }
     player.generatorFeatures.xp = D(0)
     player.generatorFeatures.buyable = [D(0), D(0)]
     player.generatorFeatures.enhancer = D(0)
@@ -698,9 +721,13 @@ function doTranscendReset(doAnyway = false) {
     player.generatorFeatures.enhancerBuyables = [D(0), D(0), D(0), D(0), D(0), D(0)]
     player.generatorFeatures.enhanceCount = D(0)
 
+    player.prestigeChallengeCompleted = []
+    player.prestigeUpgrades = []
+
     tmp.generatorFeatures.genXPBuyables = resetGenXPBuyables()
     tmp.generatorFeatures.genEnhBuyables = resetGenEnhBuyables()
     tmp.ascendAmount = D(0)
+    tmp.setbackTab = 0
 
     doAscendReset(true)
 }

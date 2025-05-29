@@ -15,6 +15,7 @@ function initHTML_stats() {
     toHTMLvar('ascendFactors')
     toHTMLvar('prestigeEssenceFactors')
     toHTMLvar('tier1timeFactors')
+    toHTMLvar('transcendFactors')
 
     html['statTab'].setDisplay(false)
     html['buyableStat'].setDisplay(false)
@@ -68,17 +69,17 @@ function updateHTML_stats() {
                     html[`statUpgrade${i}all`].setDisplay(true)
                     html[`statUpgrade${i}generatorProgressNumber`].setDisplay(player.prestigeChallengeCompleted.includes(0))
                     html[`statUpgrade${i}generatorTierProgressNumber`].setDisplay(Decimal.gte(player.generatorFeatures.enhancerBuyables[2], 1))
-    
+
                     if (player.prestigeChallengeCompleted.includes(0)) {
                         html[`statUpgrade${i}generatorProgressNumber`].setTxt(`Level ${format(tmp.buyables[i].genLevels)}, ×${format(tmp.buyables[i].genEffect, 2)}`)
                     }
                     if (Decimal.gte(player.generatorFeatures.enhancerBuyables[2], 1)) {
                         html[`statUpgrade${i}generatorTierProgressNumber`].setTxt(`Tier ${format(tmp.buyables[i].tierLevels)}, /${format(tmp.buyables[i].tierEffect, 3)}`)
                     }
-    
+
                     html[`statUpgrade${i}cost`].setTxt(`${format(i+2)}× per ${format(tmp.buyables[i].costSpeed.recip().mul(10))} purchases, speed up by ${format(Decimal.div(player.buyables[i], tmp.bybBoostInterval).floor().pow_base(tmp.bybBoostCost))}×`)
                     html[`statUpgrade${i}eff`].setTxt(`×${format(tmp.buyables[i].effectBase, 3)}`)
-    
+
                     html[`statUpgrade${i}auto`].setDisplay(buyableAutoEnabledAndSpeed(i).enabled)
                     if (buyableAutoEnabledAndSpeed(i).enabled) {
                         html[`statUpgrade${i}autoStatus`].setTxt(format(buyableAutoEnabledAndSpeed(i).speed, 1))
@@ -142,6 +143,16 @@ function updateHTML_stats() {
                 }
                 txt += `<b style="font-size: 14px">Final: ${format(tmp.timeSpeedTiers[0])}</b>`
                 html['tier1timeFactors'].setHTML(txt)
+            }
+
+            html['transcendFactors'].setDisplay(Decimal.gte(player.transcendResetCount, 1))
+            if (Decimal.gte(player.transcendResetCount, 1)) {
+                txt = `<b style="font-size: 14px">Transcension Points</b>`
+                for (let i = 0; i < tmp.transcendFactors.length; i++) {
+                    txt += `<li>${tmp.transcendFactors[i]}</li>`
+                }
+                txt += `<b style="font-size: 14px">Final: ${format(tmp.transcendAmount)}</b>`
+                html['transcendFactors'].setHTML(txt)
             }
         }
     }

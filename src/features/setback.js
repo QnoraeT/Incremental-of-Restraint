@@ -355,17 +355,10 @@ function updateGame_setback() {
 
             checkNaN(tmp.quarkDim[i][j].target, `NaN detected while attempting to calculate target of ${tmp.quarkNamesC[i]} Quark Dimension #${j + 1}`)
 
-            if (player.quarkDimsAuto[i][j] || player.cheats.autoDim) {
-                let spd = D(4)
-
-                if (player.cheats.autoDim) {
-                    spd = spd.add(Infinity)
-                }
-
-                spd = spd.mul(tmp.timeSpeedTiers[0])
-                player.quarkDimsAutobought[i][j] = Decimal.add(player.quarkDimsAutobought[i][j], spd.mul(delta)).min(tmp.quarkDim[i][j].target).max(player.quarkDimsBought[i][j])
+            if (setbackAutobuyerEnabledAndSpeed(i, j).enabled) {
+                player.quarkDimsAutobought[i][j] = Decimal.add(player.quarkDimsAutobought[i][j], setbackAutobuyerEnabledAndSpeed(i, j).speed.mul(delta)).min(tmp.quarkDim[i][j].target).max(player.quarkDimsAutobought[i][j])
                 let bought = player.quarkDimsBought[i][j]
-                player.quarkDimsBought[i][j] = player.quarkDimsAutobought[i][j].add(0.99999999).floor()
+                player.quarkDimsBought[i][j] = player.quarkDimsAutobought[i][j].add(0.99999999).floor().max(player.quarkDimsBought[i][j])
                 bought = Decimal.sub(bought, player.quarkDimsBought[i][j])
                 if (bought.lt(0)) {
                     // why only the first buy? the earlier purchases get increasingly negligible
@@ -431,10 +424,10 @@ function updateHTML_setback() {
     html['setbackTabButton'].setDisplay(Decimal.gte(player.ascend, 10))
 
     if (tmp.tab === 4) {
-        html['setSBTabButton'].setDisplay(player.setbackLoadout.length > 0)
-        html['loadSBTabButton'].setDisplay(player.setbackLoadout.length > 0)
-        html['dimSBTabButton'].setDisplay(player.setbackLoadout.length > 0)
-        html['upgSBTabButton'].setDisplay(player.setbackLoadout.length > 0)
+        html['setSBTabButton'].setDisplay(player.setbackLoadout.length > 0 || Decimal.gt(player.transcendResetCount, 0))
+        html['loadSBTabButton'].setDisplay(player.setbackLoadout.length > 0 || Decimal.gt(player.transcendResetCount, 0))
+        html['dimSBTabButton'].setDisplay(player.setbackLoadout.length > 0 || Decimal.gt(player.transcendResetCount, 0))
+        html['upgSBTabButton'].setDisplay(player.setbackLoadout.length > 0 || Decimal.gt(player.transcendResetCount, 0))
 
         html['setbackTabSettings'].setDisplay(tmp.setbackTab === 0)
         html['setbackTabLoadout'].setDisplay(tmp.setbackTab === 1)
@@ -479,8 +472,8 @@ function updateHTML_setback() {
             html['dimScalingBoost'].setTxt(format(tmp.quarkBoostEffect, 2))
 
             for (let col = 0; col < player.setback.length; col++) {
-                html[`${tmp.quarkNames[col]}BuyMax`].changeStyle('background-color', `#${colorChange(tmp.quarkColors[col], tmp.dimBoughtBM[col].gt(0) ? 0.5 : 0.25, 1.0)}80`)
-                html[`${tmp.quarkNames[col]}BuyMax`].changeStyle('border', `3px solid #${colorChange(tmp.quarkColors[col], tmp.dimBoughtBM[col].gt(0) ? 1.0 : 0.5, 1.0)}`)
+                html[`${tmp.quarkNames[col]}BuyMax`].changeStyle('background-color', `${colorChange(tmp.quarkColors[col], tmp.dimBoughtBM[col].gt(0) ? 0.5 : 0.25, 1.0)}80`)
+                html[`${tmp.quarkNames[col]}BuyMax`].changeStyle('border', `3px solid ${colorChange(tmp.quarkColors[col], tmp.dimBoughtBM[col].gt(0) ? 1.0 : 0.5, 1.0)}`)
                 html[`${tmp.quarkNames[col]}BuyMax`].changeStyle('cursor', tmp.dimBoughtBM[col].gt(0) ? 'pointer' : 'not-allowed')
                 html[`${tmp.quarkNames[col]}BMTotalEst`].setTxt(`${format(tmp.dimBoughtBM[col])}`)
                 
@@ -490,8 +483,8 @@ function updateHTML_setback() {
                 for (let i = 0; i < player.quarkDimsBought[col].length; i++) {
                     html[`${tmp.quarkNames[col]}Dim${i}`].setDisplay(i === 0 ? true : Decimal.gt(player.quarkDimsBought[col][i - 1], 0) || Decimal.gt(player.quarkDimsAccumulated[col][i - 1], 0))
                     if (i === 0 ? true : Decimal.gt(player.quarkDimsBought[col][i - 1], 0) || Decimal.gt(player.quarkDimsAccumulated[col][i - 1], 0)) {
-                        html[`${tmp.quarkNames[col]}Dim${i}`].changeStyle('background-color', `#${colorChange(tmp.quarkColors[col], Decimal.gte(player.setbackEnergy[col], tmp.quarkDim[col][i].cost) ? 0.5 : 0.25, 1.0)}80`)
-                        html[`${tmp.quarkNames[col]}Dim${i}`].changeStyle('border', `3px solid #${colorChange(tmp.quarkColors[col], Decimal.gte(player.setbackEnergy[col], tmp.quarkDim[col][i].cost) ? 1.0 : 0.5, 1.0)}`)
+                        html[`${tmp.quarkNames[col]}Dim${i}`].changeStyle('background-color', `${colorChange(tmp.quarkColors[col], Decimal.gte(player.setbackEnergy[col], tmp.quarkDim[col][i].cost) ? 0.5 : 0.25, 1.0)}80`)
+                        html[`${tmp.quarkNames[col]}Dim${i}`].changeStyle('border', `3px solid ${colorChange(tmp.quarkColors[col], Decimal.gte(player.setbackEnergy[col], tmp.quarkDim[col][i].cost) ? 1.0 : 0.5, 1.0)}`)
                         html[`${tmp.quarkNames[col]}Dim${i}`].changeStyle('cursor', Decimal.gte(player.setbackEnergy[col], tmp.quarkDim[col][i].cost) ? 'pointer' : 'not-allowed')
                         html[`${tmp.quarkNames[col]}Dim${i}amount`].setTxt(`${format(player.quarkDimsBought[col][i])} (${format(player.quarkDimsAccumulated[col][i])})`)
                         html[`${tmp.quarkNames[col]}Dim${i}mult`].setTxt(`${format(tmp.quarkDim[col][i].mult, 2)}`)
@@ -508,23 +501,24 @@ function updateHTML_setback() {
 
             for (let i = 0; i < SETBACK_UPGRADES.length; i++) {
                 for (let j = 0; j < SETBACK_UPGRADES[i].length; j++) {
-                    html[`${tmp.quarkNames[i]}SBUpg${j}`].changeStyle('border', `3px solid #${colorChange(
-                        tmp.quarkColors[col],
+                    html[`${tmp.quarkNames[i]}SBUpg${j}`].changeStyle('border', `3px solid ${colorChange(
+                        tmp.quarkColors[i],
                         0.5 * (Decimal.gte(player.setbackEnergy[i], SETBACK_UPGRADES[i][j].cost) || player.setbackUpgrades.includes(SETBACK_UPGRADES[i][j].id) ? 2 : 1), 
-                        1 / ((tmp.sbSelectedUpg[0] === i && tmp.sbSelectedUpg[1] === j) ? 2 : 1) / (player.setbackUpgrades.includes(SETBACK_UPGRADES[i][j].id) ? 2 : 1)
+                        1 / ((tmp.sbSelectedUpg[0] === i && tmp.sbSelectedUpg[1] === j) ? 4 : 1) / (player.setbackUpgrades.includes(SETBACK_UPGRADES[i][j].id) ? 2 : 1)
                     )}`)
 
-                    html[`${tmp.quarkNames[i]}SBUpg${j}`].changeStyle('background-color', `#${colorChange(
-                        tmp.quarkColors[col],
+                    html[`${tmp.quarkNames[i]}SBUpg${j}`].changeStyle('background-color', `${colorChange(
+                        tmp.quarkColors[i],
                         0.25 * (Decimal.gte(player.setbackEnergy[i], SETBACK_UPGRADES[i][j].cost) || player.setbackUpgrades.includes(SETBACK_UPGRADES[i][j].id) ? 2 : 1) * (player.setbackUpgrades.includes(SETBACK_UPGRADES[i][j].id) ? 2 : 1),
                         1.0
-                    )}`)
+                    )}80`)
                 }
             }
 
             html['upgSBDesc'].setTxt(tmp.sbSelectedUpg.length === 0 ? '' : `${SETBACK_UPGRADES[tmp.sbSelectedUpg[0]][tmp.sbSelectedUpg[1]].desc}`)
             html['upgSBCost'].setTxt(tmp.sbSelectedUpg.length === 0 ? '' : `Cost: ${format(SETBACK_UPGRADES[tmp.sbSelectedUpg[0]][tmp.sbSelectedUpg[1]].cost)} ${tmp.quarkNames[tmp.sbSelectedUpg[0]]} energy.${player.setbackUpgrades.includes(SETBACK_UPGRADES[tmp.sbSelectedUpg[0]][tmp.sbSelectedUpg[1]].id) ? ' Bought!' : ''}`)
         }
+
     }
 }
 
@@ -635,4 +629,47 @@ function selectSBUpg(i, j) {
     }
     tmp.sbSelectedUpg[0] = i
     tmp.sbSelectedUpg[1] = j
+}
+
+function setbackAutobuyerEnabledAndSpeed(i, j) {
+    let auto = false
+    let spd = D(0)
+    if (hasTranscendMilestone(3) && (j === 0 || (i === 0 && j >= 1 && j <= 3))) {
+        auto = true
+        spd = D(4)
+    }
+    if (hasTranscendMilestone(4) && (j === 1 || (i === 1 && j >= 2 && j <= 4))) {
+        auto = true
+        spd = D(4)
+    }
+    if (hasTranscendMilestone(5) && (j === 2 || (i === 2 && j >= 3 && j <= 5))) {
+        auto = true
+        spd = D(4)
+    }
+    if (hasTranscendMilestone(6)) {
+        if (j === 0) {
+            spd = spd.mul(2.5)
+        }
+        if (j === 6) {
+            auto = true
+            spd = D(4)
+        }
+    }
+    if (hasTranscendMilestone(7)) {
+        if (j === 1) {
+            spd = spd.mul(2.5)
+        }
+        if (j === 7) {
+            auto = true
+            spd = D(4)
+        }
+    }
+
+    auto ||= player.cheats.autoDim
+
+    spd = spd.mul(tmp.timeSpeedTiers[0])
+    if (player.cheats.autoDim) {
+        spd = D(Infinity)
+    }
+    return {enabled: auto, speed: spd}
 }

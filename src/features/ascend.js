@@ -223,7 +223,11 @@ const ASCENSION_UPGRADES = [
             return target
         },
         get eff() {
-            return Decimal.pow(2, player.ascendUpgrades[14])
+            let eff = D(player.ascendUpgrades[14])
+            if (hasTranscendMilestone(3)) {
+                eff = eff.add(2)
+            }
+            return Decimal.pow(2, eff)
         },
         get desc() {
             return `Automate Buyable 5. This autobuyer can buy up to ${format(this.eff.mul(10))}/s.`
@@ -246,7 +250,11 @@ const ASCENSION_UPGRADES = [
             return target
         },
         get eff() {
-            return Decimal.eq(player.ascendUpgrades[15], 0) ? D(0) : Decimal.add(player.ascendUpgrades[15], 1).pow_base(2)
+            let eff = D(player.ascendUpgrades[15])
+            if (hasTranscendMilestone(3)) {
+                eff = eff.add(2)
+            }
+            return Decimal.eq(eff, 0) ? D(0) : Decimal.add(eff, 1).pow_base(2)
         },
         get desc() {
             return `Automate Buyable 6. This autobuyer can buy up to ${format(this.eff)}/s.`
@@ -488,9 +496,13 @@ function doAscendReset(doAnyway = false) {
     player.darts = D(0)
     player.timeInAscend = D(0)
     player.prestigeUpgradesInCurrentAscension = false
-    player.prestigeChallengeCompleted = []
+    if (!hasTranscendMilestone(0)) {
+        player.prestigeChallengeCompleted = []
+    }
     player.prestigeChallenge = null
-    player.prestigeUpgrades = []
+    if (!hasTranscendMilestone(1)) {
+        player.prestigeUpgrades = []
+    }
     player.prestige = D(0)
     player.prestigeEssence = D(0)
     player.bestPointsInAscend = D(0)

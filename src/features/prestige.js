@@ -383,6 +383,7 @@ function initHTML_prestige() {
     toHTMLvar('prestigeEssence')
     toHTMLvar('prestigeEssenceEffect')
     toHTMLvar('prestigeEssenceDisp')
+    toHTMLvar('prestigeChalRespec')
 
     let txt = ``
     for (let i = 0; i < PRESTIGE_UPGRADES.length; i++) {
@@ -553,7 +554,9 @@ function updateGame_prestige() {
     for (let i = 0; i < PRESTIGE_UPGRADES.length; i++) {
         if (hasPrestigeUpgrade(i)) {
             tmp.totalPrestigeUpgrades = tmp.totalPrestigeUpgrades.add(player.prestigeUpgrades[i])
-            tmp.prestigeUsed = tmp.prestigeUsed.add(PRESTIGE_UPGRADES[i].cost.mul(prestigeUpgradeCostScaling(i, true)))
+            if (!hasTranscendMilestone(1)) {
+                tmp.prestigeUsed = tmp.prestigeUsed.add(PRESTIGE_UPGRADES[i].cost.mul(prestigeUpgradeCostScaling(i, true)))
+            }
         }
     }
     // if (player.prestigeChallenge !== null) {
@@ -664,6 +667,7 @@ function updateHTML_prestige() {
             html['prestigeUpgradeCap'].setTxt(`${format(tmp.totalPrestigeUpgrades)} / ${format(tmp.prestigeUpgradeCap)}`)
         }
         if (tmp.prestigeTab === 2) {
+            html['prestigeChalRespec'].setDisplay(hasTranscendMilestone(0))
             for (let i = 0; i < PRESTIGE_CHALLENGES.length; i++) {
                 html[`prestigeChallenge${i}goal`].setTxt(format(PRESTIGE_CHALLENGES[i].goal))
 
@@ -793,4 +797,9 @@ function doPrestigeReset(doAnyway = false) {
 function respecPrestigeUpgrades() {
     player.prestigeUpgrades = []
     doPrestigeReset(true)
+}
+
+function respecPrestigeChallenge() {
+    player.prestigeChallengeCompleted = []
+    doAscendReset(true)
 }

@@ -444,6 +444,14 @@ function updateGame_main() {
         tmp.pointGen = tmp.pointGen.mul(HINDERANCES[2].eff)
         tmp.pointFactors.push(`Hinderance 3 PB: ×${format(HINDERANCES[2].eff, 2)} → ${format(tmp.pointGen)}`)
     }
+    if (Decimal.gt(player.transcendPointTotal, 0)) {
+        tmp.pointGen = tmp.pointGen.mul(tmp.transcendEffect)
+        tmp.pointFactors.push(`Transcension Points: ×${format(tmp.transcendEffect, 2)} → ${format(tmp.pointGen)}`)
+    }
+    if (Decimal.gt(player.transcendResetCount, 0)) {
+        tmp.pointGen = tmp.pointGen.mul(tmp.transcendResetEffect)
+        tmp.pointFactors.push(`Transcend Resets: ×${format(tmp.transcendResetEffect, 2)} → ${format(tmp.pointGen)}`)
+    }
     if (hasPrestigeUpgrade(9)) {
         tmp.pointGen = tmp.pointGen.pow(tmp.prestigeUpgEffs[9]);
         tmp.pointFactors.push(`Prestige Upgrade 10: ^${format(tmp.prestigeUpgEffs[9], 3)} → ${format(tmp.pointGen)}`)
@@ -713,6 +721,10 @@ function buyableAutoEnabledAndSpeed(id) {
         auto = true
     }
 
+    if (hasTranscendMilestone(1) && id >= 0 && id <= 5) {
+        auto = true
+    }
+
     auto ||= player.cheats.autobuyUnlock
     if (!auto) {
         return { enabled: false, speed: D(0) }
@@ -729,6 +741,10 @@ function buyableAutoEnabledAndSpeed(id) {
 
     if (id === 5) {
         spd = ASCENSION_UPGRADES[15].eff
+    }
+
+    if (hasTranscendMilestone(1)) {
+        spd = spd.max(5)
     }
 
     spd = spd.mul(tmp.timeSpeedTiers[0])
