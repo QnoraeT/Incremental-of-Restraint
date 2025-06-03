@@ -11,12 +11,13 @@
 }
 
 .whiteText {
-    color: #ffffff
+    color: #ffffff;
 }
 
 .font {
     /* font-family: "Trebuchet MS", sans-serif; */
-    font-family: Verdana
+    font-family: Verdana;
+    text-align: center;
 }
 
 @keyframes rainbowText {

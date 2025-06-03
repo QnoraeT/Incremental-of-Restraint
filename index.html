@@ -305,17 +305,17 @@
                                 </div>
                                 <span class="whiteText font" style="font-size: 12px">Every <b><span id="dimScalingInterval"></span></b> purchases of a dimension, the dimension's multiplier per purchase is boosted by <b>+<span id="dimScalingBoost"></span>&times;</b> but the dimension scales <b><span id="dimScalingSpeed"></span>&times;</b> faster.</span>
                                 <div class="flex-horizontal">
-                                    <div style="margin: 4px; width: 300px; border: 3px dashed #ff000080;" class="flex-vertical">
+                                    <div style="margin: 4px; width: 325px; border: 3px dashed #ff000080;" class="flex-vertical">
                                         <span class="font" style="font-size: 10px; color: #ff4040">Red Quarks boost Red Energy gain by &times;<b><span id="redQuarkEff"></span></b>.</span>
                                         <span class="font" style="font-size: 10px; color: #ff4040">Red Energy boost point gain by &times;<b><span id="redEnergyEff"></span></b>.</span>
                                         <div id="setbackRedDimList" class="flex-vertical"></div>
                                     </div>
-                                    <div style="margin: 4px; width: 300px; border: 3px dashed #00ff0080;" class="flex-vertical">
+                                    <div style="margin: 4px; width: 325px; border: 3px dashed #00ff0080;" class="flex-vertical">
                                         <span class="font" style="font-size: 10px; color: #40ff40">Green Quarks boost Green Energy gain by &times;<b><span id="greenQuarkEff"></span></b>.</span>
                                         <span class="font" style="font-size: 10px; color: #40ff40">Green Energy multiply Buyables' cost scaling by &times;<b><span id="greenEnergyEff"></span></b>.</span>
                                         <div id="setbackGreenDimList" class="flex-vertical"></div>
                                     </div>
-                                    <div style="margin: 4px; width: 300px; border: 3px dashed #0000ff80;" class="flex-vertical">
+                                    <div style="margin: 4px; width: 325px; border: 3px dashed #0000ff80;" class="flex-vertical">
                                         <span class="font" style="font-size: 10px; color: #4040ff">Blue Quarks boost Blue Energy gain by &times;<b><span id="blueQuarkEff"></span></b>.</span>
                                         <span class="font" style="font-size: 10px; color: #4040ff">Blue Energy increase prestige point gain by &times;<b><span id="blueEnergyEff"></span></b>.</span>
                                         <div id="setbackBlueDimList" class="flex-vertical"></div>
@@ -369,21 +369,20 @@
                             </button>
                         </div>
                         <div id="UpgradeTransTab">
-                            <div class="flex-horizontal">
-                                <div class="flex-vertical" style="background-color: #40008080; border: 3px solid #8000ff; width: 800px; height: 600px;" id="transUpgradeList"></div>
-                                <div class="flex-vertical" style="background-color: #40008080; border: 3px solid #8000ff; width: 400px; height: 600px; margin-left: -3px;" id="transUpgradeInfo">
+                            <div class="flex-vertical">
+                                <div class="flex-vertical" style="background-color: #40008080; border: 3px solid #8000ff; width: 1000px; height: 300px; margin-bottom: -3px;" id="transUpgradeInfo">
                                     <span class="whiteText font" style="font-size: 20px; text-align: center; margin-top: 12px;" id="transUpgName"><b>Click on a transcension upgrade!</b></span>
                                     <span class="whiteText font" style="font-size: 12px; text-align: center; margin-top: 12px;" id="transUpgDesc">The upgrade's effect appears here.</span>
-
-                                    <span class="font" style="color: #ff0; font-size: 12px; text-align: center; margin-top: 6px;" id="transUpgCost">If the upgrade has a special requirement, it will show here!</span>
+                                    <span class="font" style="color: #ff0; font-size: 12px; text-align: center; margin-top: 6px;" id="transUpgReq">If the upgrade has a special requirement, it will show here!</span>
                                     <button id="buyTransUpgrade" class="whiteText font" style="font-size: 12px; text-align: center; background-color: #40008080; border: 3px solid #8000ff; padding: 6px; margin-top: 16px;">
                                         Buy <span id="transUpgName2">the upgrade</span>.<br>
-                                        Cost: <span id="transUpgCost">???</span> Transcension Points
+                                        <span id="transUpgCost">Cost: ??? Transcension Points</span>
                                     </button>
                                     <button id="enterTransRestriction" class="whiteText font" style="font-size: 12px; text-align: center; background-color: #40008080; border: 3px solid #8000ff; width: 375px; padding: 4px; margin-top: 6px;">
                                         If an upgrade requires a special condition, this button will show up and describe what the condition is!
                                     </button>
                                 </div>
+                                <div class="flex-horizontal" style="background-color: #40008080; border: 3px solid #8000ff; width: 1000px; height: 300px; overflow-x: auto; overflow-y: hidden; justify-content: normal;" id="transUpgradeList"></div>
                             </div>
                         </div>
                         <div id="MilestoneTransTab">

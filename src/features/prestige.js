@@ -327,7 +327,7 @@ const PRESTIGE_CHALLENGES = [
         },
         name: "Factory Reversal",
         desc: "All generators (from PC1) are activated, but all generator multipliers other than buyables are disabled, and the effects decrease instead of increase.",
-        eff: "Increase the cap of prestige upgrades by 1, and every generator level increases prestige essence' effect by +^0.001."
+        eff: "Increase the cap of prestige upgrades by 1, and every OoM of your total generator level increases prestige essence' effect by +^0.1, smoothly."
     },
     {
         get goal() {
@@ -477,16 +477,16 @@ function updateGame_prestige() {
 
     player.timeInPrestige = Decimal.add(player.timeInPrestige, Decimal.mul(delta, tmp.timeSpeedTiers[0]))
 
-    tmp.prestigeEssenceFactors = []
+    tmp.factors.prestigeEssence = []
     tmp.peGain = player.setbackUpgrades.includes(`b1`)
         ? Decimal.max(player.bestPointsInPrestige, 10).log(1e6).log2().pow_base(10)
         : D(0)
-    tmp.prestigeEssenceFactors.push(`Base: 10<sup>log<sub>2</sub>(log<sub>1,000,000</sub>(${format(player.bestPointsInPrestige)}))</sup> → ${format(tmp.peGain, 2)}`)
+    addStatFactor('prestigeEssence', `Base`, `10<sup>log<sub>2</sub>(log<sub>1,000,000</sub>(${format(player.bestPointsInPrestige)}))</sup>`, null, tmp.peGain)
     if (Decimal.gte(player.hinderanceScore[0], HINDERANCES[0].start)) {
         tmp.peGain = tmp.peGain.pow(HINDERANCES[0].eff)
-        tmp.prestigeEssenceFactors.push(`H1 PB: ^${format(HINDERANCES[0].eff, 3)} → ${format(tmp.peGain, 2)}`)
+        addStatFactor('prestigeEssence', `H1 PB`, `^`, HINDERANCES[0].eff, tmp.peGain)
     }
-    tmp.prestigeEssenceFactors.push(`Current P. Essence: -${format(player.prestigeEssence, 2)} → ${format(tmp.peGain.sub(player.prestigeEssence).max(0), 2)}`)
+    addStatFactor('prestigeEssence', `Current P. Essence`, `-`, player.prestigeEssence, tmp.peGain.sub(player.prestigeEssence).max(0))
     tmp.peGain = tmp.peGain.sub(player.prestigeEssence).floor().max(0)
 
     tmp.peNext = tmp.peGain
@@ -502,7 +502,7 @@ function updateGame_prestige() {
         for (let i = 0; i < player.buyables.length; i++) {
             total = total.add(tmp.buyables[i].genLevels)
         }
-        tmp.peEffect = tmp.peEffect.pow(total.mul(0.001).add(1))
+        tmp.peEffect = tmp.peEffect.pow(total.add(1).log10().mul(0.1).add(1))
     }
 
     tmp.prestigeUpgradeCap = D(4)
@@ -563,27 +563,27 @@ function updateGame_prestige() {
     //     tmp.totalPrestigeUpgrades = tmp.prestigeUpgradeCap
     // }
 
-    tmp.prestigeFactors = []
+    tmp.factors.prestige = []
     tmp.prestigeAmount = Decimal.max(player.bestPointsInPrestige, 1e5).div(1e6).log10().add(1)
-    tmp.prestigeFactors.push(`Base: 1+log<sub>10</sub>(${format(player.bestPointsInPrestige)}/1,000,000) → ${format(tmp.prestigeAmount, 2)}`)
+    addStatFactor('prestige', `Base`, `1+log<sub>10</sub>(${format(player.bestPointsInPrestige)}/1,000,000)`, null, tmp.prestigeAmount)
     if (Decimal.gt(player.setbackEnergy[2], 0)) {
         tmp.prestigeAmount = tmp.prestigeAmount.mul(tmp.energyEffs[2])
-        tmp.prestigeFactors.push(`Blue Energy: ×${format(tmp.energyEffs[2], 2)} → ${format(tmp.prestigeAmount, 2)}`)
+        addStatFactor('prestige', `Blue Energy`, `×`, tmp.energyEffs[2], tmp.prestigeAmount)
     }
     if (Decimal.gt(player.hinderanceScore[1], HINDERANCES[1].start)) {
         tmp.prestigeAmount = tmp.prestigeAmount.mul(HINDERANCES[1].eff)
-        tmp.prestigeFactors.push(`H2 PB: ×${format(HINDERANCES[1].eff, 2)} → ${format(tmp.prestigeAmount, 2)}`)
+        addStatFactor('prestige', `H2 PB`, `×`, HINDERANCES[1].eff, tmp.prestigeAmount)
     }
     if (player.inSetback) {
         tmp.prestigeAmount = tmp.prestigeAmount.div(tmp.setbackEffects[1])
-        tmp.prestigeFactors.push(`Setback Green Effect: /${format(tmp.setbackEffects[1], 2)} → ${format(tmp.prestigeAmount, 2)}`)
+        addStatFactor('prestige', `Setback Green Effect`, `/`, tmp.setbackEffects[1], tmp.prestigeAmount)
     }
     if (player.currentHinderance === 1) {
         tmp.prestigeAmount = tmp.prestigeAmount.root(2)
-        tmp.prestigeFactors.push(`H2 Effect: ^${format(0.5, 2)} → ${format(tmp.prestigeAmount, 2)}`)
+        addStatFactor('prestige', `H2 Effect`, `^`, 0.5, tmp.prestigeAmount)
     }
     tmp.prestigeAmount = cheatDilateBoost(tmp.prestigeAmount)
-    tmp.prestigeFactors.push(`Current P. Points: -${format(player.prestige, 2)} → ${format(tmp.prestigeAmount.sub(player.prestige).max(0), 2)}`)
+    addStatFactor('prestige', `Current P. Points`, `-`, player.prestige, tmp.prestigeAmount.sub(player.prestige).max(0))
     tmp.prestigeAmount = tmp.prestigeAmount.sub(player.prestige).floor().max(0)
 
     tmp.prestigeNext = tmp.prestigeAmount.add(player.prestige).add(1)

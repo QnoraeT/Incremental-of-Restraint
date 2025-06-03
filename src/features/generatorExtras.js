@@ -39,14 +39,13 @@ const GEN_XP_BUYABLES = [
             for (let i = 0; i < player.buyables.length; i++) {
                 eff = eff.add(Decimal.add(player.buyablePoints[i], 1).log10())
             }
-            eff = eff.add(1).log10().add(1).pow(player.generatorFeatures.buyable[1])
+            eff = eff.div(1000).add(1).pow(player.generatorFeatures.buyable[1])
             return eff
         },
         get desc() {
             return `Total generators boost point gain by ×${format(tmp.generatorFeatures.genXPBuyables[1].eff, 2)}.`
         }
-    },
-    
+    }
 ]
 
 const GEN_ENH_BUYABLES = [
@@ -182,7 +181,7 @@ function updateGame_generatorExtras() {
             total = total.add(tmp.buyables[i].genLevels)
         }
         total = total.div(200)
-        tmp.generatorFeatures.gain = total.mul(total.pow10())
+        tmp.generatorFeatures.gain = total.mul(total.pow10()).div(1e6)
         tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.mul(GEN_XP_BUYABLES[0].eff)
         tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.mul(tmp.generatorFeatures.enhancerEff)
 

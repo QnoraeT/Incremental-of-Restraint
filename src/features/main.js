@@ -111,12 +111,12 @@ function updateGame_main() {
     // tmp.bybBoostCost = tmp.bybBoostCost.root(player.timeInPrestige.add(1))
     // end cheat
 
-    let totalGenLevels = D(0)
-    tmp.generatorFactors = []
-    let genFactorMade = null
     tmp.pointGen = D(1)
-    tmp.pointFactors = []
-    tmp.pointFactors.push(`Base: ${format(1)}`)
+    tmp.factors.points = []
+    tmp.factors.generators = []
+    let totalGenLevels = D(0)
+    let genFactorMade = null
+    addStatFactor('points', `Base`, ``, 1, 1)
     for (let i = player.buyables.length - 1; i >= 0; i--) {
         if (buyableEnabled(i)) {
             tmp.buyables[i].costSpeed = D(1)
@@ -206,61 +206,61 @@ function updateGame_main() {
                 upgGen = D(player.buyables[i])
                 upgGen = upgGen.mul(Decimal.div(player.buyables[i], tmp.bybBoostInterval).floor().pow_base(tmp.bybBoostEffect))
                 if (genFactorMade === null) {
-                    tmp.generatorFactors.push(`Base: ${format(player.buyables[i])}*${format(tmp.bybBoostEffect, 2)}<sup>⌊${format(player.buyables[i])}/${format(tmp.bybBoostInterval)}⌋</sup> → ${format(upgGen)}`)
+                    addStatFactor('generator', `Base`, `${format(player.buyables[i])}*${format(tmp.bybBoostEffect, 2)}<sup>⌊${format(player.buyables[i])}/${format(tmp.bybBoostInterval)}⌋</sup>`, null, upgGen)
                 }
                 if (tmp.prestigeChal[10].depth.lte(0)) {
                     if (Decimal.gt(player.ascendUpgrades[1], 0)) {
                         upgGen = upgGen.mul(ASCENSION_UPGRADES[1].eff)
                         if (genFactorMade === null) {
-                            tmp.generatorFactors.push(`Ascension Buyable 2: ×${format(ASCENSION_UPGRADES[1].eff, 2)} → ${format(upgGen)}`)
+                            addStatFactor('generator', `Ascension Buyable 2`, `×`, ASCENSION_UPGRADES[1].eff, upgGen)
                         }
                     }
                     if (player.prestigeChallengeCompleted.includes(12)) {
                         upgGen = upgGen.mul(tmp.buyables[i].effect)
                         if (genFactorMade === null) {
-                            tmp.generatorFactors.push(`PC12 Reward: ×${format(tmp.buyables[i].effect, 2)} → ${format(upgGen)}`)
+                            addStatFactor('generator', `PC12 Reward`, `×`, tmp.buyables[i].effect, upgGen)
                         }
                     }
                     if (Decimal.gt(player.generatorFeatures.enhancerBuyables[1], 0)) {
                         upgGen = upgGen.mul(tmp.generatorFeatures.genEnhBuyables[1].eff)
                         if (genFactorMade === null) {
-                            tmp.generatorFactors.push(`Gen. Enh. Buyable 2: ×${format(tmp.generatorFeatures.genEnhBuyables[1].eff, 2)} → ${format(upgGen)}`)
+                            addStatFactor('generator', `Gen. Enh. Buyable 2`, `×`, tmp.generatorFeatures.genEnhBuyables[1].eff, upgGen)
                         }
                     }
                     if (hasPrestigeUpgrade(10)) {
                         upgGen = upgGen.pow(tmp.prestigeUpgEffs[10]);
                         if (genFactorMade === null) {
-                            tmp.generatorFactors.push(`Prestige Upgrade 10: ^${format(tmp.prestigeUpgEffs[10], 3)} → ${format(upgGen)}`)
+                            addStatFactor('generator', `Prestige Upgrade 10`, `^`, tmp.prestigeUpgEffs[10], upgGen)
                         }
                     }
                     if (hasPrestigeUpgrade(11)) {
                         upgGen = upgGen.pow(tmp.prestigeUpgEffs[11]);
                         if (genFactorMade === null) {
-                            tmp.generatorFactors.push(`Prestige Upgrade 11: ^${format(tmp.prestigeUpgEffs[11], 3)} → ${format(upgGen)}`)
+                            addStatFactor('generator', `Prestige Upgrade 11`, `^`, tmp.prestigeUpgEffs[11], upgGen)
                         }
                     }
                     if (Decimal.gt(player.generatorFeatures.xp, 0)) {
                         upgGen = upgGen.pow(tmp.generatorFeatures.xpEffGenerators)
                         if (genFactorMade === null) {
-                            tmp.generatorFactors.push(`Generator XP Effect: ^${format(tmp.generatorFeatures.xpEffGenerators, 3)} → ${format(upgGen)}`)
+                            addStatFactor('generator', `Generator XP Effect`, `^`, tmp.generatorFeatures.xpEffGenerators, upgGen)
                         }
                     }
                     if (tmp.prestigeChal[11].depth.gt(0)) {
                         upgGen = upgGen.pow(tmp.pc11Eff)
                         if (genFactorMade === null) {
-                            tmp.generatorFactors.push(`PC12: ^${format(tmp.pc11Eff, 3)} → ${format(upgGen)}`)
+                            addStatFactor('generator', `PC12: ^${format(tmp.pc11Eff, 3)}`, upgGen)
                         }
                     }
                     if (player.prestigeChallengeCompleted.includes(11)) {
                         upgGen = upgGen.pow(1.2)
                         if (genFactorMade === null) {
-                            tmp.generatorFactors.push(`PC12 Reward: ^1.200 → ${format(upgGen)}`)
+                            addStatFactor('generator', `PC12 Reward`, `^`, 1.2, upgGen)
                         }
                     }
                     if (Decimal.gte(player.hinderanceScore[0], HINDERANCES[0].start)) {
                         upgGen = upgGen.pow(Decimal.pow(1.02, Decimal.max(player.prestigeEssence, 1).log10().floor()))
                         if (genFactorMade === null) {
-                            tmp.generatorFactors.push(`H1 Reward: ^1.02<sup>⌊log<sub>10</sub>(${format(player.prestigeEssence)})⌋</sup> → ^${format(Decimal.pow(1.02, Decimal.max(player.prestigeEssence, 1).log10().floor()), 3)} → ${format(upgGen)}`)
+                            addStatFactor('generator', `H1 Reward`, `^1.02<sup>⌊log<sub>10</sub>(${format(player.prestigeEssence)})⌋</sup> → ^${format(Decimal.pow(1.02, Decimal.max(player.prestigeEssence, 1).log10().floor()), 3)}`, upgGen)
                         }
                     }
                     if (tmp.prestigeChal[12].depth.gt(0)) {
@@ -269,21 +269,21 @@ function updateGame_main() {
                             upgGen = D(0)
                         }
                         if (genFactorMade === null) {
-                            tmp.generatorFactors.push(`PC13: log${tmp.prestigeChal[12].depth.neq(1) ? '<sup>' + format(tmp.prestigeChal[12].depth, 2) + '</sup>' : ''}<sub>10</sub>(${format(upgGen.layeradd10(tmp.prestigeChal[12].depth).sub(1))}) → ${format(upgGen)}`)
+                            addStatFactor('generator', `PC13`, `log${tmp.prestigeChal[12].depth.neq(1) ? '<sup>' + format(tmp.prestigeChal[12].depth, 2) + '</sup>' : ''}<sub>10</sub>(${format(upgGen.layeradd10(tmp.prestigeChal[12].depth).sub(1))})`, upgGen)
                         }
                         upgGen = upgGen.mul(tmp.buyables[i].effect)
                         if (genFactorMade === null) {
-                            tmp.generatorFactors.push(`PC13: ×${format(tmp.buyables[i].effect, 2)} → ${format(upgGen)}`)
+                            addStatFactor('generator', `PC13`, `×`, tmp.buyables[i].effect, upgGen)
                         }
                     }
 
                     if (player.cheats.dilate) {
                         upgGen = cheatDilateBoost(upgGen) 
-                        tmp.generatorFactors.push(`Cheats: ... → ${format(upgGen)}`)
+                        addStatFactor('generator', `Cheats`, `...`, null, upgGen)
                     }
                     upgGen = upgGen.mul(tmp.timeSpeedTiers[0])
                     if (tmp.timeSpeedTiers[0].neq(1) && genFactorMade === null) {
-                        tmp.generatorFactors.push(`Tier 1 Time Speed: ×${format(tmp.timeSpeedTiers[0], 2)} → ${format(upgGen)}`)
+                        addStatFactor('generator', `Tier 1 Time Speed`, `×`, tmp.timeSpeedTiers[0], upgGen)
                     }
 
                     if (genFactorMade === null) {
@@ -366,11 +366,11 @@ function updateGame_main() {
 
             if ((tmp.prestigeChal[3].depth.lte(0) || i === 0) && tmp.prestigeChal[12].depth.lte(0)) {
                 tmp.pointGen = tmp.pointGen.mul(tmp.buyables[i].effect)
-                tmp.pointFactors.push(`Buyable ${i+1}: ×${format(tmp.buyables[i].effect, 2)} → ${format(tmp.pointGen)}`)
+                addStatFactor('points', `Buyable ${i+1}`, `×`, tmp.buyables[i].effect, tmp.pointGen)
             }
             if (tmp.prestigeChal[12].depth.gt(0)) {
                 tmp.pointGen = tmp.pointGen.mul(tmp.buyables[i].genEffect)
-                tmp.pointFactors.push(`Buyable ${i+1}: ×${format(tmp.buyables[i].genEffect, 2)} → ${format(tmp.pointGen)}`)
+                addStatFactor('points', `Buyable ${i+1}`, `×`, tmp.buyables[i].genEffect, tmp.pointGen)
             }
         }
     }
@@ -378,115 +378,115 @@ function updateGame_main() {
 
     if (hasPrestigeUpgrade(0)) {
         tmp.pointGen = tmp.pointGen.mul(tmp.prestigeUpgEffs[0]);
-        tmp.pointFactors.push(`Prestige Upgrade 1: ×${format(tmp.prestigeUpgEffs[0], 2)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Prestige Upgrade 1`, `×`, tmp.prestigeUpgEffs[0], tmp.pointGen)
     }
     if (hasPrestigeUpgrade(1)) {
         tmp.pointGen = tmp.pointGen.mul(tmp.prestigeUpgEffs[1]);
-        tmp.pointFactors.push(`Prestige Upgrade 2: ×${format(tmp.prestigeUpgEffs[1], 2)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Prestige Upgrade 2`, `×`, tmp.prestigeUpgEffs[1], tmp.pointGen)
     }
     if (hasPrestigeUpgrade(2) || player.setbackUpgrades.includes('b4')) {
         tmp.pointGen = tmp.pointGen.mul(tmp.prestigeUpgEffs[2]);
-        tmp.pointFactors.push(`Prestige Upgrade 3: ×${format(tmp.prestigeUpgEffs[2], 2)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Prestige Upgrade 3`, `×`, tmp.prestigeUpgEffs[2], tmp.pointGen)
     }
     if (hasPrestigeUpgrade(4)) {
         tmp.pointGen = tmp.pointGen.mul(tmp.prestigeUpgEffs[4]);
-        tmp.pointFactors.push(`Prestige Upgrade 5: ×${format(tmp.prestigeUpgEffs[4], 2)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Prestige Upgrade 5`, `×`, tmp.prestigeUpgEffs[4], tmp.pointGen)
     }
     if (hasPrestigeUpgrade(6)) {
         tmp.pointGen = tmp.pointGen.mul(tmp.prestigeUpgEffs[6]);
-        tmp.pointFactors.push(`Prestige Upgrade 7: ×${format(tmp.prestigeUpgEffs[6], 2)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Prestige Upgrade 7`, `×`, tmp.prestigeUpgEffs[6], tmp.pointGen)
     }
     if (hasPrestigeUpgrade(7)) {
         tmp.pointGen = tmp.pointGen.mul(tmp.prestigeUpgEffs[7]);
-        tmp.pointFactors.push(`Prestige Upgrade 8: ×${format(tmp.prestigeUpgEffs[7], 2)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Prestige Upgrade 8`, `×`, tmp.prestigeUpgEffs[7], tmp.pointGen)
     }
     if (player.prestigeChallengeCompleted.includes(3) || player.setbackUpgrades.includes('b4')) {
         tmp.pointGen = tmp.pointGen.mul(tmp.prestigePointEffect)
-        tmp.pointFactors.push(`PC3 Reward: ×${format(tmp.prestigePointEffect, 2)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `PC3 Reward`, `×`, tmp.prestigePointEffect, tmp.pointGen)
     }
     if (Decimal.gt(player.ascendUpgrades[0], 0)) {
         tmp.pointGen = tmp.pointGen.mul(ASCENSION_UPGRADES[0].eff)
-        tmp.pointFactors.push(`Ascension Buyable 1: ×${format(ASCENSION_UPGRADES[0].eff, 2)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Ascension Buyable 1`, `×`, ASCENSION_UPGRADES[0].eff, tmp.pointGen)
     }
     if (Decimal.gt(player.setbackEnergy[0], 0)) {
         tmp.pointGen = tmp.pointGen.mul(tmp.energyEffs[0])
-        tmp.pointFactors.push(`Red Energy: ×${format(tmp.energyEffs[0], 2)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Red Energy`, `×`, tmp.energyEffs[0], tmp.pointGen)
     }
 
     for (let i = 0; i < 5; i++) {
         if (player.setbackUpgrades.includes(`r${i+1}`)) {
             tmp.pointGen = tmp.pointGen.mul(SETBACK_UPGRADES[0][i].eff)
-            tmp.pointFactors.push(`Red S. Upgrade ${i+1}: ×${format(SETBACK_UPGRADES[0][i].eff, 2)} → ${format(tmp.pointGen)}`)
+            addStatFactor('points', `Red S. Upgrade ${i+1}`, `×`, SETBACK_UPGRADES[0][i].eff, tmp.pointGen)
         }
         if (player.setbackUpgrades.includes(`g${i+1}`)) {
             tmp.pointGen = tmp.pointGen.mul(SETBACK_UPGRADES[1][i].eff)
-            tmp.pointFactors.push(`Green S. Upgrade ${i+1}: ×${format(SETBACK_UPGRADES[1][i].eff, 2)} → ${format(tmp.pointGen)}`)
+            addStatFactor('points', `Green S. Upgrade ${i+1}`, `×`, SETBACK_UPGRADES[1][i].eff, tmp.pointGen)
         }
     }
 
     if (player.setbackUpgrades.includes(`r7`)) {
         tmp.pointGen = tmp.pointGen.mul(SETBACK_UPGRADES[0][6].eff)
-        tmp.pointFactors.push(`Red S. Upgrade 7: ×${format(SETBACK_UPGRADES[0][6].eff, 2)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Red S. Upgrade 7`, `×`, SETBACK_UPGRADES[0][6].eff, tmp.pointGen)
     }
     if (player.setbackUpgrades.includes(`r8`)) {
         tmp.pointGen = tmp.pointGen.mul(SETBACK_UPGRADES[0][7].eff)
-        tmp.pointFactors.push(`Red S. Upgrade 8: ×${format(SETBACK_UPGRADES[0][7].eff, 2)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Red S. Upgrade 8`, `×`, SETBACK_UPGRADES[0][7].eff, tmp.pointGen)
     }
     if (Decimal.gt(player.prestigeEssence, 0)) {
         tmp.pointGen = tmp.pointGen.mul(tmp.peEffect)
-        tmp.pointFactors.push(`Prestige Essence: ×${format(tmp.peEffect, 2)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Prestige Essence`, `×`, tmp.peEffect, tmp.pointGen)
     }
     if (Decimal.gt(player.generatorFeatures.buyable[1], 0)) {
         tmp.pointGen = tmp.pointGen.mul(GEN_XP_BUYABLES[1].eff)
-        tmp.pointFactors.push(`Generator XP Buyable 1: ×${format(GEN_XP_BUYABLES[1].eff, 2)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Generator XP Buyable 1`, `×`, GEN_XP_BUYABLES[1].eff, tmp.pointGen)
     }
     if (Decimal.gte(player.hinderanceScore[2], HINDERANCES[2].start)) {
         tmp.pointGen = tmp.pointGen.mul(HINDERANCES[2].eff)
-        tmp.pointFactors.push(`Hinderance 3 PB: ×${format(HINDERANCES[2].eff, 2)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Hinderance 3 PB`, `×`, HINDERANCES[2].eff, tmp.pointGen)
     }
     if (Decimal.gt(player.transcendPointTotal, 0)) {
         tmp.pointGen = tmp.pointGen.mul(tmp.transcendEffect)
-        tmp.pointFactors.push(`Transcension Points: ×${format(tmp.transcendEffect, 2)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Transcension Points`, `×`, tmp.transcendEffect, tmp.pointGen)
     }
     if (Decimal.gt(player.transcendResetCount, 0)) {
         tmp.pointGen = tmp.pointGen.mul(tmp.transcendResetEffect)
-        tmp.pointFactors.push(`Transcend Resets: ×${format(tmp.transcendResetEffect, 2)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Transcend Resets`, `×`, tmp.transcendResetEffect, tmp.pointGen)
     }
     if (hasPrestigeUpgrade(9)) {
         tmp.pointGen = tmp.pointGen.pow(tmp.prestigeUpgEffs[9]);
-        tmp.pointFactors.push(`Prestige Upgrade 10: ^${format(tmp.prestigeUpgEffs[9], 3)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Prestige Upgrade 1`, `^`, tmp.prestigeUpgEffs[9], tmp.pointGen)
     }
     if (hasPrestigeUpgrade(11)) {
         tmp.pointGen = tmp.pointGen.pow(tmp.prestigeUpgEffs[11]);
-        tmp.pointFactors.push(`Prestige Upgrade 12: ^${format(tmp.prestigeUpgEffs[11], 3)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Prestige Upgrade 1`, `^`, tmp.prestigeUpgEffs[11], tmp.pointGen)
     }
     if (player.inSetback) {
         tmp.pointGen = tmp.pointGen.pow(tmp.setbackEffects[0])
-        tmp.pointFactors.push(`Setback Red Effect: ^${format(tmp.setbackEffects[0], 3)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Setback Red Effect`, `^`, tmp.setbackEffects[0], tmp.pointGen)
     }
     if (Decimal.gt(player.generatorFeatures.xp, 0)) {
         tmp.pointGen = tmp.pointGen.pow(tmp.generatorFeatures.xpEffPoints)
-        tmp.pointFactors.push(`Generator XP Sec. Eff.: ^${format(tmp.generatorFeatures.xpEffPoints, 3)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Generator XP Sec. Eff.`, `^`, tmp.generatorFeatures.xpEffPoints, tmp.pointGen)
     }
     if (tmp.prestigeChal[11].depth.gt(0)) {
         tmp.pointGen = tmp.pointGen.pow(tmp.pc11Eff)
-        tmp.pointFactors.push(`PC12: ^${format(tmp.pc11Eff, 3)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `PC12`, `^`, tmp.pc11Eff, tmp.pointGen)
     }
     if (player.prestigeChallengeCompleted.includes(11)) {
         tmp.pointGen = tmp.pointGen.pow(1.025)
-        tmp.pointFactors.push(`PC12 Reward: ^${format(1.025, 3)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `PC12 Reward`, `^`, 1.025, tmp.pointGen)
     }
     if (player.currentHinderance === 0) {
         tmp.pointGen = tmp.pointGen.pow(tmp.dartEffect)
-        tmp.pointFactors.push(`H1 Effect: ^${format(tmp.dartEffect, 3)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `H1 Effect`, `^`, tmp.dartEffect, tmp.pointGen)
     }
     if (player.cheats.dilate) {
         tmp.pointGen = cheatDilateBoost(tmp.pointGen)
-        tmp.pointFactors.push(`Cheats: ... → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Cheats`, `...`, null, tmp.pointGen)
     }
     tmp.pointGen = tmp.pointGen.mul(tmp.timeSpeedTiers[0])
     if (tmp.timeSpeedTiers[0].neq(1)) {
-        tmp.pointFactors.push(`Tier 1 Time Speed: ×${format(tmp.timeSpeedTiers[0], 2)} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `Tier 1 Time Speed`, `×`, tmp.timeSpeedTiers[0], tmp.pointGen)
     }
 
     let old = player.points
@@ -494,7 +494,7 @@ function updateGame_main() {
     if (player.currentHinderance === 1) {
         player.points = Decimal.max(player.points, 0).add(1).log10().add(1).root(0.9).sub(1).pow10().add(tmp.pointGen.mul(delta)).log10().add(1).pow(0.9).sub(1).pow10().sub(1)
         tmp.pointGen = Decimal.sub(player.points, old).div(delta)
-        tmp.pointFactors.push(`H2: /${format(oldpps.div(tmp.pointGen))} → ${format(tmp.pointGen)}`)
+        addStatFactor('points', `H2`, `/`, oldpps.div(tmp.pointGen), tmp.pointGen)
     } else {
         player.points = Decimal.add(player.points, tmp.pointGen.mul(delta))
     }
@@ -668,7 +668,7 @@ function genPointFunc(xp, inv) {
         if (tmp.prestigeChal[12].depth.gt(0)) {
             eff = Decimal.max(xp, 0).div(100).mul(0.05).add(1).log(1.05)
         } else {
-            eff = inverseFact(xp).div(1e3).add(1).ln().mul(1e3)
+            eff = inverseFact(xp)
         }
         if (player.inSetback) {
             eff = eff.div(tmp.setbackEffects[1])
@@ -681,7 +681,7 @@ function genPointFunc(xp, inv) {
         if (tmp.prestigeChal[12].depth.gt(0)) {
             eff = Decimal.pow(1.05, eff).sub(1).div(0.05).mul(100)
         } else {
-            eff = Decimal.div(eff, 1e3).exp().sub(1).mul(1e3).factorial()
+            eff = Decimal.factorial(eff)
         }
     }
     return eff

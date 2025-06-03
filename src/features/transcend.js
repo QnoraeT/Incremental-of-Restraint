@@ -106,7 +106,7 @@ const TRANSCENSION_UPGRADES = [
             },
             name: "Patience",
             get desc() {
-                return `Point gain is boosted by ${format(tmp.transEffs[0][0], 2)}× based off time since a transcension.`
+                return `Point gain is boosted by <b>${format(tmp.transEffs[0][0], 2)}×</b> based off time since a transcension.`
             },
             get eff() {
                 return Decimal.max(player.timeInTranscension, 0).div(86400).add(1).ln().pow_base(Number.MAX_VALUE)
@@ -208,7 +208,7 @@ const TRANSCENSION_UPGRADES = [
             get eff() {
                 let total = D(0)
                 for (let i = 0; i < player.buyables.length; i++) {
-                    total = total.add(tmp.buyables[i].tierLevels)
+                    total = total.add(tmp.buyables[i].tierLevels.sub(1))
                 }
                 return total.pow_base(0.9999)
             }
@@ -245,7 +245,7 @@ const TRANSCENSION_UPGRADES = [
                     return Decimal.gte(player.bestPointsInTranscend, 'e2400') && !player.buyableInTranscension[4] && !player.buyableInTranscension[5]
                 },
                 restriction: null,
-                desc: 'You must reach 1.000e2,400 points and never by Buyables 5 & 6 in the Transcension run.'
+                desc: 'You must reach 1.000e2,400 points and never buy Buyables 5 & 6 in the Transcension run.'
             },
             name: "Buyable 7?!",
             get desc() {
@@ -342,9 +342,9 @@ const TRANSCENSION_UPGRADES = [
             id: "gen1",
             color: "gen",
             cost: D(4000),
-            prereq: ["hinderance"],
+            prereq: ["hinderance1"],
             get shown() {
-                return player.transcendUpgrades.includes('hinderance')
+                return player.transcendUpgrades.includes('hinderance1')
             },
             unlock: {
                 get req() {
@@ -363,7 +363,7 @@ const TRANSCENSION_UPGRADES = [
             get eff() {
                 let product = D(1)
                 for (let i = 0; i < player.buyables.length; i++) {
-                    product = product.mul(Decimal.max(player.buyablePoints, 0).add(1).log10().add(1))
+                    product = product.mul(Decimal.max(player.buyablePoints[i], 0).add(1).log10().add(1))
                 }
                 return product
             }
@@ -372,9 +372,9 @@ const TRANSCENSION_UPGRADES = [
             id: "exp1",
             color: "genXP",
             cost: D(12000),
-            prereq: ["hinderance"],
+            prereq: ["hinderance1"],
             get shown() {
-                return player.transcendUpgrades.includes('hinderance')
+                return player.transcendUpgrades.includes('hinderance1')
             },
             unlock: {
                 get req() {
@@ -393,9 +393,9 @@ const TRANSCENSION_UPGRADES = [
             id: "ascend4",
             color: "ascend",
             cost: D(1e6),
-            prereq: ["hinderance"],
+            prereq: ["hinderance1"],
             get shown() {
-                return player.transcendUpgrades.includes('hinderance')
+                return player.transcendUpgrades.includes('hinderance1')
             },
             unlock: {
                 get req() {
@@ -426,7 +426,7 @@ const TRANSCENSION_UPGRADES = [
             cost: D(4.5e8),
             prereq: ["gen1"],
             get shown() {
-                return player.transcendUpgrades.includes('hinderance')
+                return player.transcendUpgrades.includes('hinderance1')
             },
             unlock: {
                 get req() {
@@ -447,18 +447,20 @@ const TRANSCENSION_UPGRADES = [
             cost: D(1e9),
             prereq: ["exp1"],
             get shown() {
-                return player.transcendUpgrades.includes('hinderance')
+                return player.transcendUpgrades.includes('hinderance1')
             },
             unlock: {
                 get req() {
                     return Decimal.gte(player.bestPointsInTranscend, 'e2400') && player.inTransUpg === "exp2"
                 },
-                restriction: null,
+                restriction() {
+                    return
+                },
                 desc: 'You must reach 1.000e2,400 points while Tiers are always active, are 1,000× faster, and speed up buyable costs instead of slowing down. Gen. Enh. Buyable #3 slows down Tier gain exponentially.'
             },
             name: "Point Enhancers",
             get desc() {
-                return `Enhancers also boost point gain. Currently: <b>${format(this.eff, 3)}</b>`
+                return `Enhancers also boost point gain. Currently: <b>^${format(this.eff, 3)}</b>`
             },
             get eff() {
                 return Decimal.max(player.generatorFeatures.enhancer, 0).add(1).log10().add(1).log10().div(20).add(1)
@@ -470,7 +472,7 @@ const TRANSCENSION_UPGRADES = [
             cost: D(1e11),
             prereq: ["ascend4"],
             get shown() {
-                return player.transcendUpgrades.includes('hinderance')
+                return player.transcendUpgrades.includes('hinderance1')
             },
             unlock: {
                 get req() {
@@ -564,7 +566,7 @@ function initHTML_transcend() {
     toHTMLvar('transcendTab')
     toHTMLvar('transcendTabButton')
     html['transcendTab'].setDisplay(false)
-    // html['transcendTabButton'].setDisplay(false)
+    html['transcendTabButton'].setDisplay(false)
 
     toHTMLvar('transcend')
     toHTMLvar('transcendAmount')
@@ -574,11 +576,20 @@ function initHTML_transcend() {
     toHTMLvar('transcendResets')
     toHTMLvar('transcendResetEffect')
 
+    toHTMLvar('transUpgName')
+    toHTMLvar('transUpgDesc')
+    toHTMLvar('transUpgReq')
+    toHTMLvar('buyTransUpgrade')
+    toHTMLvar('transUpgName2')
+    toHTMLvar('transUpgCost')
+    toHTMLvar('enterTransRestriction')
+
     toHTMLvar('upgradeTransTabButton')
     toHTMLvar('milestoneTransTabButton')
     toHTMLvar('UpgradeTransTab')
     toHTMLvar('MilestoneTransTab')
 
+    toHTMLvar('transUpgradeList')
     toHTMLvar('transMilestoneList')
 
     let txt = ``
@@ -601,23 +612,46 @@ function initHTML_transcend() {
 
     txt = ``
     for (let i = 0; i < TRANSCENSION_UPGRADES.length; i++) {
+        let upg = ``
+        for (let j = 0; j < TRANSCENSION_UPGRADES[i].length; j++) {
+            upg += `
+                <button id="transcendUpg${i},${j}" onclick="tmp.transSelectedUpg[0] = ${i}; tmp.transSelectedUpg[1] = ${j}" class="whiteText font" style="margin: 4px; cursor: pointer; height: 50px; width: 100px;">
+                    <span style="font-size: 12px;">${TRANSCENSION_UPGRADES[i][j].id}</span>
+                </button>
+            `
+        }
         txt += `
-            <div class="flex-vertical" style="width: 300px; border: 3px dashed #8000ff80" id="transcendUpgCate${i}">
+            <div id="transcendUpgCate${i}" class="flex-vertical" style="margin-top: -3px; margin-left: -3px; height: 100%; min-width: 300px; border: 3px dashed #8000ff80; justify-content: center;">
+                ${upg}
             </div>
         `
+    }
+    html['transUpgradeList'].setHTML(txt)
+
+    for (let i = 0; i < TRANSCENSION_UPGRADES.length; i++) {
+        for (let j = 0; j < TRANSCENSION_UPGRADES[i].length; j++) {
+            toHTMLvar(`transcendUpg${i},${j}`)
+        }
+        toHTMLvar(`transcendUpgCate${i}`)
     }
 }
 
 function updateGame_transcend() {
     player.timeInTranscension = Decimal.add(player.timeInTranscension, Decimal.mul(delta, tmp.timeSpeedTiers[0]))
 
+    for (let i = 0; i < TRANSCENSION_UPGRADES.length; i++) {
+        for (let j = 0; j < TRANSCENSION_UPGRADES[i].length; j++) {
+            tmp.transEffs[i][j] = TRANSCENSION_UPGRADES[i][j].eff
+        }
+    }
+
     tmp.transcendReq = D('e2400')
-    tmp.transcendFactors = []
+    tmp.factors.transcend = []
     tmp.transcendAmount = Decimal.div(player.bestPointsInTranscend, tmp.transcendReq).pow(0.0005)
-    tmp.transcendFactors.push(`Base: (${format(player.bestPointsInTranscend)}/${format('e2400')})<sup>0.0005</sup> → ${format(tmp.transcendAmount, 2)}`)
+    addStatFactor('transcend', `Base`, `(${format(player.bestPointsInTranscend)}/${format('e2400')})<sup>0.0005</sup>`, null, tmp.transcendAmount)
     if (player.cheats.dilate) {
         tmp.transcendAmount = cheatDilateBoost(tmp.transcendAmount)
-        tmp.transcendFactors.push(`Cheats: ... → ${format(tmp.transcendAmount, 2)}`)
+        addStatFactor('transcend', `Cheats`, `...`, null, tmp.transcendAmount)
     }
     tmp.transcendAmount = tmp.transcendAmount.floor()
 
@@ -631,7 +665,7 @@ function updateGame_transcend() {
 
 function updateHTML_transcend() {
     html['transcendTab'].setDisplay(tmp.tab === 5)
-    // html['transcendTabButton'].setDisplay(Decimal.gt(player.transcendResetCount, 0))
+    html['transcendTabButton'].setDisplay(Decimal.gt(player.transcendResetCount, 0))
     if (tmp.tab === 5) {
         html['transcendPoints'].setTxt(`${format(player.transcendPoints)}`)
         html['transcendPointEffect'].setTxt(`Multiplying point gain by ${format(tmp.transcendEffect, 2)}`)
@@ -646,12 +680,98 @@ function updateHTML_transcend() {
                     html[`transcendMilestone${i}`].setDisplay(willGetTM(i - 1))
                 }
                 html[`transcendMilestone${i}`].changeStyle('background-color', hasTranscendMilestone(i) ? '#8000FF80' : '#40008080')
-                html[`transcendMilestone${i}`].changeStyle('border', hasTranscendMilestone(i) ? '4px solid #8000FF' : '3px solid #400080')
+                html[`transcendMilestone${i}`].changeStyle('border', hasTranscendMilestone(i) ? '3px solid #8000FF' : '3px solid #400080')
                 html[`transcendMilestone${i}req`].setHTML(`Requirement: ${willGetTM(i) && !hasTranscendMilestone(i) ? '<b>' : ''}${format(player.transcendPointTotal)} (+${format(tmp.transcendAmount)}) / ${format(TRANSCENSION_MILESTONES[i].baseReq.div(Decimal.pow(2, player.transcendResetCount)))}${willGetTM(i) && !hasTranscendMilestone(i) ? '</b>' : ''} Total Transcension Points`)
             }
         }
         if (tmp.transTab === 1) {
+    // toHTMLvar('transUpgName')
+    // toHTMLvar('transUpgDesc')
+    // toHTMLvar('transUpgReq')
+    // toHTMLvar('buyTransUpgrade')
+    // toHTMLvar('transUpgName2')
+    // toHTMLvar('transUpgCost')
+    // toHTMLvar('enterTransRestriction')
 
+    // `
+    //         <span class="whiteText font" style="font-size: 20px; text-align: center; margin-top: 12px;" id="transUpgName"><b>Click on a transcension upgrade!</b></span>
+    //     <span class="whiteText font" style="font-size: 12px; text-align: center; margin-top: 12px;" id="transUpgDesc">The upgrade's effect appears here.</span>
+    //     <span class="font" style="color: #ff0; font-size: 12px; text-align: center; margin-top: 6px;" id="transUpgReq">If the upgrade has a special requirement, it will show here!</span>
+    //     <button id="buyTransUpgrade" class="whiteText font" style="font-size: 12px; text-align: center; background-color: #40008080; border: 3px solid #8000ff; padding: 6px; margin-top: 16px;">
+    //         Buy <span id="transUpgName2">the upgrade</span>.<br>
+    //         <span id="transUpgCost"></span>
+    //     </button>
+    //     <button id="enterTransRestriction" class="whiteText font" style="font-size: 12px; text-align: center; background-color: #40008080; border: 3px solid #8000ff; width: 375px; padding: 4px; margin-top: 6px;">
+    //         If an upgrade requires a special condition, this button will show up and describe what the condition is!
+    //     </button>
+    //     `
+            if (tmp.transSelectedUpg[0] !== undefined && tmp.transSelectedUpg[1] !== undefined) {
+                const transUpg = TRANSCENSION_UPGRADES[tmp.transSelectedUpg[0]][tmp.transSelectedUpg[1]]
+                let unlocked = (player.transcendUpgradesUnlocked[transUpg.id] !== undefined || transUpg.unlock.req) && !player.transcendUpgrades.includes(transUpg.id)
+                let preReqLimited = false
+                let preReqArray = []
+                let preReqText = ``
+                if (transUpg.prereq !== null) {
+                    for (let i = 0; i < transUpg.prereq.length; i++) {
+                        preReqLimited ||= !player.transcendUpgrades.includes(transUpg.prereq[i])
+                        if (!player.transcendUpgrades.includes(transUpg.prereq[i])) {
+                            preReqArray.push(transUpg.prereq[i])
+                        }
+                    }
+                    if (preReqLimited) {
+                        unlocked = false
+                    }
+                    if (preReqArray.length === 1) {
+                        preReqText = preReqArray[0]
+                    } else if (preReqArray.length === 2) {
+                        preReqText = `${preReqArray[0]} and ${preReqArray[1]}`
+                    } else {
+                        preReqText = ``
+                        for (let i = 0; i < preReqArray.length - 1; i++) {
+                            preReqText += `${preReqArray[i]}, `
+                        }
+                        preReqText += `and ${preReqArray[preReqArray.length - 1]}`
+                    }
+                }
+                html['transUpgName'].setTxt(transUpg.name)
+                html['transUpgDesc'].setHTML(transUpg.desc)
+                html['transUpgReq'].setTxt(transUpg.unlock.desc === '' ? 'This upgrade has no special conditions.' : transUpg.unlock.desc)
+                html['transUpgName2'].setTxt(transUpg.name)
+                html['transUpgCost'].setTxt(player.transcendUpgrades.includes(transUpg.id) ? 'This upgrade is already bought.' : (preReqLimited ? `You need to buy ${preReqText} in order to buy ${transUpg.name}.` : (unlocked ? `Cost: ${format(transUpg.cost)} Transcension Points` : `You need to meet the upgrade's requirements before buying ${transUpg.name}!`)))
+
+                html['buyTransUpgrade'].changeStyle('background-color', unlocked ? (Decimal.gte(player.transcendPoints, transUpg.cost) ? '#40008080' : '#20004080') : '#20202080')
+                html['buyTransUpgrade'].changeStyle('border', '3px solid ' + (unlocked ? (Decimal.gte(player.transcendPoints, transUpg.cost) ? '#8000ff' : '#400080') : '#404040'))
+                html['buyTransUpgrade'].changeStyle('cursor', unlocked && Decimal.gte(player.transcendPoints, transUpg.cost) ? 'pointer' : 'not-allowed')
+
+                html['enterTransRestriction'].setTxt(transUpg.unlock.restriction === null ? 'This upgrade does not have a custom restriction.' : `Press this button to do a transcension reset and enter ${transUpg.name}.`)
+                html['enterTransRestriction'].changeStyle('background-color', transUpg.unlock.restriction !== null ? (player.transcendInSpecialReq[0] === tmp.transSelectedUpg[0] && player.transcendInSpecialReq[1] === tmp.transSelectedUpg[1] ? '#40008080' : '#20004080') : '#20202080')
+                html['enterTransRestriction'].changeStyle('border', '3px solid ' + (transUpg.unlock.restriction !== null ? (player.transcendInSpecialReq[0] === tmp.transSelectedUpg[0] && player.transcendInSpecialReq[1] === tmp.transSelectedUpg[1] ? '#8000ff' : '#400080') : '#404040'))
+                html['enterTransRestriction'].changeStyle('cursor', 
+                    transUpg.unlock.restriction !== null && 
+                    (player.transcendInSpecialReq[0] === null && player.transcendInSpecialReq[1] === null) ||
+                    (player.transcendInSpecialReq[0] === tmp.transSelectedUpg[0] && player.transcendInSpecialReq[1] === tmp.transSelectedUpg[1]) ? 'pointer' : 'not-allowed')
+            }
+
+            for (let i = 0; i < TRANSCENSION_UPGRADES.length; i++) {
+                let displayed = false
+                for (let j = 0; j < TRANSCENSION_UPGRADES[i].length; j++) {
+                    html[`transcendUpg${i},${j}`].setDisplay(TRANSCENSION_UPGRADES[i][j].shown)
+                    displayed ||= TRANSCENSION_UPGRADES[i][j].shown
+                    if (TRANSCENSION_UPGRADES[i][j].shown) {
+                        html[`transcendUpg${i},${j}`].changeStyle('background-color', `${colorChange(
+                            TU_ColorIDs[TRANSCENSION_UPGRADES[i][j].color], 
+                            0.25 * (player.transcendUpgrades.includes(TRANSCENSION_UPGRADES[i][j].id) ? 2 : 1),
+                            1.0 / (player.transcendUpgradesUnlocked[TRANSCENSION_UPGRADES[i][j].id] !== undefined || TRANSCENSION_UPGRADES[i][j].req ? 1 : 2)
+                        )}`)
+                        html[`transcendUpg${i},${j}`].changeStyle('border', `3px solid ${colorChange(
+                            TU_ColorIDs[TRANSCENSION_UPGRADES[i][j].color], 
+                            0.333 * (player.transcendUpgrades.includes(TRANSCENSION_UPGRADES[i][j].id) ? 2 : 1) * (tmp.transSelectedUpg[0] === i && tmp.transSelectedUpg[1] === j ? 1.5 : 1),
+                            1.0 / (player.transcendUpgradesUnlocked[TRANSCENSION_UPGRADES[i][j].id] !== undefined || TRANSCENSION_UPGRADES[i][j].req ? 1 : 2)
+                        )}`)
+                    }
+                }
+                html[`transcendUpgCate${i}`].setDisplay(displayed)
+            }
         }
     }
 }
@@ -728,6 +848,7 @@ function doTranscendReset(doAnyway = false) {
     tmp.generatorFeatures.genEnhBuyables = resetGenEnhBuyables()
     tmp.ascendAmount = D(0)
     tmp.setbackTab = 0
+    tmp.ascendTab = 0
 
     doAscendReset(true)
 }

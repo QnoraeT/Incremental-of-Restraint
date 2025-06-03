@@ -254,11 +254,16 @@ function initHTML_setback() {
         `
         for (let j = 0; j < player.quarkDimsBought[i].length; j++) {
             txt += `
-                <button onclick="buySBDim(${i}, ${j})" id="${color}Dim${j}" class="whiteText font" style="height: 45px; width: 250px; font-size: 9px; margin: 2px">
-                    ${capsColor} Dimension ${j + 1}: ×<span id="${color}Dim${j}amount"></span><br>
-                    Mult: ×<span id="${color}Dim${j}mult"></span><br>
-                    Cost: <span id="${color}Dim${j}cost"></span>
-                </button>
+                <div class="flex-horizontal">
+                    <button onclick="buySBDim(${i}, ${j})" id="${color}Dim${j}" class="whiteText font" style="height: 45px; width: 250px; font-size: 9px; margin: 2px">
+                        ${capsColor} Dimension ${j + 1}: ×<span id="${color}Dim${j}amount"></span><br>
+                        Mult: ×<span id="${color}Dim${j}mult"></span><br>
+                        Cost: <span id="${color}Dim${j}cost"></span>
+                    </button>
+                    <button onclick="player.quarkDimsAuto[${i}][${j}] = !player.quarkDimsAuto[${i}][${j}]" id="${color}Dim${j}Auto" class="whiteText font" style="cursor: pointer; height: 45px; width: 50px; font-size: 9px; margin: 2px">
+                        Auto: <span id="${color}Dim${j}autoDisp"></span>
+                    </button>
+                </div>
             `
         }
         html[`setback${capsColor}DimList`].setHTML(txt)
@@ -268,6 +273,8 @@ function initHTML_setback() {
             toHTMLvar(`${color}Dim${j}amount`)
             toHTMLvar(`${color}Dim${j}mult`)
             toHTMLvar(`${color}Dim${j}cost`)
+            toHTMLvar(`${color}Dim${j}Auto`)
+            toHTMLvar(`${color}Dim${j}autoDisp`)
         }
         toHTMLvar(`${color}BuyMax`)
         toHTMLvar(`${color}BMTotalEst`)
@@ -355,7 +362,7 @@ function updateGame_setback() {
 
             checkNaN(tmp.quarkDim[i][j].target, `NaN detected while attempting to calculate target of ${tmp.quarkNamesC[i]} Quark Dimension #${j + 1}`)
 
-            if (setbackAutobuyerEnabledAndSpeed(i, j).enabled) {
+            if (player.quarkDimsAuto[i][j]) {
                 player.quarkDimsAutobought[i][j] = Decimal.add(player.quarkDimsAutobought[i][j], setbackAutobuyerEnabledAndSpeed(i, j).speed.mul(delta)).min(tmp.quarkDim[i][j].target).max(player.quarkDimsAutobought[i][j])
                 let bought = player.quarkDimsBought[i][j]
                 player.quarkDimsBought[i][j] = player.quarkDimsAutobought[i][j].add(0.99999999).floor().max(player.quarkDimsBought[i][j])
@@ -481,14 +488,21 @@ function updateHTML_setback() {
                 html[`${tmp.quarkNames[col]}EnergyEff`].setTxt(format(tmp.energyEffs[col], 3))
 
                 for (let i = 0; i < player.quarkDimsBought[col].length; i++) {
-                    html[`${tmp.quarkNames[col]}Dim${i}`].setDisplay(i === 0 ? true : Decimal.gt(player.quarkDimsBought[col][i - 1], 0) || Decimal.gt(player.quarkDimsAccumulated[col][i - 1], 0))
-                    if (i === 0 ? true : Decimal.gt(player.quarkDimsBought[col][i - 1], 0) || Decimal.gt(player.quarkDimsAccumulated[col][i - 1], 0)) {
+                    html[`${tmp.quarkNames[col]}Dim${i}`].setDisplay(i === 0 || Decimal.gt(player.quarkDimsBought[col][i - 1], 0) || Decimal.gt(player.quarkDimsAccumulated[col][i - 1], 0))
+                    html[`${tmp.quarkNames[col]}Dim${i}Auto`].setDisplay(false)
+                    if (i === 0 || Decimal.gt(player.quarkDimsBought[col][i - 1], 0) || Decimal.gt(player.quarkDimsAccumulated[col][i - 1], 0)) {
                         html[`${tmp.quarkNames[col]}Dim${i}`].changeStyle('background-color', `${colorChange(tmp.quarkColors[col], Decimal.gte(player.setbackEnergy[col], tmp.quarkDim[col][i].cost) ? 0.5 : 0.25, 1.0)}80`)
                         html[`${tmp.quarkNames[col]}Dim${i}`].changeStyle('border', `3px solid ${colorChange(tmp.quarkColors[col], Decimal.gte(player.setbackEnergy[col], tmp.quarkDim[col][i].cost) ? 1.0 : 0.5, 1.0)}`)
                         html[`${tmp.quarkNames[col]}Dim${i}`].changeStyle('cursor', Decimal.gte(player.setbackEnergy[col], tmp.quarkDim[col][i].cost) ? 'pointer' : 'not-allowed')
                         html[`${tmp.quarkNames[col]}Dim${i}amount`].setTxt(`${format(player.quarkDimsBought[col][i])} (${format(player.quarkDimsAccumulated[col][i])})`)
                         html[`${tmp.quarkNames[col]}Dim${i}mult`].setTxt(`${format(tmp.quarkDim[col][i].mult, 2)}`)
                         html[`${tmp.quarkNames[col]}Dim${i}cost`].setTxt(`${format(tmp.quarkDim[col][i].cost)} ${tmp.quarkNamesC[col]} Energy`)
+                        html[`${tmp.quarkNames[col]}Dim${i}Auto`].setDisplay(setbackAutobuyerEnabledAndSpeed(col, i).enabled)
+                        if (setbackAutobuyerEnabledAndSpeed(col, i).enabled) {
+                            html[`${tmp.quarkNames[col]}Dim${i}Auto`].changeStyle('background-color', `${colorChange(tmp.quarkColors[col], player.quarkDimsAuto[col][i] ? 0.5 : 0.25, 1.0)}80`)
+                            html[`${tmp.quarkNames[col]}Dim${i}Auto`].changeStyle('border', `3px solid ${colorChange(tmp.quarkColors[col], player.quarkDimsAuto[col][i] ? 1.0 : 0.5, 1.0)}`)
+                            html[`${tmp.quarkNames[col]}Dim${i}autoDisp`].setTxt(player.quarkDimsAuto[col][i] ? `${format(setbackAutobuyerEnabledAndSpeed(col, i).speed)}/s` : 'Off')
+                        }
                     }
                 }
             }

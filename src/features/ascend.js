@@ -266,13 +266,15 @@ const HINDERANCES = [
     {
         name: "Precision Prestige",
         desc: "You gain a certain amount of darts upon prestiging based on your points and your time since a prestige. Your dart amount must be as close to an interval of 1,000 as possible. Buyables bought must be a perfect square in order for their effects to count.",
-        start: D(1e40),
+        start: D(1e160),
         get reward() {
             return `Prestige Essence gain is raised ^${format(this.eff, 3)} and every OoM of Prestige Essence increases Generator Speed by ^1.02.`
         },
         get eff() {
-            let eff = Decimal.max(player.hinderanceScore[0], 1e40)
-            eff = eff.log(1e40).log2().div(10).add(1)
+            if (Decimal.lt(player.hinderanceScore[0], 1e160)) {
+                return D(1)
+            }
+            let eff = Decimal.log(player.hinderanceScore[0], 1e40).log2().div(10).add(1)
             return eff
         }
     },
@@ -398,12 +400,12 @@ function updateGame_ascend() {
     if (player.inSetback) {
         tmp.ascendReq = tmp.ascendReq.pow(tmp.setbackEffects[2])
     }
-    tmp.ascendFactors = []
+    tmp.factors.ascend = []
     tmp.ascendAmount = Decimal.max(player.bestPointsInAscend, 1).log(tmp.ascendReq).sub(1).pow_base(1000)
-    tmp.ascendFactors.push(`Base: 1,000<sup>log<sub>${format(tmp.ascendReq)}</sub>(${format(player.bestPointsInAscend)})-1</sup> → ${format(tmp.ascendAmount, 2)}`)
+    addStatFactor('ascend', `Base`, `1,000<sup>log<sub>${format(tmp.ascendReq)}</sub>(${format(player.bestPointsInAscend)})-1</sup>`, null, tmp.ascendAmount)
     if (player.cheats.dilate) {
         tmp.ascendAmount = cheatDilateBoost(tmp.ascendAmount)
-        tmp.ascendFactors.push(`Cheats: ... → ${format(tmp.ascendAmount, 2)}`)
+        addStatFactor('ascend', `Cheats`, `...`, null, tmp.ascendAmount)
     }
     tmp.ascendAmount = tmp.ascendAmount.floor()
 
@@ -489,6 +491,7 @@ function doAscendReset(doAnyway = false) {
         for (let j = 0; j < player.quarkDimsAccumulated[i].length; j++) {
             player.quarkDimsBought[i][j] = D(0)
             player.quarkDimsAccumulated[i][j] = D(0)
+            player.quarkDimsAutobought[i][j] = D(0)
         }
     }
 

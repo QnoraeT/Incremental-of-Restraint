@@ -92,15 +92,15 @@ function updateHTML_stats() {
         }
         if (tmp.statTab === 1) {
             let txt = `<b style="font-size: 14px">Point Gain</b>`
-            for (let i = 0; i < tmp.pointFactors.length; i++) {
-                txt += `<li>${tmp.pointFactors[i]}</li>`
+            for (let i = 0; i < tmp.factors.points.length; i++) {
+                txt += `<li>${tmp.factors.points[i]}</li>`
             }
             txt += `<b style="font-size: 14px">Final: ${format(tmp.pointGen)}/s</b>`
             html['pointFactors'].setHTML(txt)
 
             txt = `<b style="font-size: 14px">Prestige Point Gain</b>`
-            for (let i = 0; i < tmp.prestigeFactors.length; i++) {
-                txt += `<li>${tmp.prestigeFactors[i]}</li>`
+            for (let i = 0; i < tmp.factors.prestige.length; i++) {
+                txt += `<li>${tmp.factors.prestige[i]}</li>`
             }
             txt += `<b style="font-size: 14px">Final: ${format(tmp.prestigeAmount)}</b>`
             html['prestigeFactors'].setHTML(txt)
@@ -108,8 +108,8 @@ function updateHTML_stats() {
             html['generatorFactors'].setDisplay(player.prestigeChallengeCompleted.includes(0))
             if (player.prestigeChallengeCompleted.includes(0)) {
                 txt = `<b style="font-size: 14px">Generator Speed</b>`
-                for (let i = 0; i < tmp.generatorFactors.length; i++) {
-                    txt += `<li>${tmp.generatorFactors[i]}</li>`
+                for (let i = 0; i < tmp.factors.generators.length; i++) {
+                    txt += `<li>${tmp.factors.generators[i]}</li>`
                 }
                 txt += `<b style="font-size: 14px">Final: ${format(tmp.generatorSpeed)}</b>`
                 html['generatorFactors'].setHTML(txt)
@@ -118,8 +118,8 @@ function updateHTML_stats() {
             html['ascendFactors'].setDisplay(Decimal.gte(player.bestPointsInAscend, tmp.ascendReq.div(1e3)) || Decimal.gt(player.ascend, 0))
             if (Decimal.gte(player.bestPointsInAscend, tmp.ascendReq.div(1e3)) || Decimal.gt(player.ascend, 0)) {
                 txt = `<b style="font-size: 14px">Ascend Point Gain</b>`
-                for (let i = 0; i < tmp.ascendFactors.length; i++) {
-                    txt += `<li>${tmp.ascendFactors[i]}</li>`
+                for (let i = 0; i < tmp.factors.ascend.length; i++) {
+                    txt += `<li>${tmp.factors.ascend[i]}</li>`
                 }
                 txt += `<b style="font-size: 14px">Final: ${format(tmp.ascendAmount)}</b>`
                 html['ascendFactors'].setHTML(txt)
@@ -128,8 +128,8 @@ function updateHTML_stats() {
             html['prestigeEssenceFactors'].setDisplay(player.setbackUpgrades.includes('b1'))
             if (player.setbackUpgrades.includes('b1')) {
                 txt = `<b style="font-size: 14px">P. Essence Gain</b>`
-                for (let i = 0; i < tmp.prestigeEssenceFactors.length; i++) {
-                    txt += `<li>${tmp.prestigeEssenceFactors[i]}</li>`
+                for (let i = 0; i < tmp.factors.prestigeEssence.length; i++) {
+                    txt += `<li>${tmp.factors.prestigeEssence[i]}</li>`
                 }
                 txt += `<b style="font-size: 14px">Final: ${format(tmp.peGain)}</b>`
                 html['prestigeEssenceFactors'].setHTML(txt)
@@ -138,8 +138,8 @@ function updateHTML_stats() {
             html['tier1timeFactors'].setDisplay(Decimal.gte(player.ascendUpgrades[13], 3))
             if (Decimal.gte(player.ascendUpgrades[13], 3)) {
                 txt = `<b style="font-size: 14px">Tier 1 Time Speed</b>`
-                for (let i = 0; i < tmp.timeFactors[0].length; i++) {
-                    txt += `<li>${tmp.timeFactors[0][i]}</li>`
+                for (let i = 0; i < tmp.factors.tier1Time.length; i++) {
+                    txt += `<li>${tmp.factors.tier1Time[i]}</li>`
                 }
                 txt += `<b style="font-size: 14px">Final: ${format(tmp.timeSpeedTiers[0])}</b>`
                 html['tier1timeFactors'].setHTML(txt)
@@ -148,8 +148,8 @@ function updateHTML_stats() {
             html['transcendFactors'].setDisplay(Decimal.gte(player.transcendResetCount, 1))
             if (Decimal.gte(player.transcendResetCount, 1)) {
                 txt = `<b style="font-size: 14px">Transcension Points</b>`
-                for (let i = 0; i < tmp.transcendFactors.length; i++) {
-                    txt += `<li>${tmp.transcendFactors[i]}</li>`
+                for (let i = 0; i < tmp.factors.transcend.length; i++) {
+                    txt += `<li>${tmp.factors.transcend[i]}</li>`
                 }
                 txt += `<b style="font-size: 14px">Final: ${format(tmp.transcendAmount)}</b>`
                 html['transcendFactors'].setHTML(txt)

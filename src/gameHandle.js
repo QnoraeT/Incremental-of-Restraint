@@ -105,7 +105,8 @@ function initPlayer() {
         transcendPointTotal: D(0),
         transcendResetCount: D(0),
         transcendUpgrades: [],
-        transcendUpgradesUnlocked: {} // FILL THIS WITH VALUES
+        transcendUpgradesUnlocked: {}, // FILL THIS WITH VALUES
+        transcendInSpecialReq: [null, null]
     }
 
     return obj
@@ -129,17 +130,15 @@ function initTmp() {
         setbackTab: 0,
         setbackDimTab: 0,
         transTab: 0,
+        factors: {},
         timeSpeedTiers: [D(1)],
-        timeFactors: [[]],
         pointGen: D(1),
-        pointFactors: [],
         buyables: [],
         bybBoostInterval: D(100),
         bybBoostEffect: D(2),
         bybBoostCost: D(2),
         pc11Eff: D(1),
         prestigeAmount: D(0),
-        prestigeFactors: [],
         prestigeNext: D(0),
         prestigeUsed: D(0),
         prestigeUpgradeCap: D(0),
@@ -151,10 +150,7 @@ function initTmp() {
         peGain: D(0),
         peNext: D(0),
         peEffect: D(1),
-        prestigeEssenceFactors: [],
-        generatorFactors: [],
         generatorSpeed: D(1),
-        ascendFactors: [],
         ascendAmount: D(0),
         ascendNext: D(0),
         ascendPointEffect: D(0),
@@ -189,16 +185,14 @@ function initTmp() {
         },
         transcendReq: D(0),
         transcendAmount: D(0),
-        transcendFactors: [],
         transcendNext: D(0),
         transcendUsed: D(0),
         transcendEffect: D(1),
         transcendResetEffect: D(1),
-        transEffs: []
+        transEffs: [],
+        transSelectedUpg: []
     }
     obj.buyables = resetMainBuyables()
-    obj.generatorFeatures.genXPBuyables = resetGenXPBuyables()
-    obj.generatorFeatures.genEnhBuyables = resetGenEnhBuyables()
     for (let i = PRESTIGE_CHALLENGES.length - 1; i >= 0; i--) {
         obj.prestigeChal[i] = {
             entered: false,
@@ -206,6 +200,9 @@ function initTmp() {
             depth: D(0)
         }
     }
+    obj.generatorFeatures.genXPBuyables = resetGenXPBuyables()
+    obj.generatorFeatures.genEnhBuyables = resetGenEnhBuyables()
+    obj.transEffs = resetTransUpgBuyables()
     return obj
 }
 
@@ -247,6 +244,17 @@ function resetGenEnhBuyables() {
             eff: D(1),
             cost: D(1),
             target: D(0)
+        }
+    }
+    return arr
+}
+
+function resetTransUpgBuyables() {
+    const arr = []
+    for (let i = 0; i < TRANSCENSION_UPGRADES.length; i++) {
+        arr.push([])
+        for (let j = 0; j < TRANSCENSION_UPGRADES[i].length; j++) {
+            arr.push(D(0))
         }
     }
     return arr
@@ -321,12 +329,32 @@ function updatePlayer() {
         player.version = 7
     }
     if (player.version === 7) {
-
-        // player.version = 8
+        player.transcendUpgradesUnlocked = {}
+        player.version = 8
     }
     if (player.version === 8) {
+        player.transcendInSpecialReq = [null, null]
+        player.version = 9
+    }
+    if (player.version === 9) {
 
-        // player.version = 9
+        // player.version = 10
+    }
+    if (player.version === 10) {
+
+        // player.version = 11
+    }
+    if (player.version === 11) {
+
+        // player.version = 12
+    }
+    if (player.version === 12) {
+
+        // player.version = 13
+    }
+    if (player.version === 13) {
+
+        // player.version = 14
     }
 }
 
@@ -622,4 +650,16 @@ function calcTimeSpeed() {
     if (tmp.prestigeChal[11].depth) {
         tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].div(tmp.prestigeChal[11].depth.pow_base(1e3))
     }
+}
+
+function addStatFactor(type, name, desc, eff, result) {
+    if (tmp.tab !== -1) {
+        if (tmp.statTab !== 1) {
+            return;
+        }
+    }
+    if (tmp.factors[type] === undefined) {
+        tmp.factors[type] = []
+    }
+    tmp.factors[type].push(`${name}: ${desc}${eff !== null ? format(eff, 3) : ''} → ${format(result, 2)}`)
 }
