@@ -108,8 +108,8 @@ function updateHTML_stats() {
             html['generatorFactors'].setDisplay(player.prestigeChallengeCompleted.includes(0))
             if (player.prestigeChallengeCompleted.includes(0)) {
                 txt = `<b style="font-size: 14px">Generator Speed</b>`
-                for (let i = 0; i < tmp.factors.generators.length; i++) {
-                    txt += `<li>${tmp.factors.generators[i]}</li>`
+                for (let i = 0; i < tmp.factors.generator.length; i++) {
+                    txt += `<li>${tmp.factors.generator[i]}</li>`
                 }
                 txt += `<b style="font-size: 14px">Final: ${format(tmp.generatorSpeed)}</b>`
                 html['generatorFactors'].setHTML(txt)

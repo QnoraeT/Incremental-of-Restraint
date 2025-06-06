@@ -664,7 +664,7 @@ function setbackAutobuyerEnabledAndSpeed(i, j) {
         if (j === 0) {
             spd = spd.mul(2.5)
         }
-        if (j === 6) {
+        if (j === 4 || j === 5) {
             auto = true
             spd = D(4)
         }
@@ -673,9 +673,19 @@ function setbackAutobuyerEnabledAndSpeed(i, j) {
         if (j === 1) {
             spd = spd.mul(2.5)
         }
-        if (j === 7) {
+        if (j === 6 || j === 7) {
             auto = true
             spd = D(4)
+        }
+    }
+    if (hasTranscendMilestone(8)) {
+        if (j === 2 || j === 3) {
+            spd = spd.mul(2.5)
+        }
+    }
+    if (hasTranscendMilestone(9)) {
+        if (j >= 4 && j <= 7) {
+            spd = spd.mul(2.5)
         }
     }
 

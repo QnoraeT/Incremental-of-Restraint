@@ -149,8 +149,8 @@
                                 </div>
                             </div>                            
                             <button onclick="doGenEnhReset()" id="generatorEnhance" class="whiteText font" style="background-color: #80800080; border: 3px solid #ffff00; height: 70px; width: 325px; font-size: 12px; margin: 2px">
-                                Do an ascension reset for <b><span id="enhAmount"></span></b> enhancements.<br>
-                                Next enhance at <span id="enhNext"></span> generator XP.
+                                Do an ascension reset for <b><span id="enhAmount"></span></b> enhancers.<br>
+                                Next enhancer at <span id="enhNext"></span> generator XP.
                             </button>
                         </div>
                     </div>
@@ -217,6 +217,7 @@
                         </div>
                         <div id="mainAscend">
                             <div class="flex-vertical">
+                                <button onclick="player.ascendUpgAuto = !player.ascendUpgAuto" id="ascendUpgAuto" class="whiteText font" style="height: 40px; width: 250px; font-size: 12px; margin: 2px; cursor: pointer;"></button>
                                 <div class="flex-horizontal">
                                     <div style="margin: 4px;" class="flex-vertical">
                                         <span class="font" style="font-size: 24px; color: #00ff00" id="ascendPoints"></span><span class="font" style="font-size: 12px; color: #00ff00">ascension points</span>
@@ -367,6 +368,9 @@
                             <button onclick="tmp.transTab = 1" id="upgradeTransTabButton" class="whiteText font" style="background-color: #40008080; border: 3px solid #8000ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                                 Upgrades
                             </button>
+                            <button onclick="tmp.transTab = 2" id="perkTransTabButton" class="whiteText font" style="background-color: #40008080; border: 3px solid #8000ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                                Perks
+                            </button>
                         </div>
                         <div id="UpgradeTransTab">
                             <div class="flex-vertical">
@@ -374,7 +378,7 @@
                                     <span class="whiteText font" style="font-size: 20px; text-align: center; margin-top: 12px;" id="transUpgName"><b>Click on a transcension upgrade!</b></span>
                                     <span class="whiteText font" style="font-size: 12px; text-align: center; margin-top: 12px;" id="transUpgDesc">The upgrade's effect appears here.</span>
                                     <span class="font" style="color: #ff0; font-size: 12px; text-align: center; margin-top: 6px;" id="transUpgReq">If the upgrade has a special requirement, it will show here!</span>
-                                    <button id="buyTransUpgrade" class="whiteText font" style="font-size: 12px; text-align: center; background-color: #40008080; border: 3px solid #8000ff; padding: 6px; margin-top: 16px;">
+                                    <button id="buyTransUpgrade" onclick="buyTransUpg(tmp.transSelectedUpg[0], tmp.transSelectedUpg[1])" class="whiteText font" style="font-size: 12px; text-align: center; background-color: #40008080; border: 3px solid #8000ff; padding: 6px; margin-top: 16px;">
                                         Buy <span id="transUpgName2">the upgrade</span>.<br>
                                         <span id="transUpgCost">Cost: ??? Transcension Points</span>
                                     </button>
@@ -388,6 +392,11 @@
                         <div id="MilestoneTransTab">
                             <div class="flex-vertical">
                                 <div class="flex-vertical" id="transMilestoneList"></div>
+                            </div>
+                        </div>
+                        <div id="PerkTransTab">
+                            <div class="flex-vertical">
+                                <div class="flex-vertical" id="transPerkList"></div>
                             </div>
                         </div>
                     </div>

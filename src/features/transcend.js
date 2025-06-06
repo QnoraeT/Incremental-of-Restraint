@@ -31,11 +31,11 @@ const TRANSCENSION_MILESTONES = [
     },
     {
         baseReq: D(400),
-        desc: "All Setback Dimension 7s now have autobuyers that run at 4/s, All Setback Dimension 1s have their autobuyers sped up to 10/s, and Hinderance 1's PB starts off at the goal."
+        desc: "All Setback Dimension 5 & 6s now have autobuyers that run at 4/s, All Setback Dimension 1s have their autobuyers sped up to 10/s, and Hinderance 1's PB starts off at the goal."
     },
     {
         baseReq: D(1e3),
-        desc: "All Setback Dimension 8s now have autobuyers that run at 4/s, All Setback Dimension 2s have their autobuyers sped up to 10/s, and Hinderance 2's PB starts off at the goal."
+        desc: "All Setback Dimension 7 & 8s now have autobuyers that run at 4/s, All Setback Dimension 2s have their autobuyers sped up to 10/s, and Hinderance 2's PB starts off at the goal."
     },
     {
         baseReq: D(1e4),
@@ -64,6 +64,19 @@ const TRANSCENSION_MILESTONES = [
     {
         baseReq: D(1e20),
         desc: "Start off with a (10, 10, 10) setback loadout automatically equipped, and all Enhancer buyables can be automatically bought with no limit."
+    }
+]
+
+const TRANSCENSION_PERKS = [
+    {
+        show: true,
+        unlocked: true,
+        desc: 'Add <span style="color; #ffff00">Yellow</span> setback, which influences Generator XP and Enhancers.'
+    },
+    {
+        show: true,
+        unlocked: true,
+        desc: 'PCs 1-13 can be completed one more time with varying new restrictions and rewards.'
     }
 ]
 
@@ -106,10 +119,10 @@ const TRANSCENSION_UPGRADES = [
             },
             name: "Patience",
             get desc() {
-                return `Point gain is boosted by <b>${format(tmp.transEffs[0][0], 2)}×</b> based off time since a transcension.`
+                return `Point gain is boosted by <b>${format(tmp.transEffs[0][0][0], 2)}×</b>, then <b>^${format(tmp.transEffs[0][0][1], 3)}</b> based off time since a transcension.`
             },
             get eff() {
-                return Decimal.max(player.timeInTranscension, 0).div(86400).add(1).ln().pow_base(Number.MAX_VALUE)
+                return [Decimal.max(player.timeInTranscension, 0).div(86400).add(1).ln().pow_base(Number.MAX_VALUE), Decimal.max(player.timeInTranscension, 0).div(86400).add(1).ln().sqrt().mul(0.125).add(1)]
             }
         }
     ],
@@ -586,11 +599,15 @@ function initHTML_transcend() {
 
     toHTMLvar('upgradeTransTabButton')
     toHTMLvar('milestoneTransTabButton')
+    toHTMLvar('perkTransTabButton')
+
     toHTMLvar('UpgradeTransTab')
     toHTMLvar('MilestoneTransTab')
+    toHTMLvar('PerkTransTab')
 
     toHTMLvar('transUpgradeList')
     toHTMLvar('transMilestoneList')
+    toHTMLvar('transPerkList')
 
     let txt = ``
     for (let i = TRANSCENSION_MILESTONES.length - 1; i >= 0; i--) {
@@ -674,6 +691,7 @@ function updateHTML_transcend() {
 
         html['MilestoneTransTab'].setDisplay(tmp.transTab === 0)
         html['UpgradeTransTab'].setDisplay(tmp.transTab === 1)
+        html['PerkTransTab'].setDisplay(tmp.transTab === 1)
         if (tmp.transTab === 0) {
             for (let i = 0; i < TRANSCENSION_MILESTONES.length; i++) {
                 if (i > 0) {
@@ -685,26 +703,6 @@ function updateHTML_transcend() {
             }
         }
         if (tmp.transTab === 1) {
-    // toHTMLvar('transUpgName')
-    // toHTMLvar('transUpgDesc')
-    // toHTMLvar('transUpgReq')
-    // toHTMLvar('buyTransUpgrade')
-    // toHTMLvar('transUpgName2')
-    // toHTMLvar('transUpgCost')
-    // toHTMLvar('enterTransRestriction')
-
-    // `
-    //         <span class="whiteText font" style="font-size: 20px; text-align: center; margin-top: 12px;" id="transUpgName"><b>Click on a transcension upgrade!</b></span>
-    //     <span class="whiteText font" style="font-size: 12px; text-align: center; margin-top: 12px;" id="transUpgDesc">The upgrade's effect appears here.</span>
-    //     <span class="font" style="color: #ff0; font-size: 12px; text-align: center; margin-top: 6px;" id="transUpgReq">If the upgrade has a special requirement, it will show here!</span>
-    //     <button id="buyTransUpgrade" class="whiteText font" style="font-size: 12px; text-align: center; background-color: #40008080; border: 3px solid #8000ff; padding: 6px; margin-top: 16px;">
-    //         Buy <span id="transUpgName2">the upgrade</span>.<br>
-    //         <span id="transUpgCost"></span>
-    //     </button>
-    //     <button id="enterTransRestriction" class="whiteText font" style="font-size: 12px; text-align: center; background-color: #40008080; border: 3px solid #8000ff; width: 375px; padding: 4px; margin-top: 6px;">
-    //         If an upgrade requires a special condition, this button will show up and describe what the condition is!
-    //     </button>
-    //     `
             if (tmp.transSelectedUpg[0] !== undefined && tmp.transSelectedUpg[1] !== undefined) {
                 const transUpg = TRANSCENSION_UPGRADES[tmp.transSelectedUpg[0]][tmp.transSelectedUpg[1]]
                 let unlocked = (player.transcendUpgradesUnlocked[transUpg.id] !== undefined || transUpg.unlock.req) && !player.transcendUpgrades.includes(transUpg.id)
@@ -772,6 +770,9 @@ function updateHTML_transcend() {
                 }
                 html[`transcendUpgCate${i}`].setDisplay(displayed)
             }
+        }
+        if (tmp.transTab === 2) {
+
         }
     }
 }
@@ -851,4 +852,18 @@ function doTranscendReset(doAnyway = false) {
     tmp.ascendTab = 0
 
     doAscendReset(true)
+}
+
+function canBuyTransUpg(i, j) {
+    return (player.transcendUpgradesUnlocked[TRANSCENSION_UPGRADES[i][j].id] !== undefined || TRANSCENSION_UPGRADES[i][j].unlock.req) 
+    && !player.transcendUpgrades.includes(TRANSCENSION_UPGRADES[i][j].id) 
+    && Decimal.gte(player.transcendPoints, TRANSCENSION_UPGRADES[i][j].cost)
+}
+
+function buyTransUpg(i, j) {
+    if (!canBuyTransUpg(i, j)) {
+        return;
+    }
+    player.transcendPoints = Decimal.sub(player.transcendPoints, TRANSCENSION_UPGRADES[i][j].cost)
+    player.transcendUpgrades.push(TRANSCENSION_UPGRADES[i][j].id)
 }

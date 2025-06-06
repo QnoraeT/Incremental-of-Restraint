@@ -44,7 +44,13 @@ const ASCENSION_UPGRADES = [
     },
     {
         show: true,
-        cap: D(5),
+        get cap() {
+            let cap = D(5)
+            if (player.transcendUpgrades.includes('ascend2')) {
+                cap = cap.add(1)
+            }
+            return cap
+        },
         req: true,
         get cost() {
             let cost = D(player.ascendUpgrades[2]).pow_base(40).mul(250)
@@ -119,7 +125,13 @@ const ASCENSION_UPGRADES = [
         for (let i = 0; i < 4; i++) {
             arr.push({
                 show: true,
-                cap: D(5),
+                get cap() {
+                    let cap = D(5)
+                    if (player.transcendUpgrades.includes('ascend2')) {
+                        cap = cap.add(1)
+                    }
+                    return cap
+                },
                 get req() {
                     return Decimal.lte(player.buyables[i], 0) && Decimal.gte(player.points, Decimal.pow(player.ascendUpgrades[i + 8], 2).pow_base(1e3 * (10 ** i)).mul(1e20 * (1e3 ** i)))
                 },
@@ -319,6 +331,7 @@ function initHTML_ascend() {
     toHTMLvar('ascendPointEffect')
     toHTMLvar('ascendUpgradeList')
     toHTMLvar('ascendGems')
+    toHTMLvar('ascendUpgAuto')
     toHTMLvar('mainAscend')
     toHTMLvar('hinderanceAscend')
     toHTMLvar('mainAscendTabButton')
@@ -382,7 +395,7 @@ function updateGame_ascend() {
         if (player.ascendUpgrades[i] === undefined) {
             player.ascendUpgrades[i] = D(0)
         }
-        if (player.cheats.autoAscendUpgrades) {
+        if (player.cheats.autoAscendUpgrades || player.ascendUpgAuto) {
             let bought = player.ascendUpgrades[i]
             player.ascendUpgrades[i] = Decimal.min(ASCENSION_UPGRADES[i].target, ASCENSION_UPGRADES[i].cap).add(0.99999999).max(player.ascendUpgrades[i]).floor()
             if (Decimal.gt(player.ascendUpgrades[i], bought)) {
@@ -413,8 +426,8 @@ function updateGame_ascend() {
     tmp.ascendNext = cheatDilateBoost(tmp.ascendNext, true)
     tmp.ascendNext = tmp.ascendNext.add(1).log(1000).add(1).pow_base(tmp.ascendReq)
 
-    if (player.cheats.autoAscend) {
-        player.ascend = Decimal.add(player.ascend, tmp.ascendAmount.mul(delta).mul(tmp.timeSpeedTiers[0]))
+    if (player.cheats.autoAscend || hasTranscendMilestone(9)) {
+        player.ascend = Decimal.add(player.ascend, tmp.ascendAmount.mul(0.01).mul(delta).mul(tmp.timeSpeedTiers[0]))
     }
 
     tmp.ascendPointEffect = D(player.ascend)
@@ -455,6 +468,13 @@ function updateHTML_ascend() {
             html['ascendPoints'].setTxt(`${format(player.ascend)}`)
             html['ascendGems'].setTxt(`${format(player.ascendGems)}`)
             html['ascendPointEffect'].setTxt(`Producing ${format(tmp.ascendPointEffect, 2)} gems per second`)
+
+            html['ascendUpgAuto'].setDisplay(hasTranscendMilestone(8))
+            if (hasTranscendMilestone(8)) {
+                html[`ascendUpgAuto`].changeStyle('background-color', player.ascendUpgAuto ? '#00800080' : '#80000080')
+                html[`ascendUpgAuto`].changeStyle('border', `3px solid #${player.ascendUpgAuto ? '00ff00' : 'ff0000'}`)
+                html[`ascendUpgAuto`].setTxt(player.ascendUpgAuto ? 'Auto: Infinity/s' : 'Auto: Off')
+            }
         }
         if (tmp.ascendTab === 1) {
             for (let i = 0; i < HINDERANCES.length; i++) {

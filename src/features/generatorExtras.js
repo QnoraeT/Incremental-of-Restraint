@@ -293,7 +293,11 @@ function buyGenXPBuy(i) {
         return;
     }
     player.generatorFeatures.xp = Decimal.sub(player.generatorFeatures.xp, GEN_XP_BUYABLES[i].cost)
-    player.generatorFeatures.buyable[i] = Decimal.add(player.generatorFeatures.buyable[i], 1)
+    if (shiftDown) {
+        player.generatorFeatures.buyable[i] = Decimal.max(player.generatorFeatures.buyable[i], tmp.generatorFeatures.genXPBuyables[i].target.ceil())
+    } else {
+        player.generatorFeatures.buyable[i] = Decimal.add(player.generatorFeatures.buyable[i], 1)
+    }
 }
 
 function buyGenEnhBuy(i) {

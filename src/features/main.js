@@ -29,14 +29,14 @@ function initHTML_main() {
                     Effect: <span id="upgrade${i}eff"></span><br>
                     Cost: <span id="upgrade${i}cost"></span> points
                 </button>
-                <div class="flex-vertical">
+                <div class="flex-vertical" style="margin-left: 4px">
                     <div id="upgrade${i}generators" style="height: 10px; width: 175px; position: relative; margin: 2px">
                         <div id="upgrade${i}generatorProgressBarBase" style="background-color: #008020; position: absolute; top: 0; left: 0; height: 100%; width: 100%;"></div>
                         <div id="upgrade${i}generatorProgressBar" style="background-color: #00FF40; position: absolute; top: 0; left: 0; height: 100%"></div>
                     </div>
                     <span id="upgrade${i}generatorProgressNumber" class="whiteText font" style="font-size: 10px; text-align: center"></span>
                 </div>
-                <div class="flex-vertical">
+                <div class="flex-vertical" style="margin-left: 4px">
                     <div id="upgrade${i}generatorTiers" style="height: 10px; width: 175px; position: relative; margin: 2px">
                         <div id="upgrade${i}generatorTierProgressBarBase" style="background-color: #805000; position: absolute; top: 0; left: 0; height: 100%; width: 100%;"></div>
                         <div id="upgrade${i}generatorTierProgressBar" style="background-color: #FFA000; position: absolute; top: 0; left: 0; height: 100%"></div>
@@ -96,6 +96,10 @@ function updateGame_main() {
         tmp.bybBoostEffect = tmp.bybBoostEffect.add(SETBACK_UPGRADES[1][6].eff)
     }
 
+    if (player.transcendUpgrades.includes('point1')) {
+        tmp.bybBoostEffect = tmp.bybBoostEffect.mul(2)
+    }
+
     if (tmp.prestigeChal[3].depth.gt(0) && player.currentHinderance !== 2) {
         tmp.bybBoostInterval = tmp.bybBoostInterval.div(tmp.prestigeChal[3].depth.pow_base(2))
         tmp.bybBoostEffect = D(1)
@@ -113,7 +117,7 @@ function updateGame_main() {
 
     tmp.pointGen = D(1)
     tmp.factors.points = []
-    tmp.factors.generators = []
+    tmp.factors.generator = []
     let totalGenLevels = D(0)
     let genFactorMade = null
     addStatFactor('points', `Base`, ``, 1, 1)
@@ -260,7 +264,7 @@ function updateGame_main() {
                     if (Decimal.gte(player.hinderanceScore[0], HINDERANCES[0].start)) {
                         upgGen = upgGen.pow(Decimal.pow(1.02, Decimal.max(player.prestigeEssence, 1).log10().floor()))
                         if (genFactorMade === null) {
-                            addStatFactor('generator', `H1 Reward`, `^1.02<sup>⌊log<sub>10</sub>(${format(player.prestigeEssence)})⌋</sup> → ^${format(Decimal.pow(1.02, Decimal.max(player.prestigeEssence, 1).log10().floor()), 3)}`, upgGen)
+                            addStatFactor('generator', `H1 Reward`, `^1.02<sup>⌊log<sub>10</sub>(${format(player.prestigeEssence)})⌋</sup> → ^`, Decimal.pow(1.02, Decimal.max(player.prestigeEssence, 1).log10().floor()), upgGen)
                         }
                     }
                     if (tmp.prestigeChal[12].depth.gt(0)) {
@@ -269,7 +273,7 @@ function updateGame_main() {
                             upgGen = D(0)
                         }
                         if (genFactorMade === null) {
-                            addStatFactor('generator', `PC13`, `log${tmp.prestigeChal[12].depth.neq(1) ? '<sup>' + format(tmp.prestigeChal[12].depth, 2) + '</sup>' : ''}<sub>10</sub>(${format(upgGen.layeradd10(tmp.prestigeChal[12].depth).sub(1))})`, upgGen)
+                            addStatFactor('generator', `PC13`, `log${tmp.prestigeChal[12].depth.neq(1) ? '<sup>' + format(tmp.prestigeChal[12].depth, 2) + '</sup>' : ''}<sub>10</sub>(${format(upgGen.layeradd10(tmp.prestigeChal[12].depth).sub(1))})`, null, upgGen)
                         }
                         upgGen = upgGen.mul(tmp.buyables[i].effect)
                         if (genFactorMade === null) {
@@ -452,13 +456,21 @@ function updateGame_main() {
         tmp.pointGen = tmp.pointGen.mul(tmp.transcendResetEffect)
         addStatFactor('points', `Transcend Resets`, `×`, tmp.transcendResetEffect, tmp.pointGen)
     }
+    if (player.transcendUpgrades.includes('base')) {
+        tmp.pointGen = tmp.pointGen.mul(tmp.transEffs[0][0][0])
+        addStatFactor('points', `Trans. Upg. "Patience"`, `×`, tmp.transEffs[0][0][0], tmp.pointGen)
+    }
+    if (player.transcendUpgrades.includes('point2')) {
+        tmp.pointGen = tmp.pointGen.mul(tmp.transEffs[2][0])
+        addStatFactor('points', `Trans. Upg. "Extra Synergy"`, `×`, tmp.transEffs[2][0], tmp.pointGen)
+    }
     if (hasPrestigeUpgrade(9)) {
         tmp.pointGen = tmp.pointGen.pow(tmp.prestigeUpgEffs[9]);
-        addStatFactor('points', `Prestige Upgrade 1`, `^`, tmp.prestigeUpgEffs[9], tmp.pointGen)
+        addStatFactor('points', `Prestige Upgrade 10`, `^`, tmp.prestigeUpgEffs[9], tmp.pointGen)
     }
     if (hasPrestigeUpgrade(11)) {
         tmp.pointGen = tmp.pointGen.pow(tmp.prestigeUpgEffs[11]);
-        addStatFactor('points', `Prestige Upgrade 1`, `^`, tmp.prestigeUpgEffs[11], tmp.pointGen)
+        addStatFactor('points', `Prestige Upgrade 12`, `^`, tmp.prestigeUpgEffs[11], tmp.pointGen)
     }
     if (player.inSetback) {
         tmp.pointGen = tmp.pointGen.pow(tmp.setbackEffects[0])
@@ -479,6 +491,10 @@ function updateGame_main() {
     if (player.currentHinderance === 0) {
         tmp.pointGen = tmp.pointGen.pow(tmp.dartEffect)
         addStatFactor('points', `H1 Effect`, `^`, tmp.dartEffect, tmp.pointGen)
+    }
+    if (player.transcendUpgrades.includes('base')) {
+        tmp.pointGen = tmp.pointGen.mul(tmp.transEffs[0][0][1])
+        addStatFactor('points', `Trans. Upg. "Patience"`, `^`, tmp.transEffs[0][0][1], tmp.pointGen)
     }
     if (player.cheats.dilate) {
         tmp.pointGen = cheatDilateBoost(tmp.pointGen)

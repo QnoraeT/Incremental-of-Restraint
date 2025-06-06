@@ -11,7 +11,7 @@ const TEXTBOOK = [
                 This is an incremental game created by TearonQ (@QnoraeT in Github).<br>
                 I imposed a bit of a challenge for myself, to not use any softcaps, scalings, and the game mustn't inflate. Idk, I was bored and I tried doing something.<br>
                 This game is also slower than my other incrementals, but is still pretty active. This may be comparable to randomtuba's Algebraic Progression, but with slightly more head room for optimization.<br><br>
-                <span style="color: #ffff00"><b>Warning!</b> There are no confirmations, except for resetting your save! If you want to do something, this game <b>will</b> do it for you, no questions asked!</span>
+                You can hold shift to buy max what you click on. This will not come with a confirmation!<br><br>
                 Inspired by <span style="color: #ffff00">randomtuba</span>, <span style="color: #8000ff">Jacorb</span>, <span style="color: #ff0000">MrRedShark</span>, and more!
             `
         },

@@ -65,6 +65,7 @@ function initPlayer() {
         ascendCount: D(0),
         ascendGems: D(0),
         ascendUpgrades: [],
+        ascendUpgAuto: false,
         setback: [D(0), D(0), D(0)],
         currentSetback: null,
         setbackLoadout: [],
@@ -106,7 +107,8 @@ function initPlayer() {
         transcendResetCount: D(0),
         transcendUpgrades: [],
         transcendUpgradesUnlocked: {}, // FILL THIS WITH VALUES
-        transcendInSpecialReq: [null, null]
+        transcendInSpecialReq: [null, null],
+        perksUsed: []
     }
 
     return obj
@@ -254,7 +256,7 @@ function resetTransUpgBuyables() {
     for (let i = 0; i < TRANSCENSION_UPGRADES.length; i++) {
         arr.push([])
         for (let j = 0; j < TRANSCENSION_UPGRADES[i].length; j++) {
-            arr.push(D(0))
+            arr[i].push(D(0))
         }
     }
     return arr
@@ -337,12 +339,12 @@ function updatePlayer() {
         player.version = 9
     }
     if (player.version === 9) {
-
-        // player.version = 10
+        player.perksUsed = []
+        player.version = 10
     }
     if (player.version === 10) {
-
-        // player.version = 11
+        player.ascendUpgAuto = false
+        player.version = 11
     }
     if (player.version === 11) {
 
@@ -599,7 +601,7 @@ function updateHTML() {
     const trappedArr = []
     for (let i = 0; i < PRESTIGE_CHALLENGES.length; i++) {
         if (tmp.prestigeChal[i].trapped) {
-            trappedArr.push(`<span style="color: #0080ff"><b>PC${i + 1}</b>: ${PRESTIGE_CHALLENGES[i].name} <b>×${format(tmp.prestigeChal[i].depth)}</b></span>`)
+            trappedArr.push(`<span style="color: #0080ff"><b>PC${i + 1}</b>: ${PRESTIGE_CHALLENGES[i].name}${tmp.prestigeChal[i].depth.neq(1) ? ' <b>×' + format(tmp.prestigeChal[i].depth) + '</b>' : ''}</span>`)
         }
     }
     const enteredArr = []
@@ -646,9 +648,17 @@ function updateHTML() {
 
 function calcTimeSpeed() {
     // tier 2 timespeed multiplies tier 1 timespeed
+    
+    tmp.factors.tier1Time = []
     tmp.timeSpeedTiers[0] = D(1)
-    if (tmp.prestigeChal[11].depth) {
+    addStatFactor('tier1Time', `Base`, `×`, 1, tmp.timeSpeedTiers[0])
+    if (player.transcendUpgrades.includes('prest1')) {
+        tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].mul(2)
+        addStatFactor('tier1Time', `Trans. Upg. "Double the speed?"`, `×`, 2, tmp.timeSpeedTiers[0])
+    }
+    if (tmp.prestigeChal[11].depth.gt(0)) {
         tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].div(tmp.prestigeChal[11].depth.pow_base(1e3))
+        addStatFactor('tier1Time', `PC12`, `/`, tmp.prestigeChal[11].depth.pow_base(1e3), tmp.timeSpeedTiers[0])
     }
 }
 
@@ -663,3 +673,16 @@ function addStatFactor(type, name, desc, eff, result) {
     }
     tmp.factors[type].push(`${name}: ${desc}${eff !== null ? format(eff, 3) : ''} → ${format(result, 2)}`)
 }
+
+let shiftDown = false;
+let ctrlDown = false;
+
+document.onkeydown = function (e) {
+    shiftDown = e.shiftKey;
+    ctrlDown = e.ctrlKey;
+};
+
+document.onkeyup = function (e) {
+    shiftDown = e.shiftKey;
+    ctrlDown = e.ctrlKey;
+};

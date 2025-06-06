@@ -574,6 +574,14 @@ function updateGame_prestige() {
         tmp.prestigeAmount = tmp.prestigeAmount.mul(HINDERANCES[1].eff)
         addStatFactor('prestige', `H2 PB`, `×`, HINDERANCES[1].eff, tmp.prestigeAmount)
     }
+    if (player.transcendUpgrades.includes('prest1')) {
+        tmp.prestigeAmount = tmp.prestigeAmount.mul(2)
+        addStatFactor('prestige', `Trans. Upg. "Double the prestige?"`, `×`, 2, tmp.prestigeAmount)
+    }
+    if (player.transcendUpgrades.includes('prest2')) {
+        tmp.prestigeAmount = tmp.prestigeAmount.div(tmp.transEffs[2][1])
+        addStatFactor('prestige', `Trans. Upg. "Tier Combine"`, `/`, tmp.transEffs[2][1], tmp.prestigeAmount)
+    }
     if (player.inSetback) {
         tmp.prestigeAmount = tmp.prestigeAmount.div(tmp.setbackEffects[1])
         addStatFactor('prestige', `Setback Green Effect`, `/`, tmp.setbackEffects[1], tmp.prestigeAmount)
@@ -593,6 +601,12 @@ function updateGame_prestige() {
     }
     if (player.inSetback) {
         tmp.prestigeNext = tmp.prestigeNext.mul(tmp.setbackEffects[1])
+    }
+    if (player.transcendUpgrades.includes('prest2')) {
+        tmp.prestigeNext = tmp.prestigeNext.mul(tmp.transEffs[2][1])
+    }
+    if (player.transcendUpgrades.includes('prest1')) {
+        tmp.prestigeNext = tmp.prestigeNext.div(2)
     }
     tmp.prestigeNext = tmp.prestigeNext.div(HINDERANCES[1].eff)
     tmp.prestigeNext = tmp.prestigeNext.div(tmp.energyEffs[2])
