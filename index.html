@@ -258,15 +258,11 @@
                             <div class="flex-vertical">
                                 <span class="whiteText font" style="font-size: 12px">Set your setbacks here. The higher these values are and the higher the total of these settings, the more quarks you will produce.</span>
                                 <br>
-                                <span class="font" style="color: #ff4040; font-size: 12px">Your red setback is at difficulty <b><span id="setbackRedValue"></span></b>, which raises point gain to the <b>^<span id="setbackRedEffect"></span></b>, but will produce <b><span id="setbackRedGenerate"></span></b> red quarks per second.</span>
-                                <span class="font" style="color: #40ff40; font-size: 12px">Your green setback is at difficulty <b><span id="setbackGreenValue"></span></b>, which make buyables, prestige points, and generators scale <b><span id="setbackGreenEffect"></span>&times;</b>, but will produce <b><span id="setbackGreenGenerate"></span></b> green quarks per second.</span>
-                                <span class="font" style="color: #4040ff; font-size: 12px">Your blue setback is at difficulty <b><span id="setbackBlueValue"></span></b>, which increases the prestige challenge and ascension reqs. by <b>^<span id="setbackBlueEffect"></span></b>, but will produce <b><span id="setbackBlueGenerate"></span></b> blue quarks per second.</span>
+                                <div class="flex-vertical" id="setbackEffectList"></div>
                                 <br>
                                 <span class="whiteText font" style="font-size: 12px">Upon a successful ascension with these setbacks, you will be able to generate quarks in the Loadout.</span>
                                 <br>
-                                <input type="range" min="0" max="10" value="0" style="width: 400px" id="setbackSliderRed">
-                                <input type="range" min="0" max="10" value="0" style="width: 400px" id="setbackSliderGreen">
-                                <input type="range" min="0" max="10" value="0" style="width: 400px" id="setbackSliderBlue">
+                                <div class="flex-vertical" id="setbackSliderList"></div>
                                 <br>
                                 <button onclick="toggleSetback()" id="setbackToggle" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 70px; width: 325px; font-size: 12px; margin: 2px">
                                     Toggle setback. This will do an ascension reset.<br>
@@ -284,62 +280,14 @@
                         </div>
                         <div id="setbackTabDims">
                             <div class="flex-vertical">
-                                <div class="flex-horizontal">
-                                    <div style="margin: 4px;" class="flex-vertical">
-                                        <span class="font" style="font-size: 24px; color: #ff4040" id="redQuarks"></span><span class="font" style="font-size: 12px; color: #ff4040">red quarks</span>
-                                    </div>
-                                    <div style="margin: 4px;" class="flex-vertical">
-                                        <span class="font" style="font-size: 24px; color: #ff4040" id="redEnergy"></span><span class="font" style="font-size: 12px; color: #ff4040">red energy</span>
-                                    </div>
-                                    <div style="margin: 4px;" class="flex-vertical">
-                                        <span class="font" style="font-size: 24px; color: #40ff40" id="greenQuarks"></span><span class="font" style="font-size: 12px; color: #40ff40">green quarks</span>
-                                    </div>
-                                    <div style="margin: 4px;" class="flex-vertical">
-                                        <span class="font" style="font-size: 24px; color: #40ff40" id="greenEnergy"></span><span class="font" style="font-size: 12px; color: #40ff40">green energy</span>
-                                    </div>
-                                    <div style="margin: 4px;" class="flex-vertical">
-                                        <span class="font" style="font-size: 24px; color: #4040ff" id="blueQuarks"></span><span class="font" style="font-size: 12px; color: #4040ff">blue quarks</span>
-                                    </div>
-                                    <div style="margin: 4px;" class="flex-vertical">
-                                        <span class="font" style="font-size: 24px; color: #4040ff" id="blueEnergy"></span><span class="font" style="font-size: 12px; color: #4040ff">blue energy</span>
-                                    </div>
-                                </div>
+                                <div class="flex-horizontal" id="setbackQuarkEnergyDisp"></div>
                                 <span class="whiteText font" style="font-size: 12px">Every <b><span id="dimScalingInterval"></span></b> purchases of a dimension, the dimension's multiplier per purchase is boosted by <b>+<span id="dimScalingBoost"></span>&times;</b> but the dimension scales <b><span id="dimScalingSpeed"></span>&times;</b> faster.</span>
-                                <div class="flex-horizontal">
-                                    <div style="margin: 4px; width: 325px; border: 3px dashed #ff000080;" class="flex-vertical">
-                                        <span class="font" style="font-size: 10px; color: #ff4040">Red Quarks boost Red Energy gain by &times;<b><span id="redQuarkEff"></span></b>.</span>
-                                        <span class="font" style="font-size: 10px; color: #ff4040">Red Energy boost point gain by &times;<b><span id="redEnergyEff"></span></b>.</span>
-                                        <div id="setbackRedDimList" class="flex-vertical"></div>
-                                    </div>
-                                    <div style="margin: 4px; width: 325px; border: 3px dashed #00ff0080;" class="flex-vertical">
-                                        <span class="font" style="font-size: 10px; color: #40ff40">Green Quarks boost Green Energy gain by &times;<b><span id="greenQuarkEff"></span></b>.</span>
-                                        <span class="font" style="font-size: 10px; color: #40ff40">Green Energy multiply Buyables' cost scaling by &times;<b><span id="greenEnergyEff"></span></b>.</span>
-                                        <div id="setbackGreenDimList" class="flex-vertical"></div>
-                                    </div>
-                                    <div style="margin: 4px; width: 325px; border: 3px dashed #0000ff80;" class="flex-vertical">
-                                        <span class="font" style="font-size: 10px; color: #4040ff">Blue Quarks boost Blue Energy gain by &times;<b><span id="blueQuarkEff"></span></b>.</span>
-                                        <span class="font" style="font-size: 10px; color: #4040ff">Blue Energy increase prestige point gain by &times;<b><span id="blueEnergyEff"></span></b>.</span>
-                                        <div id="setbackBlueDimList" class="flex-vertical"></div>
-                                    </div>
-                                </div>
+                                <div class="flex-horizontal" id="setbackDimDisp"></div>
                             </div>
                         </div>
                         <div id="setbackTabUpgs">
                             <div class="flex-vertical">
-                                <div class="flex-horizontal">
-                                    <div class="flex-vertical">
-                                        <span class="font" style="font-size: 12px; color: #ff4040">You have <b><span id="redEnergyAmt2"></span></b> Red Energy.</span>
-                                        <div id="redSBUpgrades" style="width: 250px; display: flex; flex-direction: row; justify-content: center; flex-wrap: wrap"></div>
-                                    </div>
-                                    <div class="flex-vertical">
-                                        <span class="font" style="font-size: 12px; color: #40ff40">You have <b><span id="greenEnergyAmt2"></span></b> Green Energy.</span>
-                                        <div id="greenSBUpgrades" style="width: 250px; display: flex; flex-direction: row; justify-content: center; flex-wrap: wrap"></div>
-                                    </div>
-                                    <div class="flex-vertical">
-                                        <span class="font" style="font-size: 12px; color: #4040ff">You have <b><span id="blueEnergyAmt2"></span></b> Blue Energy.</span>
-                                        <div id="blueSBUpgrades" style="width: 250px; display: flex; flex-direction: row; justify-content: center; flex-wrap: wrap"></div>
-                                    </div>
-                                </div>
+                                <div class="flex-horizontal" id="setbackUpgLists"></div>
                                 <div class="flex-vertical">
                                     <br>
                                     <b><span id="upgSBDesc" class="font" style="font-size: 12px; color: #ffffff"></span></b>

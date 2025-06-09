@@ -91,11 +91,9 @@ function updateGame_main() {
     if (player.prestigeChallengeCompleted.includes(9)) {
         tmp.bybBoostEffect = tmp.bybBoostEffect.add(3)
     }
-
     if (player.setbackUpgrades.includes(`g7`)) {
         tmp.bybBoostEffect = tmp.bybBoostEffect.add(SETBACK_UPGRADES[1][6].eff)
     }
-
     if (player.transcendUpgrades.includes('point1')) {
         tmp.bybBoostEffect = tmp.bybBoostEffect.mul(2)
     }
@@ -301,15 +299,6 @@ function updateGame_main() {
             } else {
                 player.buyablePoints[i] = Decimal.add(player.buyablePoints[i], upgGen.mul(delta))
             }
-            // if (player.prestigeChallenge === 12 && Decimal.add(player.buyablePoints[i], upgGen).gte(1e9)) {
-            //     player.buyablePoints[i] = player.buyablePoints[i].max(1e9).log(1e9).pow(2).sub(1).exp().pow_base(1e9).add(upgGen.mul(delta).mul(tmp.timeSpeedTiers[0])).log(1e9).ln().add(1).root(2).pow_base(1e9)
-            // } else {
-            //     if (player.currentHinderance === 1) {
-            //         player.buyablePoints[i] = Decimal.max(player.buyablePoints[i], 0).add(1).log10().add(1).root(0.9).sub(1).pow10().sub(1).add(upgGen.mul(delta)).add(1).log10().add(1).pow(0.9).sub(1).pow10().sub(1)
-            //     } else {
-            //         player.buyablePoints[i] = Decimal.add(player.buyablePoints[i], upgGen.mul(delta))
-            //     }
-            // }
 
             tmp.buyables[i].tierLevels = tierPointFunc(Decimal.max(player.buyableTierPoints[i], 1), true).max(1).floor()
             tmp.buyables[i].tierEffect = tmp.buyables[i].tierLevels.pow_base(1.01)
@@ -656,24 +645,35 @@ function toggleUpgradeAutobuy(i) {
 }
 
 function buyBuyable(i) {
-    if (player.currentHinderance === 0) {
-        let prev = player.buyables[i]
-        player.buyables[i] = Decimal.add(player.buyables[i], 1).sqrt().ceil().pow(2).round()
+    if (shiftDown) {
         if (Decimal.lt(player.points, tmp.buyables[i].cost)) {
-            player.buyables[i] = prev
             return;
         }
         player.timeSinceBuyableBought = D(0)
         player.points = Decimal.sub(player.points, tmp.buyables[i].cost)
-        player.buyableAutobought[i] = Decimal.add(player.buyableAutobought[i], 1).sqrt().ceil().pow(2).round()
+        player.buyables[i] = Decimal.max(player.buyables[i], tmp.buyables[i].target.ceil())
+        player.buyableAutobought[i] = Decimal.max(player.buyableAutobought[i], tmp.buyables[i].target.ceil())
     } else {
-        if (Decimal.lt(player.points, tmp.buyables[i].cost)) {
-            return;
+        if (player.currentHinderance === 0) {
+            let prev = player.buyables[i]
+            // realized this is unnecessary, tmp doesn't automatically update because it's being managed by the updateGame_Main() function, but oh well, too lazy to fix it
+            player.buyables[i] = Decimal.add(player.buyables[i], 1).sqrt().ceil().pow(2).round()
+            if (Decimal.lt(player.points, tmp.buyables[i].cost)) {
+                player.buyables[i] = prev
+                return;
+            }
+            player.timeSinceBuyableBought = D(0)
+            player.points = Decimal.sub(player.points, tmp.buyables[i].cost)
+            player.buyableAutobought[i] = Decimal.add(player.buyableAutobought[i], 1).sqrt().ceil().pow(2).round()
+        } else {
+            if (Decimal.lt(player.points, tmp.buyables[i].cost)) {
+                return;
+            }
+            player.timeSinceBuyableBought = D(0)
+            player.points = Decimal.sub(player.points, tmp.buyables[i].cost)
+            player.buyables[i] = Decimal.add(player.buyables[i], 1)
+            player.buyableAutobought[i] = Decimal.add(player.buyableAutobought[i], 1)
         }
-        player.timeSinceBuyableBought = D(0)
-        player.points = Decimal.sub(player.points, tmp.buyables[i].cost)
-        player.buyables[i] = Decimal.add(player.buyables[i], 1)
-        player.buyableAutobought[i] = Decimal.add(player.buyableAutobought[i], 1)
     }
     updateGame_main()
 }

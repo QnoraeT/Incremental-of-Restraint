@@ -171,9 +171,9 @@ function initTmp() {
         quarkEffs: [D(1), D(1), D(1)],
         energyEffs: [D(1), D(1), D(1)],
         dimBoughtBM: [D(0), D(0), D(0)],
-        quarkNames: ['red', 'green', 'blue'],
-        quarkNamesC: ['Red', 'Green', 'Blue'],
-        quarkColors: ['FF0000', '00FF00', '0000FF'],
+        quarkNames: ['red', 'green', 'blue', 'yellow'],
+        quarkNamesC: ['Red', 'Green', 'Blue', 'Yellow'],
+        quarkColors: ['FF0000', '00FF00', '0000FF', 'FFFF00'],
         sbSelectedUpg: [],
         generatorFeatures: {
             gain: D(0),
