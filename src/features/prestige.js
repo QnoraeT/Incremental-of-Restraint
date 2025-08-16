@@ -33,13 +33,13 @@ const PRESTIGE_UPGRADES = [
         get eff() {
             let eff = Decimal.max(player.prestige, 0).div(2).add(1)
             let bought
-            if (player.setbackUpgrades.includes('b4')) {
+            if (hasSetbackUpgrade('b4')) {
                 bought = Decimal.max(player.prestigeUpgrades[2], 0).add(1)
             } else {
                 bought = Decimal.max(player.prestigeUpgrades[2], 1)
             }
             eff = eff.pow(bought)
-            if (player.setbackUpgrades.includes('b4')) {
+            if (hasSetbackUpgrade('b4')) {
                 eff = eff.pow(SETBACK_UPGRADES[2][3].eff)
             }
             return eff
@@ -48,12 +48,12 @@ const PRESTIGE_UPGRADES = [
     {
         cost: D(5),
         get desc() {
-            return Decimal.gt(player.prestigeUpgrades[3], 1)
-                ? `Buyables give ${format(tmp.prestigeUpgEffs[3])} free levels to all previous buyables instead of only the previous upgrade.`
+            return Decimal.neq(player.prestigeUpgrades[3], 0) && Decimal.neq(player.prestigeUpgrades[3], 1)
+                ? `Buyables give ${format(tmp.prestigeUpgEffs[3], 1)} free levels to all previous buyables instead of only the previous upgrade.`
                 : `Buyables give a free level to all previous buyables instead of only the previous upgrade.`
         },
         get eff() {
-            let eff = Decimal.max(player.prestigeUpgrades[3], 1)
+            let eff = Decimal.max(player.prestigeUpgrades[3], 0)
             return eff
         }
     },
@@ -128,6 +128,9 @@ const PRESTIGE_UPGRADES = [
         get eff() {
             let eff = D(1.1)
             eff = eff.pow(Decimal.max(player.prestigeUpgrades[9], 1))
+            if (player.currentHinderance === 3) {
+                eff = eff.pow(0.2)
+            }
             return eff
         }
     },
@@ -150,6 +153,9 @@ const PRESTIGE_UPGRADES = [
         get eff() {
             let eff = D(1.075)
             eff = eff.pow(Decimal.max(player.prestigeUpgrades[11], 1))
+            if (player.currentHinderance === 3) {
+                eff = eff.pow(0.2)
+            }
             return eff
         }
     },
@@ -200,20 +206,20 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e8)
-            if (player.inSetback) {
-                goal = goal.pow(tmp.setbackEffects[2])
+            if (colorAmountTotal(2).gt(0)) {
+                goal = goal.pow(tmp.setbackEffects[2][0])
             }
             return goal
         },
-        name: "Nerfed Upgrades",
+        name: "Nerfed Buyables",
         desc: "Buyables' effect bases are halved.",
         eff: "Increase the cap of prestige upgrades by 1, and Buyables generate a resource that boost themselves, called Generators."
     },
     {
         get goal() {
             let goal = D(2.5e8)
-            if (player.inSetback) {
-                goal = goal.pow(tmp.setbackEffects[2])
+            if (colorAmountTotal(2).gt(0)) {
+                goal = goal.pow(tmp.setbackEffects[2][0])
             }
             return goal
         },
@@ -224,8 +230,8 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e11)
-            if (player.inSetback) {
-                goal = goal.pow(tmp.setbackEffects[2])
+            if (colorAmountTotal(2).gt(0)) {
+                goal = goal.pow(tmp.setbackEffects[2][0])
             }
             return goal
         },
@@ -236,8 +242,8 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e16)
-            if (player.inSetback) {
-                goal = goal.pow(tmp.setbackEffects[2])
+            if (colorAmountTotal(2).gt(0)) {
+                goal = goal.pow(tmp.setbackEffects[2][0])
             }
             return goal
         },
@@ -248,8 +254,8 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e10)
-            if (player.inSetback) {
-                goal = goal.pow(tmp.setbackEffects[2])
+            if (colorAmountTotal(2).gt(0)) {
+                goal = goal.pow(tmp.setbackEffects[2][0])
             }
             return goal
         },
@@ -260,8 +266,8 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e12)
-            if (player.inSetback) {
-                goal = goal.pow(tmp.setbackEffects[2])
+            if (colorAmountTotal(2).gt(0)) {
+                goal = goal.pow(tmp.setbackEffects[2][0])
             }
             return goal
         },
@@ -272,8 +278,8 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e15)
-            if (player.inSetback) {
-                goal = goal.pow(tmp.setbackEffects[2])
+            if (colorAmountTotal(2).gt(0)) {
+                goal = goal.pow(tmp.setbackEffects[2][0])
             }
             return goal
         },
@@ -284,8 +290,8 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e20)
-            if (player.inSetback) {
-                goal = goal.pow(tmp.setbackEffects[2])
+            if (colorAmountTotal(2).gt(0)) {
+                goal = goal.pow(tmp.setbackEffects[2][0])
             }
             return goal
         },
@@ -296,8 +302,8 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e33)
-            if (player.inSetback) {
-                goal = goal.pow(tmp.setbackEffects[2])
+            if (colorAmountTotal(2).gt(0)) {
+                goal = goal.pow(tmp.setbackEffects[2][0])
             }
             return goal
         },
@@ -308,8 +314,8 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e45)
-            if (player.inSetback) {
-                goal = goal.pow(tmp.setbackEffects[2])
+            if (colorAmountTotal(2).gt(0)) {
+                goal = goal.pow(tmp.setbackEffects[2][0])
             }
             return goal
         },
@@ -320,8 +326,8 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e90)
-            if (player.inSetback) {
-                goal = goal.pow(tmp.setbackEffects[2])
+            if (colorAmountTotal(2).gt(0)) {
+                goal = goal.pow(tmp.setbackEffects[2][0])
             }
             return goal
         },
@@ -332,8 +338,8 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e135)
-            if (player.inSetback) {
-                goal = goal.pow(tmp.setbackEffects[2])
+            if (colorAmountTotal(2).gt(0)) {
+                goal = goal.pow(tmp.setbackEffects[2][0])
             }
             return goal
         },
@@ -344,15 +350,15 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D('1e600')
-            if (player.inSetback) {
-                goal = goal.pow(tmp.setbackEffects[2])
+            if (colorAmountTotal(2).gt(0)) {
+                goal = goal.pow(tmp.setbackEffects[2][0])
             }
             return goal
         },
         name: "Generator Mastery",
         desc: "Generator speed is log10'd, then buyables instead boost Generator speed with log10 effect. Generator levels scale much slower (~1.05<sup>x</sup> instead of x!) and boost points exponentially instead of their effect linearly.",
         eff: "Buyables also boost Generator speed and log2(Gen. Lvs.) past 12 increase the cap of prestige upgrades."
-    },
+    }
 ]
 
 function initHTML_prestige() {
@@ -474,11 +480,10 @@ function updateGame_prestige() {
     if (tmp.prestigeChal[11].depth.gt(0)) {
         tmp.pc11Eff = Decimal.add(player.timeSinceBuyableBought, 0.001).div(0.011).min(1).mul(Decimal.sub(1, Decimal.div(1, Decimal.max(player.points, 0).add(1).log10().add(1).log10().add(1).log10().add(1))).mul(0.875).add(0.125)).pow(tmp.prestigeChal[11].depth)
     }
-
     player.timeInPrestige = Decimal.add(player.timeInPrestige, Decimal.mul(delta, tmp.timeSpeedTiers[0]))
 
     tmp.factors.prestigeEssence = []
-    tmp.peGain = player.setbackUpgrades.includes(`b1`)
+    tmp.peGain = hasSetbackUpgrade(`b1`)
         ? Decimal.max(player.bestPointsInPrestige, 10).log(1e6).log2().pow_base(10)
         : D(0)
     addStatFactor('prestigeEssence', `Base`, `10<sup>log<sub>2</sub>(log<sub>1,000,000</sub>(${format(player.bestPointsInPrestige)}))</sup>`, null, tmp.peGain)
@@ -543,7 +548,11 @@ function updateGame_prestige() {
         tmp.prestigeUpgradeCap = tmp.prestigeUpgradeCap.add(1)
     }
     if (player.prestigeChallengeCompleted.includes(12)) {
-        tmp.prestigeUpgradeCap = tmp.prestigeUpgradeCap.add(Decimal.max(player.bestTotalGenLvs, 1).log2().sub(11).max(0).floor())
+        if (player.transcendUpgrades.includes('prest4')) {
+            tmp.prestigeUpgradeCap = tmp.prestigeUpgradeCap.add(Decimal.max(player.bestTotalGenLvs, 1).log2().sub(11).max(0).mul(2).floor().div(2))
+        } else {
+            tmp.prestigeUpgradeCap = tmp.prestigeUpgradeCap.add(Decimal.max(player.bestTotalGenLvs, 1).log2().sub(11).max(0).floor())
+        }
     }
     if (Decimal.gte(player.hinderanceScore[1], HINDERANCES[1].start)) {
         tmp.prestigeUpgradeCap = tmp.prestigeUpgradeCap.add(2)
@@ -551,14 +560,12 @@ function updateGame_prestige() {
 
     tmp.prestigeUsed = D(0)
     tmp.totalPrestigeUpgrades = D(0)
-    for (let i = 0; i < PRESTIGE_UPGRADES.length; i++) {
-        if (hasPrestigeUpgrade(i)) {
-            tmp.totalPrestigeUpgrades = tmp.totalPrestigeUpgrades.add(player.prestigeUpgrades[i])
-            if (!hasTranscendMilestone(1)) {
-                tmp.prestigeUsed = tmp.prestigeUsed.add(PRESTIGE_UPGRADES[i].cost.mul(prestigeUpgradeCostScaling(i, true)))
-            }
+    if (!hasTranscendMilestone(1)) {
+        for (let i = 0; i < PRESTIGE_UPGRADES.length; i++) {
+            tmp.prestigeUsed = tmp.prestigeUsed.add(PRESTIGE_UPGRADES[i].cost.mul(prestigeUpgradeCostScaling(i, true)))
         }
     }
+    tmp.totalPrestigeUpgrades = player.prestigeUpgrades.reduce((accu, bought) => Decimal.add(accu, bought))
     // if (player.prestigeChallenge !== null) {
     //     tmp.totalPrestigeUpgrades = tmp.prestigeUpgradeCap
     // }
@@ -582,9 +589,13 @@ function updateGame_prestige() {
         tmp.prestigeAmount = tmp.prestigeAmount.div(tmp.transEffs[2][1])
         addStatFactor('prestige', `Trans. Upg. "Tier Combine"`, `/`, tmp.transEffs[2][1], tmp.prestigeAmount)
     }
-    if (player.inSetback) {
-        tmp.prestigeAmount = tmp.prestigeAmount.div(tmp.setbackEffects[1])
-        addStatFactor('prestige', `Setback Green Effect`, `/`, tmp.setbackEffects[1], tmp.prestigeAmount)
+    if (Decimal.gt(player.generatorFeatures.totalAdv, 0)) {
+        tmp.prestigeAmount = tmp.prestigeAmount.mul(tmp.generatorFeatures.advanceEff)
+        addStatFactor('prestige', `Generator Advance Effect"`, `×`, tmp.generatorFeatures.advanceEff, tmp.prestigeAmount)
+    }
+    if (colorAmountTotal(1).gt(0)) {
+        tmp.prestigeAmount = tmp.prestigeAmount.div(tmp.setbackEffects[1][0])
+        addStatFactor('prestige', `Setback Green Effect`, `/`, tmp.setbackEffects[1][0], tmp.prestigeAmount)
     }
     if (player.currentHinderance === 1) {
         tmp.prestigeAmount = tmp.prestigeAmount.root(2)
@@ -599,8 +610,11 @@ function updateGame_prestige() {
     if (player.currentHinderance === 1) {
         tmp.prestigeNext = tmp.prestigeNext.pow(2)
     }
-    if (player.inSetback) {
-        tmp.prestigeNext = tmp.prestigeNext.mul(tmp.setbackEffects[1])
+    if (colorAmountTotal(1).gt(0)) {
+        tmp.prestigeNext = tmp.prestigeNext.mul(tmp.setbackEffects[1][0])
+    }
+    if (Decimal.gt(player.generatorFeatures.totalAdv, 0)) {
+        tmp.prestigeNext = tmp.prestigeNext.div(tmp.generatorFeatures.advanceEff)
     }
     if (player.transcendUpgrades.includes('prest2')) {
         tmp.prestigeNext = tmp.prestigeNext.mul(tmp.transEffs[2][1])
@@ -613,12 +627,12 @@ function updateGame_prestige() {
     tmp.prestigeNext = tmp.prestigeNext.sub(1).pow10().mul(1e6)
 
     // auto-prestige
-    if (player.cheats.autoPrestige || Decimal.gte(player.hinderanceScore[2], HINDERANCES[2].start)) {
+    if (player.cheats.autoPrestige || (Decimal.gte(player.hinderanceScore[2], HINDERANCES[2].start) && player.transcendInSpecialReq !== "prest4")) {
         player.prestige = Decimal.add(player.prestige, tmp.prestigeAmount)
         player.prestigeEssence = Decimal.add(player.prestigeEssence, tmp.peGain)
     }
 
-    tmp.prestigePointEffect = player.prestigeChallengeCompleted.includes(3) || player.setbackUpgrades.includes('b4')
+    tmp.prestigePointEffect = player.prestigeChallengeCompleted.includes(3) || hasSetbackUpgrade('b4')
         ? Decimal.mul(player.prestige, 
             hasPrestigeUpgrade(14) 
                 ? tmp.prestigeUpgEffs[14]
@@ -626,9 +640,12 @@ function updateGame_prestige() {
             )
             .add(1) 
         : D(1)
-    if (player.setbackUpgrades.includes('b4')) {
+    if (hasSetbackUpgrade('b4')) {
         tmp.prestigePointEffect = tmp.prestigePointEffect.pow(player.prestigeChallengeCompleted.includes(3) ? 2 : 1)
         tmp.prestigePointEffect = tmp.prestigePointEffect.pow(SETBACK_UPGRADES[2][3].eff)
+    }
+    if (player.transcendUpgrades.includes('prest3')) {
+        tmp.prestigePointEffect = tmp.prestigePointEffect.pow(2)
     }
 }
 
@@ -642,8 +659,8 @@ function updateHTML_prestige() {
 
         html['prestigeChallengeTab'].setDisplay(tmp.prestigeTab === 2)
         html['prestigeChallengeTabButton'].setDisplay(Decimal.gte(player.prestige, 3) || Decimal.gt(player.ascend, 0))
-        html['prestigeEssenceDisp'].setDisplay(player.setbackUpgrades.includes(`b1`))
-        if (player.setbackUpgrades.includes(`b1`)) {
+        html['prestigeEssenceDisp'].setDisplay(hasSetbackUpgrade(`b1`))
+        if (hasSetbackUpgrade(`b1`)) {
             html['prestigeEssence'].setTxt(format(player.prestigeEssence))
             html['prestigeEssenceEffect'].setTxt(`Boosting points by ×${format(tmp.peEffect, 2)}`)
         }
@@ -660,25 +677,29 @@ function updateHTML_prestige() {
                 html[`prestigeUpgrade${i}`].setDisplay(show)
                 if (show) {
                     html[`prestigeUpgrade${i}eff`].setTxt(tmp.prestigeUpgDescs[i])
-                    html[`prestigeUpgrade${i}cost`].setTxt(hasPrestigeUpgrade(i) && !player.setbackUpgrades.includes(`b2`) ? `Bought!` : `Cost: ${format(PRESTIGE_UPGRADES[i].cost.mul(prestigeUpgradeCostScaling(i)))} prestige points`)
-                    if (player.setbackUpgrades.includes('b2')) {
-                        html[`prestigeUpgrade${i}amount`].setTxt(`PU${i+1}: ×${format(player.prestigeUpgrades[i])}`)
+                    html[`prestigeUpgrade${i}cost`].setTxt(hasPrestigeUpgrade(i) && !hasSetbackUpgrade(`b2`) ? `Bought!` : `Cost: ${format(PRESTIGE_UPGRADES[i].cost.mul(prestigeUpgradeCostScaling(i)))} prestige points`)
+                    if (hasSetbackUpgrade('b2')) {
+                        if (player.transcendUpgrades.includes('prest4')) {
+                            html[`prestigeUpgrade${i}amount`].setTxt(`PU${i+1}: ×${format(player.prestigeUpgrades[i], 1)}`)
+                        } else {
+                            html[`prestigeUpgrade${i}amount`].setTxt(`PU${i+1}: ×${format(player.prestigeUpgrades[i])}`)
+                        }
                     } else {
                         html[`prestigeUpgrade${i}amount`].setTxt(`Prestige Upgrade ${i+1}`)
                     }
 
-                    html[`prestigeUpgrade${i}`].changeStyle('background-color', !(hasPrestigeUpgrade(i) && !player.setbackUpgrades.includes(`b2`)) ? (canBuyPrestigeUpgrade(i) ? '#00408080' : '#00008080') : '#00808080')
-                    html[`prestigeUpgrade${i}`].changeStyle('border', `3px solid ${!(hasPrestigeUpgrade(i) && !player.setbackUpgrades.includes(`b2`)) ? (canBuyPrestigeUpgrade(i) ? '#0080ff' : '#0000ff') : '#00ffff'}`)
-                    html[`prestigeUpgrade${i}`].changeStyle('cursor', !(hasPrestigeUpgrade(i) && !player.setbackUpgrades.includes(`b2`)) && canBuyPrestigeUpgrade(i) ? 'pointer' : 'not-allowed')
+                    html[`prestigeUpgrade${i}`].changeStyle('background-color', !(hasPrestigeUpgrade(i) && !hasSetbackUpgrade(`b2`)) ? (canBuyPrestigeUpgrade(i) ? '#00408080' : '#00008080') : '#00808080')
+                    html[`prestigeUpgrade${i}`].changeStyle('border', `3px solid ${!(hasPrestigeUpgrade(i) && !hasSetbackUpgrade(`b2`)) ? (canBuyPrestigeUpgrade(i) ? '#0080ff' : '#0000ff') : '#00ffff'}`)
+                    html[`prestigeUpgrade${i}`].changeStyle('cursor', !(hasPrestigeUpgrade(i) && !hasSetbackUpgrade(`b2`)) && canBuyPrestigeUpgrade(i) ? 'pointer' : 'not-allowed')
                 }
             }
 
             html['prestigePoints'].setTxt(`${format(Decimal.sub(player.prestige, tmp.prestigeUsed))}`)
-            html['prestigePointEffect'].setDisplay(player.prestigeChallengeCompleted.includes(3) || player.setbackUpgrades.includes('b4'))
-            if (player.prestigeChallengeCompleted.includes(3) || player.setbackUpgrades.includes('b4')) {
+            html['prestigePointEffect'].setDisplay(player.prestigeChallengeCompleted.includes(3) || hasSetbackUpgrade('b4'))
+            if (player.prestigeChallengeCompleted.includes(3) || hasSetbackUpgrade('b4')) {
                 html['prestigePointEffect'].setTxt(`Boosting points by ×${format(tmp.prestigePointEffect, 2)}`)
             }
-            html['prestigeUpgradeCap'].setTxt(`${format(tmp.totalPrestigeUpgrades)} / ${format(tmp.prestigeUpgradeCap)}`)
+            html['prestigeUpgradeCap'].setTxt(`${format(tmp.totalPrestigeUpgrades, player.transcendUpgrades.includes('prest4') ? 1 : 0)} / ${format(tmp.prestigeUpgradeCap, player.transcendUpgrades.includes('prest4') ? 1 : 0)}`)
         }
         if (tmp.prestigeTab === 2) {
             html['prestigeChalRespec'].setDisplay(hasTranscendMilestone(0))
@@ -692,6 +713,9 @@ function updateHTML_prestige() {
                     html[`prestigeChallenge${i}`].changeStyle('background-color', !player.prestigeChallengeCompleted.includes(i) ? (player.prestigeChallenge === i ? '#00408080' : '#00008080') : '#00808080')
                     html[`prestigeChallenge${i}`].changeStyle('border', `3px solid ${!player.prestigeChallengeCompleted.includes(i) ? (player.prestigeChallenge === i ? '#0080ff' : '#0000ff') : '#00ffff'}`)
                     html[`prestigeChallenge${i}`].changeStyle('cursor', !player.prestigeChallengeCompleted.includes(i) ? 'pointer' : 'not-allowed')
+                    if (PRESTIGE_CHALLENGES[i].effChange !== undefined) {
+                        html[`prestigeChallenge${i}reward`].setTxt(PRESTIGE_CHALLENGES[i].eff)
+                    }
                 }
             }
         }
@@ -707,17 +731,30 @@ function prestigeChallengeEnabled(id) {
             && player.prestigeChallengeCompleted.includes(3)
     }
     if (id === 5) {
-        shown = Decimal.gte(player.ascendUpgrades[13], 1) && !(player.setbackUpgrades.includes(`b3`) && player.prestigeChallengeCompleted.includes(5))
+        shown = Decimal.gte(player.ascendUpgrades[13], 1) && !(hasSetbackUpgrade(`b3`) && player.prestigeChallengeCompleted.includes(5))
     }
     if (id >= 6 && id <= 8) {
-        shown = player.setbackUpgrades.includes(`b3`) && player.prestigeChallengeCompleted.includes(id - 1) && !player.prestigeChallengeCompleted.includes(id)
+        shown = hasSetbackUpgrade(`b3`) && player.prestigeChallengeCompleted.includes(id - 1) && !player.prestigeChallengeCompleted.includes(id)
     }
     if (id === 9) {
-        shown = player.setbackUpgrades.includes(`b3`) && player.prestigeChallengeCompleted.includes(id - 1)
+        shown = hasSetbackUpgrade(`b3`) && player.prestigeChallengeCompleted.includes(id - 1)
     }
     if (id >= 10 && id <= 12) {
         shown = Decimal.gte(player.ascendUpgrades[13], id - 8)
     }
+    // if (player.generatorFeatures.advanceUpgsChosen.includes(1)) {
+    //     if (id >= 0 && id <= 12) {
+    //         shown &&= !player.prestigeChallengeCompleted.includes(id)
+    //     }
+    // }
+    if (id >= 13 && id <= 22) {
+        if (player.generatorFeatures.advanceUpgsChosen.includes(1)) {
+            shown = player.prestigeChallengeCompleted.includes(id - 13)
+        } else {
+            shown = false
+        }
+    }
+
     return shown
 }
 
@@ -732,7 +769,7 @@ function canBuyPrestigeUpgrade(i) {
     if (Decimal.sub(player.prestige, tmp.prestigeUsed).lt(PRESTIGE_UPGRADES[i].cost.mul(prestigeUpgradeCostScaling(i)))) {
         return false;
     }
-    if (hasPrestigeUpgrade(i) && !player.setbackUpgrades.includes(`b2`)) {
+    if (hasPrestigeUpgrade(i) && !hasSetbackUpgrade(`b2`)) {
         return false;
     }
     return true;
@@ -742,7 +779,34 @@ function buyPrestigeUpgrade(i) {
     if (!canBuyPrestigeUpgrade(i)) {
         return;
     }
-    player.prestigeUpgrades[i] = Decimal.add(player.prestigeUpgrades[i], 1)
+    if (shiftDown) {
+        if (player.transcendUpgrades.includes('prest4')) {
+            if (Decimal.div(player.prestige, PRESTIGE_UPGRADES[i].cost).gte(10)) {
+                player.prestigeUpgrades[i] = Decimal.div(player.prestige, PRESTIGE_UPGRADES[i].cost).log10().log2().add(1).mul(2).ceil().div(2)
+            } else {
+                player.prestigeUpgrades[i] = Decimal.div(player.prestige, PRESTIGE_UPGRADES[i].cost).log10().mul(2).ceil().div(2)
+            }
+        } else {
+            if (Decimal.div(player.prestige, PRESTIGE_UPGRADES[i].cost).gte(10)) {
+                player.prestigeUpgrades[i] = Decimal.div(player.prestige, PRESTIGE_UPGRADES[i].cost).log10().log2().add(1).ceil()
+            } else {
+                player.prestigeUpgrades[i] = Decimal.div(player.prestige, PRESTIGE_UPGRADES[i].cost).log10().ceil()
+            }
+        }
+    } else {
+        if (player.transcendUpgrades.includes('prest4')) {
+            player.prestigeUpgrades[i] = Decimal.add(player.prestigeUpgrades[i], 0.5)
+        } else {
+            player.prestigeUpgrades[i] = Decimal.add(player.prestigeUpgrades[i], 1)
+        }
+    }
+    if (!hasSetbackUpgrade(`b2`)) {
+        player.prestigeUpgrades[i] = Decimal.min(player.prestigeUpgrades[i], 1)
+    }
+    if (player.prestigeUpgrades.reduce((accu, bought) => Decimal.add(accu, bought)).gt(tmp.prestigeUpgradeCap)) {
+        player.prestigeUpgrades[i] = Decimal.sub(player.prestigeUpgrades[i], player.prestigeUpgrades.reduce((accu, bought) => Decimal.add(accu, bought)).sub(tmp.prestigeUpgradeCap))
+    }
+
     player.prestigeUpgradesInCurrentAscension = true
 }
 
@@ -750,7 +814,7 @@ function hasPrestigeUpgrade(i) {
     if (player.currentHinderance !== 2 && (tmp.prestigeChal[5].depth.gt(0) || tmp.prestigeChal[6].depth.gt(0) || tmp.prestigeChal[7].depth.gt(0) || tmp.prestigeChal[8].depth.gt(0) || tmp.prestigeChal[9].depth.gt(0))) {
         return false
     }
-    return Decimal.gte(player.prestigeUpgrades[i], 1)
+    return Decimal.gt(player.prestigeUpgrades[i], 0)
 }
 
 function prestigeUpgradeCostScaling(i, oneBefore = false) {
@@ -774,6 +838,11 @@ function togglePrestigeChallenge(i) {
     if (player.prestigeChallenge === null) {
         doPrestigeReset(true)
         player.prestigeChallenge = i
+        if (i === 14) {
+            for (let i = 0; i < player.prestigeUpgrades.length; i++) {
+                player.prestigeUpgrades[i] = D(0)
+            }
+        }
         updateGame_prestige()
         return;
     }
@@ -788,7 +857,7 @@ function togglePrestigeChallenge(i) {
 }
 
 function doPrestigeReset(doAnyway = false) {
-    if (player.setbackUpgrades.includes(`b1`)) {
+    if (hasSetbackUpgrade(`b1`)) {
         player.prestigeEssence = Decimal.add(player.prestigeEssence, tmp.peGain)
     }
     player.prestige = Decimal.add(player.prestige, tmp.prestigeAmount)
@@ -809,7 +878,9 @@ function doPrestigeReset(doAnyway = false) {
 }
 
 function respecPrestigeUpgrades() {
-    player.prestigeUpgrades = []
+    for (let i = 0; i < player.prestigeUpgrades.length; i++) {
+        player.prestigeUpgrades[i] = D(0)
+    }
     doPrestigeReset(true)
 }
 

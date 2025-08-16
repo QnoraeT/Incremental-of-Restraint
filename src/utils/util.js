@@ -324,7 +324,7 @@ function formatTime(number, dec = 0, expdec = 3, limit = 2) {
     if (Decimal.lt(number, 0)) return `-${formatTime(Decimal.negate(number), dec, expdec)}`;
     if (Decimal.eq(number, 0)) return `${(0).toFixed(dec)}s`;
     if (Decimal.isNaN(number)) return "NaN";
-    if (!Decimal.isFinite(number)) return "Infinity";
+    if (!Decimal.isFinite(number)) return "Never";
     let lim = 0;
     let str = "";
     let end = false;

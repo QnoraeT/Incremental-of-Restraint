@@ -42,6 +42,7 @@ function initPlayer() {
         buyableAutobought: [D(0), D(0), D(0), D(0), D(0), D(0)],
         buyableInTranscension: [false, false, false, false, false, false],
         buyableAuto: [false, false, false, false, false, false, false],
+        specialBuyables: [D(0)],
         bestTotalGenLvs: D(0),
         timeSinceBuyableBought: D(0),
         prestige: D(0),
@@ -59,20 +60,22 @@ function initPlayer() {
         prestigeChallengeCompleted: [],
         prestigeUpgradesInCurrentAscension: false,
         darts: D(0),
-        hinderanceScore: [D(0), D(0), D(0)],
+        hinderanceScore: [D(0), D(0), D(0), D(0)],
+        bestHinderanceScore: [D(0), D(0), D(0), D(0)],
         currentHinderance: null,
         ascend: D(0),
         ascendCount: D(0),
         ascendGems: D(0),
         ascendUpgrades: [],
         ascendUpgAuto: false,
-        setback: [D(0), D(0), D(0)],
+        setback: [D(0), D(0), D(0), D(0)],
         currentSetback: null,
         setbackLoadout: [],
         inSetback: false,
-        setbackQuarks: [D(0), D(0), D(0)],
-        setbackEnergy: [D(0), D(0), D(0)],
+        setbackQuarks: [D(0), D(0), D(0), D(0)],
+        setbackEnergy: [D(0), D(0), D(0), D(0)],
         quarkDimsBought: [
+            [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)],
             [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)],
             [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)],
             [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)]
@@ -80,9 +83,11 @@ function initPlayer() {
         quarkDimsAutobought: [
             [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)],
             [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)],
+            [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)],
             [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)]
         ],
         quarkDimsAccumulated: [
+            [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)],
             [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)],
             [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)],
             [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)]
@@ -90,24 +95,35 @@ function initPlayer() {
         quarkDimsAuto: [
             [false, false, false, false, false, false, false, false],
             [false, false, false, false, false, false, false, false],
+            [false, false, false, false, false, false, false, false],
             [false, false, false, false, false, false, false, false]
         ],
         setbackUpgradeSelected: null,
         setbackUpgrades: [],
+        genXPAuto: false,
         generatorFeatures: {
             xp: D(0),
-            buyable: [D(0), D(0)],
+            buyable: [D(0), D(0), D(0)],
             enhancer: D(0),
             totalEnh: D(0),
-            enhancerBuyables: [D(0), D(0), D(0)],
-            enhanceCount: D(0)
+            enhancerBuyables: [D(0), D(0), D(0), D(0), D(0), D(0)],
+            enhanceCount: D(0),
+            advance: D(0),
+            totalAdv: D(0),
+            advanceUpgsChosen: []
         },
         transcendPoints: D(0),
         transcendPointTotal: D(0),
         transcendResetCount: D(0),
         transcendUpgrades: [],
         transcendUpgradesUnlocked: {}, // FILL THIS WITH VALUES
-        transcendInSpecialReq: [null, null],
+        transcendInSpecialReq: null,
+        replicators: D(1),
+        replirank: D(0),
+        replitier: D(0),
+        replitetr: D(0),
+        replispawns: D(0),
+        repliupgrades: [],
         perksUsed: []
     }
 
@@ -158,22 +174,24 @@ function initTmp() {
         ascendPointEffect: D(0),
         dartGain: D(0),
         dartEffect: D(1),
-        setbackEffects: [D(1), D(1), D(1)],
-        predictedQuarkGain: [D(0), D(0), D(0)],
+        setbackTotalStacks: [],
+        setbackEffects: [],
+        projectedEffects: [],
+        predictedQuarkGain: [],
         predictedQuarkTotal: D(0),
-        trueQuarkGain: [D(0), D(0), D(0)],
+        trueQuarkGain: [],
         trueQuarkTotal: D(0),
-        quarkDim: [[], [], []],
+        quarkDim: [[], [], [], []],
         quarkMultPer: D(2),
         quarkBoostInterval: D(100),
         quarkBoostEffect: D(1),
         quarkBoostCost: D(2),
-        quarkEffs: [D(1), D(1), D(1)],
-        energyEffs: [D(1), D(1), D(1)],
-        dimBoughtBM: [D(0), D(0), D(0)],
-        quarkNames: ['red', 'green', 'blue', 'yellow'],
-        quarkNamesC: ['Red', 'Green', 'Blue', 'Yellow'],
-        quarkColors: ['FF0000', '00FF00', '0000FF', 'FFFF00'],
+        quarkEffs: [],
+        energyEffs: [],
+        dimBoughtBM: [],
+        quarkNames: ['red', 'green', 'blue', 'cyan', 'magenta', 'yellow'],
+        quarkNamesC: ['Red', 'Green', 'Blue', 'Cyan', 'Magenta', 'Yellow'],
+        quarkColors: ['FF0000', '00FF00', '0000FF', '00FFFF', 'FF00FF', 'FFFF00'],
         sbSelectedUpg: [],
         generatorFeatures: {
             gain: D(0),
@@ -183,7 +201,10 @@ function initTmp() {
             enhancerGain: D(0),
             enhancerNext: D(0),
             enhancerEff: D(1),
-            genEnhBuyables: []
+            genEnhBuyables: [],
+            advanceGain: D(0),
+            advanceNext: D(0),
+            advanceEff: D(1)
         },
         transcendReq: D(0),
         transcendAmount: D(0),
@@ -192,7 +213,12 @@ function initTmp() {
         transcendEffect: D(1),
         transcendResetEffect: D(1),
         transEffs: [],
-        transSelectedUpg: []
+        transSelectedUpg: [],
+        replicatorSpd: D(1.01),
+        replicatorStrength: D(1),
+        replicatorEff: D(1),
+        replicatorTrueSpdDisp1: D(1),
+        replicatorTrueSpdDisp2: D(1)
     }
     obj.buyables = resetMainBuyables()
     for (let i = PRESTIGE_CHALLENGES.length - 1; i >= 0; i--) {
@@ -202,6 +228,7 @@ function initTmp() {
             depth: D(0)
         }
     }
+    obj.setbackEffects = resetSetbackEffects()
     obj.generatorFeatures.genXPBuyables = resetGenXPBuyables()
     obj.generatorFeatures.genEnhBuyables = resetGenEnhBuyables()
     obj.transEffs = resetTransUpgBuyables()
@@ -335,7 +362,7 @@ function updatePlayer() {
         player.version = 8
     }
     if (player.version === 8) {
-        player.transcendInSpecialReq = [null, null]
+        player.transcendInSpecialReq = null
         player.version = 9
     }
     if (player.version === 9) {
@@ -347,16 +374,89 @@ function updatePlayer() {
         player.version = 11
     }
     if (player.version === 11) {
-
-        // player.version = 12
+        player.setback[3] = D(0)
+        player.quarkDimsBought[3] = [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)]
+        player.quarkDimsAutobought[3] = [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)]
+        player.quarkDimsAccumulated[3] = [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)]
+        player.quarkDimsAuto[3] = [false, false, false, false, false, false, false, false]
+        player.version = 12
     }
     if (player.version === 12) {
-
-        // player.version = 13
+        player.genXPAuto = false
+        player.bestHinderanceScore = [D(0), D(0), D(0)]
+        player.genEnhGenerate = false
+        player.version = 13
     }
     if (player.version === 13) {
+        player.specialBuyables = [D(0)]
+        player.version = 14
+    }
+    if (player.version === 14) {
+        player.hinderanceScore[3] = D(0)
+        player.bestHinderanceScore[3] = D(0)
+        player.version = 15
+    }
+    if (player.version === 15) {
+        player.generatorFeatures.buyable[2] = D(0)
+        player.generatorFeatures.enhancerBuyables[3] = D(0)
+        player.generatorFeatures.enhancerBuyables[4] = D(0)
+        player.generatorFeatures.enhancerBuyables[5] = D(0)
+        player.version = 16
+    }
+    if (player.version === 16) {
+        player.generatorFeatures.advance = D(0)
+        player.generatorFeatures.totalAdv = D(0)
+        player.generatorFeatures.advanceUpgsChosen = []
+        player.version = 17
+    }
+    if (player.version === 17) {
+        player.hinderanceScore[4] = D(0)
+        player.bestHinderanceScore[4] = D(0)
+        player.version = 18
+    }
+    if (player.version === 18) {
+        player.specialBuyables[1] = D(0)
+        player.version = 19
+    }
+    if (player.version === 19) {
+        if (player.prestigeChallenge >= 13) {
+            togglePrestigeChallenge(player.prestigeChallenge)
+        }
+        player.prestigeChallengeCompleted = player.prestigeChallengeCompleted.filter((val) => val <= 12)
+        player.version = 20
+    }
+    if (player.version === 20) {
+        delete player.specialBuyables[1]
+        player.version = 21
+    }
+    if (player.version === 21) {
+        player.replicators = D(1)
+        player.replirank = D(0)
+        player.replitier = D(0)
+        player.replitetr = D(0)
+        player.replispawns = D(0)
+        player.repliupgrades = []
+        player.version = 22
+    }
+    if (player.version === 22) {
 
-        // player.version = 14
+        // player.version = 23
+    }
+    if (player.version === 23) {
+
+        // player.version = 24
+    }
+    if (player.version === 24) {
+
+        // player.version = 25
+    }
+    if (player.version === 25) {
+
+        // player.version = 26
+    }
+    if (player.version === 26) {
+
+        // player.version = 27
     }
 }
 
@@ -424,6 +524,7 @@ function initHTML() {
         toHTMLvar('pointsPerSecond')
         toHTMLvar('chalList')
 
+        initHTML_replicators()
         initHTML_transcend()
         initHTML_generatorExtras()
         initHTML_setback()
@@ -557,11 +658,12 @@ function gameLoop() {
     // tick game
     try {
         calcTimeSpeed()
+        updateGame_replicators()
         updateGame_transcend()
-        updateGame_generatorExtras()
         updateGame_setback()
         updateGame_ascend()
         updateGame_prestige()
+        updateGame_generatorExtras()
         updateGame_main()
         updateGame_stats()
     } catch(e) {
@@ -586,6 +688,7 @@ function gameLoop() {
 
 function updateHTML() {
     let txt = ``
+    updateHTML_replicators()
     updateHTML_transcend()
     updateHTML_generatorExtras()      
     updateHTML_setback()
@@ -604,16 +707,24 @@ function updateHTML() {
             trappedArr.push(`<span style="color: #0080ff"><b>PC${i + 1}</b>: ${PRESTIGE_CHALLENGES[i].name}${tmp.prestigeChal[i].depth.neq(1) ? ' <b>×' + format(tmp.prestigeChal[i].depth) + '</b>' : ''}</span>`)
         }
     }
+    if (tmp.setbackTotalStacks.length >= 1) {
+        for (let i = 0; i < tmp.setbackTotalStacks.length; i++) {
+            trappedArr.push(displaySetbackUI(tmp.setbackTotalStacks[i]))
+        }
+    }
     const enteredArr = []
     txt = ``
     if (player.prestigeChallenge !== null) {
         enteredArr.push(`<span style="color: #0080ff"><b>PC${player.prestigeChallenge + 1}</b>: ${PRESTIGE_CHALLENGES[player.prestigeChallenge].name}</span>`)
     }
     if (player.inSetback) {
-        enteredArr.push(`<span style="color: #${new Decimal(player.setback[0]).mul(12).add(128).toNumber().toString(16)}${new Decimal(player.setback[1]).mul(12).add(128).toNumber().toString(16)}${new Decimal(player.setback[2]).mul(12).add(128).toNumber().toString(16)}"><b>Setback</b> (${format(player.setback[0])}, ${format(player.setback[1])}, ${format(player.setback[2])})</span>`)
+        enteredArr.push(displaySetbackUI(player.setback))
     }
     if (player.currentHinderance !== null) {
         enteredArr.push(`<span style="color: #ff0020"><b>H${player.currentHinderance + 1}</b>: ${HINDERANCES[player.currentHinderance].name}</span>`)
+    }
+    if (player.transcendInSpecialReq !== null) {
+        enteredArr.push(`<span style="color: #8000ff"><b>${player.transcendInSpecialReq}</b></span>`)
     }
     if (enteredArr.length === 0) {
         txt = `You currently have no obstructions.`
@@ -648,7 +759,7 @@ function updateHTML() {
 
 function calcTimeSpeed() {
     // tier 2 timespeed multiplies tier 1 timespeed
-    
+
     tmp.factors.tier1Time = []
     tmp.timeSpeedTiers[0] = D(1)
     addStatFactor('tier1Time', `Base`, `×`, 1, tmp.timeSpeedTiers[0])

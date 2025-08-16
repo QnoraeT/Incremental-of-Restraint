@@ -10,6 +10,7 @@
         <script src="src/utils/lz-string.js"></script>
         <script src="src/utils/util.js"></script>
 
+        <script src="src/features/replicators.js"></script>
         <script src="src/features/transcend.js"></script>
         <script src="src/features/generatorExtras.js"></script>
         <script src="src/features/setback.js"></script>
@@ -97,8 +98,14 @@
                         <button onclick="tmp.mainTab = 0" id="mainMainTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Main
                         </button>
+                        <button onclick="tmp.mainTab = 2" id="specialMainTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            Special
+                        </button>
                         <button onclick="tmp.mainTab = 1" id="generatorMainTabButton" class="whiteText font" style="background-color: #80400080; border: 3px solid #ff8000; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Generator
+                        </button>
+                        <button onclick="tmp.mainTab = 3" id="replicatorMainTabButton" class="whiteText font" style="background-color: #80000080; border: 3px solid #ff0000; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            Replicators
                         </button>
                     </div>
                     <div id="mainMain">
@@ -128,12 +135,35 @@
                             </button>
                         </div>
                     </div>
+                    <div id="specialMain">
+                        <div class="flex-vertical">
+                            <div class="flex-horizontal">
+                                <div id="spBuy1all" style="width: 175px; margin: 2px">
+                                    <button onclick="toggleUpgradeAutobuy(0)" id="spBuy1auto" class="whiteText font" style="height: 20px; width: 175px; font-size: 10px; margin: 2px">
+                                        Autobuyer: <span id="spBuy1autoStatus"></span>
+                                    </button>
+                                    <button onclick="buySpecialBuyable(0)" id="spBuy1" class="whiteText font" style="height: 70px; width: 175px; font-size: 10px; margin: 2px">
+                                        "Buyable 7" ×<span id="spBuy1amount"></span><br>
+                                        <br>
+                                        Effect: <span id="spBuy1eff"></span><br>
+                                        Cost: <span id="spBuy1cost"></span> points
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div id="generatorMain">
                         <div class="flex-vertical">
                             <div class="flex-horizontal">
+                                <button onclick="player.genXPAuto = !player.genXPAuto" id="genXPAuto" class="whiteText font" style="height: 40px; width: 200px; font-size: 12px; margin: 2px; cursor: pointer;"></button>
+                                <button onclick="player.genEnhGenerate = !player.genEnhGenerate" id="genEnhGenerate" class="whiteText font" style="height: 40px; width: 200px; font-size: 12px; margin: 2px; cursor: pointer;"></button>
+                                <button onclick="player.genEnhAuto = !player.genEnhAuto" id="genEnhAuto" class="whiteText font" style="height: 40px; width: 200px; font-size: 12px; margin: 2px; cursor: pointer;"></button>
+                            </div>
+                            <div class="flex-horizontal" style="flex-wrap: wrap;">
                                 <div id="genMainArea">
                                     <div class="flex-vertical">
                                         <span class="font" style="font-size: 24px; color: #ffa000" id="genXP"></span><span class="font" style="font-size: 12px; color: #ffa000">generator experience</span>
+                                        <span class="font" style="font-size: 11px; color: #ffffff">You have a total of <b><span id="genLvTotal"></span></b> (Best: <b><span id="genLvTotalBest"></span></b>) generator levels.</span>
                                         <span class="font" style="font-size: 11px; color: #ffffff">You are gaining <b><span id="genXPGain"></span></b>/s due to your total generator levels.</span>
                                         <span class="font" style="font-size: 11px; color: #ffffff">Generator XP is boosting generator speed by ^<b><span id="genXPSpdEff"></span></b>.</span>
                                         <span class="font" style="font-size: 11px; color: #ffffff">Generator XP and generator levels are boosting your points by ^<b><span id="genXPPtsEff"></span></b>.</span>
@@ -147,11 +177,29 @@
                                         <div class="flex-horizontal" style="width: 525px; flex-wrap: wrap" id="genEnhUpgList"></div><br>
                                     </div>
                                 </div>
+                                <div id="genAdvArea">
+                                    <div class="flex-vertical">
+                                        <span class="font" style="font-size: 24px; color: #00ffff" id="genAdvance"></span><span class="font" style="font-size: 12px; color: #00ffff">advances</span>
+                                        <span class="font" style="font-size: 11px; color: #ffffff">Total advances are increasing prestige point gain by &times;<b><span id="genAdvEff"></span></b>.</span>
+                                        <span class="font" style="font-size: 11px; color: #ffffff">Disabling/Enabling an advancement automatically does a transcension reset!</span>
+                                        <div class="flex-horizontal" style="width: 525px; flex-wrap: wrap" id="genAdvUpgList"></div><br>
+                                    </div>
+                                </div>
                             </div>                            
                             <button onclick="doGenEnhReset()" id="generatorEnhance" class="whiteText font" style="background-color: #80800080; border: 3px solid #ffff00; height: 70px; width: 325px; font-size: 12px; margin: 2px">
                                 Do an ascension reset for <b><span id="enhAmount"></span></b> enhancers.<br>
                                 Next enhancer at <span id="enhNext"></span> generator XP.
                             </button>
+                            <button onclick="doGenAdvReset()" id="generatorAdvance" class="whiteText font" style="background-color: #00808080; border: 3px solid #00ffff; height: 70px; width: 325px; font-size: 12px; margin: 2px">
+                                Do a transcension reset for <b><span id="advAmount"></span></b> advances.<br>
+                                Next advance at <span id="advNext"></span> generator enhancers.
+                            </button>
+                        </div>
+                    </div>
+                    <div id="replicatorMain">
+                        <div class="flex-vertical whiteText font">
+                            <span style="font-size: 12px;">You have <b><span id="replicatorAmount"></span></b> replicators, boosting your points by <b><span id="replicatorEffect"></span></b>&times;.</span>
+                            <span style="font-size: 12px;">Your replicators will double in <b><span id="replicatorTrueSpeed"></span></b>. (<span id="replicatorTrueSpeed2"></span>&times;/s.)</span>
                         </div>
                     </div>
                 </div>
@@ -217,6 +265,9 @@
                         </div>
                         <div id="mainAscend">
                             <div class="flex-vertical">
+                                <button onclick="respecAscendBuy()" id="ascendBuyRespec" class="whiteText font" style="height: 50px; width: 200px; font-size: 10px; margin: 2px; background-color: #00800080; border: 3px solid #00ff00">
+                                    Respec all ascension buyables and do a transcension reset.
+                                </button>
                                 <button onclick="player.ascendUpgAuto = !player.ascendUpgAuto" id="ascendUpgAuto" class="whiteText font" style="height: 40px; width: 250px; font-size: 12px; margin: 2px; cursor: pointer;"></button>
                                 <div class="flex-horizontal">
                                     <div style="margin: 4px;" class="flex-vertical">
@@ -275,14 +326,14 @@
                                 <span class="whiteText font" style="font-size: 12px">Upon completing an ascension with a setback, you will be able to access their quark generation here.</span>
                                 <span class="whiteText font" style="font-size: 12px">Changing loadouts requires an ascension reset!</span>
                                 <br>
-                                <div class="flex-horizontal" style="width: 825px; flex-wrap: wrap;" id="setbackLoadoutList"></div>
+                                <div class="flex-horizontal" style="flex-wrap: wrap;" id="setbackLoadoutList"></div>
                             </div>
                         </div>
                         <div id="setbackTabDims">
                             <div class="flex-vertical">
-                                <div class="flex-horizontal" id="setbackQuarkEnergyDisp"></div>
+                                <div class="flex-horizontal" style="flex-wrap: wrap;" id="setbackQuarkEnergyDisp"></div>
                                 <span class="whiteText font" style="font-size: 12px">Every <b><span id="dimScalingInterval"></span></b> purchases of a dimension, the dimension's multiplier per purchase is boosted by <b>+<span id="dimScalingBoost"></span>&times;</b> but the dimension scales <b><span id="dimScalingSpeed"></span>&times;</b> faster.</span>
-                                <div class="flex-horizontal" id="setbackDimDisp"></div>
+                                <div class="flex-horizontal" style="flex-wrap: wrap;" id="setbackDimDisp"></div>
                             </div>
                         </div>
                         <div id="setbackTabUpgs">
@@ -330,7 +381,7 @@
                                         Buy <span id="transUpgName2">the upgrade</span>.<br>
                                         <span id="transUpgCost">Cost: ??? Transcension Points</span>
                                     </button>
-                                    <button id="enterTransRestriction" class="whiteText font" style="font-size: 12px; text-align: center; background-color: #40008080; border: 3px solid #8000ff; width: 375px; padding: 4px; margin-top: 6px;">
+                                    <button id="enterTransRestriction" onclick="toggleTransRest()" class="whiteText font" style="font-size: 12px; text-align: center; background-color: #40008080; border: 3px solid #8000ff; width: 375px; padding: 4px; margin-top: 6px;">
                                         If an upgrade requires a special condition, this button will show up and describe what the condition is!
                                     </button>
                                 </div>

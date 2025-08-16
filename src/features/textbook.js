@@ -131,7 +131,7 @@ const TEXTBOOK = [
     },
     {
         get show() {
-            return player.setbackUpgrades.includes('r10')
+            return hasSetbackUpgrade('r10')
         },
         title: `Generator Experience`,
         get stage() {
@@ -143,7 +143,7 @@ const TEXTBOOK = [
                 Generator Experience starts generating as soon as you grab the 10th upgrade of Red. Generator Experience gain is based off of your generator levels. Remember to cycle through prestige upgrade sets!<br>
                 Generator Experience boosts your generation speed. Your points will also be boosted if you have >200 total generator levels. You may also buy generator experience buyables to further increase your generator experience gain.<br>
                 Past 1.000 Dc Generator Experience, you can do an ascension reset for generator enhancements, which boost your generator experience gain and unlock new buyables, one of them has an especially powerful unlock!<br><br>
-                Exact Generator Experience gain: (t/200)*10<sup>t/200</sup>, where t is your total generator levels.<br>
+                Exact Generator Experience gain: (t/200)*10<sup>t/200-6</sup>, where t is your total generator levels.<br>
                 Exact Generator Experience effect to generator speed: ^1+ln(1+0.05log<sub>10</sub>(1+XP))<br>
                 Exact Generator Experience effect to points: ^1+0.05(1+log<sub>10</sub>(1+log<sub>10</sub>(XP)))*log<sub>2</sub>(t/200)<br>
             `
@@ -152,7 +152,7 @@ const TEXTBOOK = [
     },
         {
         get show() {
-            return player.setbackUpgrades.includes('b5')
+            return hasSetbackUpgrade('b5')
         },
         title: `Hinderances`,
         get stage() {

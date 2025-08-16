@@ -87,7 +87,11 @@ const ASCENSION_UPGRADES = [
             return target
         },
         get eff() {
-            return Decimal.pow(Decimal.max(player.ascend, 1).log10().add(2), player.ascendUpgrades[3])
+            let eff = Decimal.max(player.ascend, 1).log10().add(2)
+            if (player.transcendUpgrades.includes('ascend4')) {
+                eff = eff.mul(Decimal.max(player.ascendGems, 1).log10().add(1))
+            }
+            return Decimal.pow(eff, player.ascendUpgrades[3])
         },
         get desc() {
             return `Ascension Gem gain is increased based off of your Ascension Points. Currently: ×${format(this.eff, 2)}`
@@ -102,12 +106,12 @@ const ASCENSION_UPGRADES = [
                 req: true,
                 get cost() {
                     let cost = D(player.ascendUpgrades[i + 4])
-                    cost = cost.div(6).exp().sub(1).mul(6).pow(2).mul(2).pow_base(i + 2).mul(100 * (2 ** i))
+                    cost = cost.div(9).add(1).pow(1.5).sub(1).exp().sub(1).mul(6).pow(2).mul(2).pow_base(i + 2).mul(100 * (2 ** i))
                     return cost
                 },
                 get target() {
                     let target = D(player.ascendGems)
-                    target = target.div(100 * (2 ** i)).max(1).log(i + 2).div(2).root(2).div(6).add(1).ln().mul(6)
+                    target = target.div(100 * (2 ** i)).max(1).log(i + 2).div(2).root(2).div(6).add(1).ln().add(1).root(1.5).sub(1).mul(9)
                     return target
                 },
                 get eff() {
@@ -220,18 +224,18 @@ const ASCENSION_UPGRADES = [
     },
     {
         get show() {
-            return player.setbackUpgrades.includes('g10')
+            return hasSetbackUpgrade('g10')
         },
         cap: D(Infinity),
         req: true,
         get cost() {
             let cost = D(player.ascendUpgrades[14])
-            cost = cost.div(8).exp().sub(1).mul(8).pow(2).pow_base(1e8).mul(1e60)
+            cost = cost.div(12).add(1).pow(2).sub(1).exp().sub(1).mul(6).pow(2).mul(2).pow_base(1e8).mul(1e60)
             return cost
         },
         get target() {
             let target = D(player.ascendGems)
-            target = target.div(1e60).max(1).log(1e8).root(2).div(8).add(1).ln().mul(8)
+            target = target.div(1e60).max(1).log(1e8).div(2).root(2).div(6).add(1).ln().add(1).root(2).sub(1).mul(12)
             return target
         },
         get eff() {
@@ -247,18 +251,18 @@ const ASCENSION_UPGRADES = [
     },
     {
         get show() {
-            return player.setbackUpgrades.includes('g10')
+            return hasSetbackUpgrade('g10')
         },
         cap: D(Infinity),
         req: true,
         get cost() {
             let cost = D(player.ascendUpgrades[15])
-            cost = cost.div(8).exp().sub(1).mul(8).pow(2).pow_base(1e10).mul(1e70)
+            cost = cost.div(16).add(1).pow(2).sub(1).exp().sub(1).mul(6).pow(2).mul(2).pow_base(1e10).mul(1e70)
             return cost
         },
         get target() {
             let target = D(player.ascendGems)
-            target = target.div(1e70).max(1).log(1e10).root(2).div(8).add(1).ln().mul(8)
+            target = target.div(1e70).max(1).log(1e10).div(2).root(2).div(6).add(1).ln().add(1).root(2).sub(1).mul(16)
             return target
         },
         get eff() {
@@ -288,7 +292,8 @@ const HINDERANCES = [
             }
             let eff = Decimal.log(player.hinderanceScore[0], 1e40).log2().div(10).add(1)
             return eff
-        }
+        },
+        show: true
     },
     {
         name: "Undesirable Rot",
@@ -301,19 +306,53 @@ const HINDERANCES = [
             let eff = Decimal.max(player.hinderanceScore[1], 1e75)
             eff = eff.log(1e75)
             return eff
-        }
+        },
+        show: true
     },
     {
         name: "Multitude",
         desc: "You are trapped in Nerfed Upgrades x3 (the effect is applied 3 times), No Influencing, Stacking Interest, and Black Out III. However, S.I.'s changes to intervals don't count and Prestige Upgrades are reenabled.",
         start: D(1e110),
         get reward() {
-            return `Point gain is multiplied by ×${format(this.eff, 1)} and Automate gaining Prestige Points and Prestige Essence.`
+            return `Point gain is multiplied by ×${format(this.eff, 1)} and automate gaining Prestige Points and Prestige Essence.`
         },
         get eff() {
             let eff = Decimal.max(player.hinderanceScore[2], 1e110)
             eff = eff.log(1e110).log2().pow_base(1e33)
             return eff
+        },
+        show: true
+    },
+    {
+        name: "Buyable Exclusion",
+        desc: "Point gain increases after Buyables, all exponential increases are raised ^0.2, and the buyable interval is set to 1,000.",
+        start: D('e1000'),
+        get reward() {
+            return `The buyable interval boost is multiplied by ×${format(this.eff, 2)} and the buyable interval cost scaling is reduced to ×1.95.`
+        },
+        get eff() {
+            let eff = Decimal.max(player.hinderanceScore[3], 'e1000')
+            eff = eff.log('e1000').pow(2)
+            return eff
+        },
+        get show() {
+            return player.transcendUpgrades.includes('hinderance1')
+        }
+    },
+    {
+        name: "Supernova",
+        desc: "Every resource (points, prestige points, etc.)' generation is nerfed by ^0.25, PC3, PC11, and PC13's effects don't work, and all non-automation ascension buyables are disabled. Also, all buyables require the previous effective buyable, except for the first. This resets ascension buyables!",
+        start: D('e6666'),
+        get reward() {
+            return `The buyable interval boost is multiplied by ×${format(this.eff, 2)} and the buyable interval cost scaling is reduced to ×1.95.`
+        },
+        get eff() {
+            let eff = Decimal.max(player.hinderanceScore[4], 'e1000')
+            eff = eff.log('e1000').pow(2)
+            return eff
+        },
+        get show() {
+            return player.transcendUpgrades.includes('hinderance2')
         }
     },
 ]
@@ -332,6 +371,7 @@ function initHTML_ascend() {
     toHTMLvar('ascendUpgradeList')
     toHTMLvar('ascendGems')
     toHTMLvar('ascendUpgAuto')
+    toHTMLvar('ascendBuyRespec')
     toHTMLvar('mainAscend')
     toHTMLvar('hinderanceAscend')
     toHTMLvar('mainAscendTabButton')
@@ -388,6 +428,9 @@ function updateGame_ascend() {
     if (player.currentHinderance !== null) {
         player.hinderanceScore[player.currentHinderance] = Decimal.max(player.hinderanceScore[player.currentHinderance], player.bestPointsInAscend)
     }
+    for (let i = 0; i < HINDERANCES.length; i++) {
+        player.bestHinderanceScore[i] = Decimal.max(player.bestHinderanceScore[i], player.hinderanceScore[i])
+    }
 
     player.timeInAscend = Decimal.add(player.timeInAscend, Decimal.mul(delta, tmp.timeSpeedTiers[0]))
 
@@ -407,11 +450,11 @@ function updateGame_ascend() {
     }
 
     tmp.ascendReq = D(1e21)
-    if (player.setbackUpgrades.includes(`r9`)) {
+    if (hasSetbackUpgrade(`r9`)) {
         tmp.ascendReq = tmp.ascendReq.div(SETBACK_UPGRADES[0][8].eff)
     }
-    if (player.inSetback) {
-        tmp.ascendReq = tmp.ascendReq.pow(tmp.setbackEffects[2])
+    if (colorAmountTotal(2).gt(0)) {
+        tmp.ascendReq = tmp.ascendReq.pow(tmp.setbackEffects[2][0])
     }
     tmp.factors.ascend = []
     tmp.ascendAmount = Decimal.max(player.bestPointsInAscend, 1).log(tmp.ascendReq).sub(1).pow_base(1000)
@@ -426,7 +469,7 @@ function updateGame_ascend() {
     tmp.ascendNext = cheatDilateBoost(tmp.ascendNext, true)
     tmp.ascendNext = tmp.ascendNext.add(1).log(1000).add(1).pow_base(tmp.ascendReq)
 
-    if (player.cheats.autoAscend || hasTranscendMilestone(9)) {
+    if (player.cheats.autoAscend || (hasTranscendMilestone(9) && player.transcendInSpecialReq !== "prest4")) {
         player.ascend = Decimal.add(player.ascend, tmp.ascendAmount.mul(0.01).mul(delta).mul(tmp.timeSpeedTiers[0]))
     }
 
@@ -443,11 +486,13 @@ function updateHTML_ascend() {
     html['ascendTabButton'].setDisplay(Decimal.gte(player.bestPointsInAscend, 1e21) || Decimal.gt(player.ascend, 0))
 
     if (tmp.tab === 3) {
-        html['mainAscendTabButton'].setDisplay(player.setbackUpgrades.includes(`b5`))
-        html['hinderanceAscendTabButton'].setDisplay(player.setbackUpgrades.includes(`b5`))
+        html['mainAscendTabButton'].setDisplay(hasSetbackUpgrade(`b5`))
+        html['hinderanceAscendTabButton'].setDisplay(hasSetbackUpgrade(`b5`))
         html['mainAscend'].setDisplay(tmp.ascendTab === 0)
         html['hinderanceAscend'].setDisplay(tmp.ascendTab === 1)
         if (tmp.ascendTab === 0) {
+            html['ascendBuyRespec'].setDisplay(hasTranscendMilestone(11))
+
             let notCapped, canBuy
             for (let i = 0; i < ASCENSION_UPGRADES.length; i++) {
                 html[`ascendUpgrade${i}`].setDisplay(ASCENSION_UPGRADES[i].show)
@@ -478,15 +523,12 @@ function updateHTML_ascend() {
         }
         if (tmp.ascendTab === 1) {
             for (let i = 0; i < HINDERANCES.length; i++) {
-                html[`hinderance${i}goal`].setTxt(`${format(player.hinderanceScore[i])} / ${format(HINDERANCES[i].start)}`)
-                html[`hinderance${i}reward`].setTxt(HINDERANCES[i].reward)
-
-                let shown = true
-
-                html[`hinderance${i}`].setDisplay(shown)
-                if (shown) {
+                html[`hinderance${i}`].setDisplay(HINDERANCES[i].show)
+                if (HINDERANCES[i].show) {
                     html[`hinderance${i}`].changeStyle('background-color', (player.currentHinderance === i ? '#b0002080' : '#60001080'))
                     html[`hinderance${i}`].changeStyle('border', `3px solid ${Decimal.gte(player.hinderanceScore[i], HINDERANCES[i].start) ? (player.currentHinderance === i ? '#ff809a' : '#c60078') : (player.currentHinderance === i ? '#ff0030' : '#c00020')}`)
+                    html[`hinderance${i}goal`].setTxt(`${format(player.hinderanceScore[i])} / ${format(HINDERANCES[i].start)}`)
+                    html[`hinderance${i}reward`].setTxt(HINDERANCES[i].reward)
                 }
             }
         }
@@ -502,7 +544,7 @@ function doAscendReset(doAnyway = false) {
 
     if (player.inSetback && tmp.ascendAmount.gt(0)) {
         player.inSetback = false
-        player.setbackLoadout.push(player.setback)
+        player.setbackLoadout.push([...player.setback]) // stupid fucking butt-ugly hack to clone arrays instead of keeping them by reference
     }
 
     for (let i = 0; i < player.setback.length; i++) {
@@ -524,12 +566,17 @@ function doAscendReset(doAnyway = false) {
     }
     player.prestigeChallenge = null
     if (!hasTranscendMilestone(1)) {
-        player.prestigeUpgrades = []
+        for (let i = 0; i < player.prestigeUpgrades.length; i++) {
+            player.prestigeUpgrades[i] = D(0)
+        }
     }
     player.prestige = D(0)
     player.prestigeEssence = D(0)
     player.bestPointsInAscend = D(0)
     player.prestigeCount = D(0)
+    player.specialBuyables[0] = D(0)
+    player.specialBuyables[1] = D(0)
+
     tmp.prestigeAmount = D(0)
     tmp.peGain = D(0)
     tmp.prestigeNext = D(0)
@@ -566,5 +613,16 @@ function buyAscendUpgrade(i) {
         return;
     }
     player.ascendGems = Decimal.sub(player.ascendGems, ASCENSION_UPGRADES[i].cost)
-    player.ascendUpgrades[i] = Decimal.add(player.ascendUpgrades[i], 1)
+    if (shiftDown) {
+        player.ascendUpgrades[i] = Decimal.max(player.ascendUpgrades[i], ASCENSION_UPGRADES[i].target.ceil()).min(ASCENSION_UPGRADES[i].cap)
+    } else {
+        player.ascendUpgrades[i] = Decimal.add(player.ascendUpgrades[i], 1)
+    }
+}
+
+function respecAscendBuy() {
+    for (let i = 0; i < player.ascendUpgrades.length; i++) {
+        player.ascendUpgrades[i] = D(0)
+    }
+    doTranscendReset(true)
 }

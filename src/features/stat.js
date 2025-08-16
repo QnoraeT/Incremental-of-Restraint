@@ -26,7 +26,7 @@ function initHTML_stats() {
         txt += `
             <div id="statUpgrade${i}all" style="width: 175px; margin: 2px">
                 <button id="statUpgrade${i}auto" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 20px; width: 175px; font-size: 10px; margin: 2px">
-                    Autobuyer Speed: <span id="statUpgrade${i}autoStatus"></span>/s
+                    <span id="statUpgrade${i}autoStatus"></span>/s
                 </button>
                 <button id="statUpgrade${i}" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 70px; width: 175px; font-size: 10px; margin: 2px">
                     Effect Base: +<span id="statUpgrade${i}eff"></span><br>
@@ -73,16 +73,16 @@ function updateHTML_stats() {
                     if (player.prestigeChallengeCompleted.includes(0)) {
                         html[`statUpgrade${i}generatorProgressNumber`].setTxt(`Level ${format(tmp.buyables[i].genLevels)}, ×${format(tmp.buyables[i].genEffect, 2)}`)
                     }
-                    if (Decimal.gte(player.generatorFeatures.enhancerBuyables[2], 1)) {
+                    if (Decimal.gte(player.generatorFeatures.enhancerBuyables[2], 1) || player.transcendInSpecialReq === 'exp2') {
                         html[`statUpgrade${i}generatorTierProgressNumber`].setTxt(`Tier ${format(tmp.buyables[i].tierLevels)}, /${format(tmp.buyables[i].tierEffect, 3)}`)
                     }
 
-                    html[`statUpgrade${i}cost`].setTxt(`${format(i+2)}× per ${format(tmp.buyables[i].costSpeed.recip().mul(10))} purchases, speed up by ${format(Decimal.div(player.buyables[i], tmp.bybBoostInterval).floor().pow_base(tmp.bybBoostCost))}×`)
+                    html[`statUpgrade${i}cost`].setTxt(`${format(i+2)}× per ${format(tmp.buyables[i].costSpeed.recip().mul(10))} purchases, sped up by ${format(Decimal.div(player.buyables[i], tmp.bybBoostInterval).floor().pow_base(tmp.bybBoostCost))}×`)
                     html[`statUpgrade${i}eff`].setTxt(`×${format(tmp.buyables[i].effectBase, 3)}`)
 
                     html[`statUpgrade${i}auto`].setDisplay(buyableAutoEnabledAndSpeed(i).enabled)
                     if (buyableAutoEnabledAndSpeed(i).enabled) {
-                        html[`statUpgrade${i}autoStatus`].setTxt(format(buyableAutoEnabledAndSpeed(i).speed, 1))
+                        html[`statUpgrade${i}autoStatus`].setTxt(`${buyableAutoEnabledAndSpeed(i).speed.gte(1e6) ? 'A.' : 'Autobuyer'} Speed: ${format(buyableAutoEnabledAndSpeed(i).speed, 1)}`)
                     }
                 } else {
                     html[`statUpgrade${i}`].setDisplay(false)
@@ -125,8 +125,8 @@ function updateHTML_stats() {
                 html['ascendFactors'].setHTML(txt)
             }
 
-            html['prestigeEssenceFactors'].setDisplay(player.setbackUpgrades.includes('b1'))
-            if (player.setbackUpgrades.includes('b1')) {
+            html['prestigeEssenceFactors'].setDisplay(hasSetbackUpgrade('b1'))
+            if (hasSetbackUpgrade('b1')) {
                 txt = `<b style="font-size: 14px">P. Essence Gain</b>`
                 for (let i = 0; i < tmp.factors.prestigeEssence.length; i++) {
                     txt += `<li>${tmp.factors.prestigeEssence[i]}</li>`

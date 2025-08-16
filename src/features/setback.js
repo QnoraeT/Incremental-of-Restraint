@@ -184,8 +184,142 @@ const SETBACK_UPGRADES = [
                 return `Unlock Hinderances in the Ascend tab.`
             }
         },
+    ],
+    [
+        {
+            id: "c1",
+            cost: D(1e12),
+            get desc() {
+                return `Generators for Buyable 1 scale 10% slower.`
+            },
+            get eff() {
+                return Decimal.max(player.generatorFeatures.xp, 1).log10().div(100).add(1).pow(2)
+            }
+        },
+        {
+            id: "c2",
+            cost: D(1e16),
+            get desc() {
+                return `Generators for Buyable 2 scale 7.5% slower.`
+            }
+        },
+        {
+            id: "c3",
+            cost: D(1e20),
+            get desc() {
+                return `Generators for Buyable 3 scale 5% slower.`
+            }
+        },
+        {
+            id: "c4",
+            cost: D(1e27),
+            get desc() {
+                return `Generators for Buyable 4 scale 4% slower.`
+            }
+        },
+        {
+            id: "c5",
+            cost: D(1e33),
+            get desc() {
+                return `Generators for Buyable 5 scale 3.33% slower.`
+            },
+        },
+        {
+            id: "c6",
+            cost: D(1e39),
+            get desc() {
+                return `Your best Generator XP boosts all ${tmp.quarkNamesC[3]} Dimensions' mult. Currently: ×${format(this.eff, 2)}`
+            },
+            get eff() {
+                return Decimal.max(player.generatorFeatures.xp, 1).log10().div(100).add(1).pow(2)
+            }
+        },
+        {
+            id: "c7",
+            cost: D(1e48),
+            get desc() {
+                return `Generator XP Buyable #1's increasing cost scaling grows half as fast.`
+            }
+        },
+        {
+            id: "c8",
+            cost: D(1e60),
+            get desc() {
+                return `Generator XP's effect to points is slightly stronger outside of any challenge.`
+            }
+        },
+        {
+            id: "c9",
+            cost: D(1e75),
+            get desc() {
+                return `Generator Enhancer Buyable #2's effect starts off at 30 seconds, and is twice as fast.`
+            }
+        },
+        {
+            id: "c10",
+            cost: D(1e90),
+            get desc() {
+                return `Generator Enhancers also increase tier gain at a reduced rate. Currently: ×${format(this.eff, 2)}`
+            },
+            get eff() {
+                return Decimal.max(player.generatorFeatures.enhancer, 1).log10().add(1)
+            }
+        },
     ]
 ]
+
+const SETBACK_CALC = {
+    energy: [
+        (x) => {
+            let eff = Decimal.max(x, 10).log10().log10().floor().add(1)
+            if (player.transcendUpgrades.includes('hinderance1')) {
+                eff = eff.pow(2)
+            }
+            eff = Decimal.max(x, 0).add(1).log10().add(1).pow(eff)
+            return eff
+        },
+        (x) => {
+            let eff = Decimal.max(x, 0).add(1).log10().div(10).add(1).recip()
+            return eff
+        },
+        (x) => {
+            let eff = Decimal.max(x, 0).add(1).log10().pow(2).div(200).add(1)
+            return eff
+        },
+        (x) => {
+            let eff = Decimal.max(x, 0).add(1).pow(Decimal.max(x, 1e10).log10().log10().pow(2)) // i doubt a cyan mult would scale non-logarithmically with gen xp so this should be fine
+            return eff
+        }
+    ],
+    difficulty: [
+        (x) => {
+            return [Decimal.div(x, 10).pow_base(0.2)]
+        },
+        (x) => {
+            return [Decimal.pow(x, 2).pow_base(1.06214316).sub(1).div(0.06214316).mul(1.5).add(1)]
+        },
+        (x) => {
+            return [Decimal.div(x, 10).pow_base(16)]
+        },
+        (x) => {
+            return Decimal.gt(x, 0) ? [Decimal.add(x, 1).pow(2), Decimal.add(x, 15), x] : [D(1), D(0), D(0)]
+        }
+    ],
+    shown: [
+        () => {
+            return true
+        },
+        () => {
+            return true
+        },
+        () => {
+            return true
+        },
+        () => {
+            return player.generatorFeatures.advanceUpgsChosen.includes(0)
+        }
+    ]
+}
 
 function initHTML_setback() {
     toHTMLvar('setbackTab')
@@ -234,36 +368,40 @@ function initHTML_setback() {
         let color = tmp.quarkNames[i]
         let capsColor = tmp.quarkNamesC[i]
 
-        txt.effect += `<span class="font" style="color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}; font-size: 12px">Your ${color} setback is at difficulty <b><span id="setback${capsColor}Value"></span></b>, which ${
+        txt.effect += `<span id="setbackEffDisp${capsColor}" class="font" style="color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}; font-size: 12px">Your ${color} setback is at difficulty <b><span id="setback${capsColor}Value"></span></b>, which ${
         [
-            'raises point gain to the <b>^<span id="setback' + capsColor + 'Effect"></span></b>',
-            'make buyables, prestige points, and generators scale <b><span id="setback' + capsColor + 'Effect"></span>&times;</b>',
-            'increases the prestige challenge and ascension reqs. by <b>^<span id="setback' + capsColor + 'Effect"></span></b>'
+            'raises point gain to the <b>^<span id="setback' + capsColor + 'Effect1"></span></b>',
+            'make buyables, prestige points, and generators scale <b><span id="setback' + capsColor + 'Effect1"></span>&times;</b>',
+            'increases the prestige challenge and ascension reqs. by <b>^<span id="setback' + capsColor + 'Effect1"></span></b> faster.',
+            'resets Generator XP (>0), disabling enhancer related features and Generator XP\'s gain from generators are reduced by <b>/<span id="setback' + capsColor + 'Effect1"></span></b>. This also applies a <b>(0, <span id="setback' + capsColor + 'Effect3"></span>, <span id="setback' + capsColor + 'Effect2"></span>)</b> setback',
         ][i]
         }.</span>`
         txt.slider += `<input type="range" min="0" max="10" value="0" style="width: 400px" id="setbackSlider${capsColor}">`
         txt.qeDisp += `
-            <div style="margin: 4px; color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}" class="flex-vertical">
-                <span class="font" style="font-size: 24px;" id="${color}Quarks"></span><span class="font" style="font-size: 12px;">${color} quarks</span>
-            </div>
-            <div style="margin: 4px; color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}" class="flex-vertical">
-                <span class="font" style="font-size: 24px;" id="${color}Energy"></span><span class="font" style="font-size: 12px;">${color} energy</span>
+            <div class="flex-horizontal" id="setbackResDisp${capsColor}">
+                <div style="margin: 4px; color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}" class="flex-vertical">
+                    <span class="font" style="font-size: 24px;" id="${color}Quarks"></span><span class="font" style="font-size: 12px;">${color} quarks</span>
+                </div>
+                <div style="margin: 4px; color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}" class="flex-vertical">
+                    <span class="font" style="font-size: 24px;" id="${color}Energy"></span><span class="font" style="font-size: 12px;">${color} energy</span>
+                </div>
             </div>
         `
         txt.dimDisp += `
-            <div style="margin: 4px; width: 325px; border: 3px dashed #${tmp.quarkColors[i]}80;" class="flex-vertical">
+            <div id="setbackDimDisp${capsColor}" style="margin: 4px; width: 325px; border: 3px dashed #${tmp.quarkColors[i]}80;" class="flex-vertical">
                 <span class="font" style="font-size: 10px; color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}">${capsColor} Quarks boost ${capsColor} Energy gain by &times;<b><span id="${color}QuarkEff"></span></b>.</span>
                 <span class="font" style="font-size: 10px; color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}">${capsColor} Energy ${
                 [
                     'boost point gain',
                     'multiply Buyables\' cost scaling',
-                    'increase prestige point gain'
+                    'increase prestige point gain',
+                    'multiplying Generator XP gain outside of setbacks'
                 ][i]} by &times;<b><span id="${color}EnergyEff"></span></b>.</span>
                 <div id="setback${capsColor}DimList" class="flex-vertical"></div>
             </div>
         `
         txt.upgs += `
-            <div class="flex-vertical">
+            <div id="setbackUpgDisp${capsColor}" class="flex-vertical">
                 <span class="font" style="font-size: 12px; color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}">You have <b><span id="${color}EnergyAmt2"></span></b> ${capsColor} Energy.</span>
                 <div id="${color}SBUpgrades" style="width: 250px; display: flex; flex-direction: row; justify-content: center; flex-wrap: wrap"></div>
             </div>
@@ -282,6 +420,10 @@ function initHTML_setback() {
 
         toHTMLvar(`setback${capsColor}DimList`)
         toHTMLvar(`${color}SBUpgrades`)
+        toHTMLvar(`setbackEffDisp${capsColor}`)
+        toHTMLvar(`setbackResDisp${capsColor}`)
+        toHTMLvar(`setbackDimDisp${capsColor}`)
+        toHTMLvar(`setbackUpgDisp${capsColor}`)
 
         txt.dimDisp = ``
         txt.dimDisp += `
@@ -333,7 +475,9 @@ function initHTML_setback() {
 
         toHTMLvar(`setbackSlider${capsColor}`)
         toHTMLvar(`setback${capsColor}Value`)
-        toHTMLvar(`setback${capsColor}Effect`)
+        for (let j = 0; j < SETBACK_CALC.difficulty[i](0).length; j++) {
+            toHTMLvar(`setback${capsColor}Effect${j+1}`)
+        }
 
         for (let j = 0; j < player.quarkDimsBought[i].length; j++) {
             toHTMLvar(`${color}Dim${j}`)
@@ -349,117 +493,57 @@ function initHTML_setback() {
         toHTMLvar(`${color}SBUpgrades`)
     }
 
-    // let txtDims = ``
-    // let txtSliders = ``
-    // let txtEffs = ``
-    // let txtUpgs = ``
-    // for (let i = 0; i < player.setback.length; i++) {
-    //     let color = tmp.quarkNames[i]
-    //     let capsColor = tmp.quarkNamesC[i]
-
-    //     txtSliders += `<input type="range" min="0" max="10" value="0" style="width: 400px" id="setbackSlider${capsColor}">`
-    //     txtEffs += `<span class="font" style="color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}; font-size: 12px">Your ${color} setback is at difficulty <b><span id="setback${capsColor}Value"></span></b>, which ${
-    //     [
-    //         'raises point gain to the <b>^<span id="setback' + capsColor + 'Effect"></span></b>',
-    //         'make buyables, prestige points, and generators scale <b><span id="setback' + capsColor + 'Effect"></span>&times;</b>',
-    //         'increases the prestige challenge and ascension reqs. by <b>^<span id="setback' + capsColor + 'Effect"></span></b>'
-    //     ][i]
-    //     }.</span>`
-    //     txtUpgs += `
-    //         <div class="flex-vertical">
-    //             <span class="font" style="font-size: 12px; color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}">You have <b><span id="${color}EnergyAmt2"></span></b> ${capsColor} Energy.</span>
-    //             <div id="${color}SBUpgrades" style="width: 250px; display: flex; flex-direction: row; justify-content: center; flex-wrap: wrap"></div>
-    //         </div>
-    //     `
-
-    //     txtDims = `
-    //         <button onclick="buyMaxSBDim(${i})" id="${color}BuyMax" class="whiteText font" style="height: 45px; width: 250px; font-size: 9px; margin: 2px">
-    //             Buy Max all ${capsColor} Dims.<br>
-    //             You can buy ~<span id="${color}BMTotalEst"></span> dimensions currently.
-    //         </button>
-    //     `
-
-    //             toHTMLvar(`setback${capsColor}DimList`)
-    //     for (let j = 0; j < player.quarkDimsBought[i].length; j++) {
-    //         txtDims += `
-    //             <div class="flex-horizontal">
-    //                 <button onclick="buySBDim(${i}, ${j})" id="${color}Dim${j}" class="whiteText font" style="height: 45px; width: 250px; font-size: 9px; margin: 2px">
-    //                     ${capsColor} Dimension ${j + 1}: ×<span id="${color}Dim${j}amount"></span><br>
-    //                     Mult: ×<span id="${color}Dim${j}mult"></span><br>
-    //                     Cost: <span id="${color}Dim${j}cost"></span>
-    //                 </button>
-    //                 <button onclick="player.quarkDimsAuto[${i}][${j}] = !player.quarkDimsAuto[${i}][${j}]" id="${color}Dim${j}Auto" class="whiteText font" style="cursor: pointer; height: 45px; width: 50px; font-size: 9px; margin: 2px">
-    //                     Auto: <span id="${color}Dim${j}autoDisp"></span>
-    //                 </button>
-    //             </div>
-    //         `
-    //     }
-    //     html[`setback${capsColor}DimList`].setHTML(txtDims)
-    // }
-
-    // html['setbackEffectList'].setHTML(txtEffs)
-    // html['setbackSliderList'].setHTML(txtSliders)
-    // for (let i = 0; i < player.setback.length; i++) {
-    //     let color = tmp.quarkNames[i]
-    //     let capsColor = tmp.quarkNamesC[i]
-
-    //     let txt = ``
-    //     for (let j = 0; j < SETBACK_UPGRADES[i].length; j++) {
-    //         txt += `
-    //             <button onclick="selectSBUpg(${i}, ${j})" id="${color}SBUpg${j}" class="whiteText font" style="height: 40px; width: 40px; font-size: 16px; margin: 2px; cursor: pointer">
-    //                 <span><b>${j+1}</b></span>
-    //             </button>
-    //         `
-    //     }
-    //     html[`${color}SBUpgrades`].setHTML(txt)
-
-    //     for (let j = 0; j < SETBACK_UPGRADES[i].length; j++) {
-    //         toHTMLvar(`${color}SBUpg${j}`)
-    //     }
-
-    //     toHTMLvar(`${color}Quarks`)
-    //     toHTMLvar(`${color}Energy`)
-    //     toHTMLvar(`${color}EnergyAmt2`)
-    //     toHTMLvar(`${color}QuarkEff`)
-    //     toHTMLvar(`${color}EnergyEff`)
-
-    //     toHTMLvar(`setbackSlider${capsColor}`)
-    //     toHTMLvar(`setback${capsColor}Value`)
-    //     toHTMLvar(`setback${capsColor}Effect`)
-
-    //     for (let j = 0; j < player.quarkDimsBought[i].length; j++) {
-    //         toHTMLvar(`${color}Dim${j}`)
-    //         toHTMLvar(`${color}Dim${j}amount`)
-    //         toHTMLvar(`${color}Dim${j}mult`)
-    //         toHTMLvar(`${color}Dim${j}cost`)
-    //         toHTMLvar(`${color}Dim${j}Auto`)
-    //         toHTMLvar(`${color}Dim${j}autoDisp`)
-    //     }
-    //     toHTMLvar(`${color}BuyMax`)
-    //     toHTMLvar(`${color}BMTotalEst`)
-
-    //     toHTMLvar(`${color}SBUpgrades`)
-    // }
-
     displaySetbackCompleted()
 }
 
 function updateGame_setback() {
-    tmp.quarkEffs[0] = Decimal.max(player.setbackQuarks[0], 0)
-    tmp.quarkEffs[1] = Decimal.max(player.setbackQuarks[1], 0)
-    tmp.quarkEffs[2] = Decimal.max(player.setbackQuarks[2], 0)
+    tmp.setbackTotalStacks = []
+    tmp.setbackProjectedStacks = []
+    tmp.setbackEffects = []
+    tmp.projectedEffects = []
+    tmp.setbackSelected = []
+    for (let i = 0; i < player.setback.length; i++) {
+        let capsColor = tmp.quarkNamesC[i]
 
-    tmp.energyEffs[0] = Decimal.max(player.setbackEnergy[0], 0).add(1).log10().add(1).pow(Decimal.max(player.setbackEnergy[0], 10).log10().log10().floor().add(1))
-    tmp.energyEffs[1] = Decimal.max(player.setbackEnergy[1], 0).add(1).log10().div(10).add(1).recip()
-    tmp.energyEffs[2] = Decimal.max(player.setbackEnergy[2], 0).add(1).log10().pow(2).div(200).add(1)
+        tmp.setbackSelected[i] = D(html[`setbackSlider${capsColor}`].el.value)
+        if (!player.inSetback) {
+            player.setback[i] = D(html[`setbackSlider${capsColor}`].el.value)
+            if (!SETBACK_CALC.shown[i]()) {
+                player.setback[i] = D(0)
+            }
+        }
 
-    if (!player.inSetback) {
-        player.setback = [D(html['setbackSliderRed'].el.value), D(html['setbackSliderGreen'].el.value), D(html['setbackSliderBlue'].el.value)]
+        tmp.quarkEffs[i] = Decimal.max(player.setbackQuarks[i], 0)
+        tmp.energyEffs[i] = SETBACK_CALC.energy[i](Decimal.max(player.setbackEnergy[i], 0))
+
+        for (let j = 0; j < player.setbackLoadout.length; j++) {
+            if (player.setbackLoadout[j][i] === undefined) {
+                player.setbackLoadout[j][i] = D(0)
+            }
+        }
+        tmp.setbackEffects[i] = SETBACK_CALC.difficulty[i](0)
+        tmp.projectedEffects[i] = SETBACK_CALC.difficulty[i](0)
+    }
+    if (player.inSetback) {
+        tmp.setbackTotalStacks.push(player.setback)
+    }
+    tmp.setbackProjectedStacks.push(tmp.setbackSelected)
+    if (player.transcendInSpecialReq === 'gen1') {
+        tmp.setbackTotalStacks.push([D(0), D(3)])
+        tmp.setbackProjectedStacks.push([D(0), D(3)])
+    }
+    if (player.transcendInSpecialReq === 'gen3') {
+        tmp.setbackTotalStacks.push([D(5), D(0), D(5)])
+        tmp.setbackProjectedStacks.push([D(5), D(0), D(5)])
     }
 
-    tmp.setbackEffects[0] = Decimal.div(player.setback[0], 10).pow_base(0.2)
-    tmp.setbackEffects[1] = Decimal.pow(player.setback[1], 2).pow_base(1.06214316).sub(1).div(0.06214316).mul(1.5).add(1)
-    tmp.setbackEffects[2] = Decimal.div(player.setback[2], 10).pow_base(16)
+    const projected = processSetbackEffects(tmp.setbackProjectedStacks, tmp.projectedEffects)
+    tmp.setbackProjectedStacks = projected.stacks
+    tmp.projectedEffects = projected.effect
+
+    const actual = processSetbackEffects(tmp.setbackTotalStacks, tmp.setbackEffects)
+    tmp.setbackTotalStacks = actual.stacks
+    tmp.setbackEffects = actual.effect
 
     tmp.trueQuarkTotal = D(0)
     tmp.predictedQuarkTotal = D(0)
@@ -560,13 +644,18 @@ function updateGame_setback() {
                 tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(Decimal.pow(2, Decimal.mul(player.setbackLoadout[player.currentSetback][i], 0.75).add(tmp.trueQuarkTotal.mul(0.25))))
             }
             if (i === 0) {
-                if (player.setbackUpgrades.includes(`r6`)) {
+                if (hasSetbackUpgrade(`r6`)) {
                     tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(SETBACK_UPGRADES[0][5].eff)
                 }
             }
             if (i === 1) {
-                if (player.setbackUpgrades.includes(`g6`) && j < tmp.buyables.length) {
+                if (hasSetbackUpgrade(`g6`) && j < tmp.buyables.length) {
                     tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(tmp.buyables[j].genEffect)
+                }
+            }
+            if (i === 3) {
+                if (hasSetbackUpgrade('c6')) {
+                    tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(SETBACK_UPGRADES[3][5].eff)
                 }
             }
             checkNaN(tmp.quarkDim[i][j].mult, `NaN detected while attempting to calculate mul of ${tmp.quarkNamesC[i]} Quark Dimension #${j + 1}`)
@@ -604,11 +693,16 @@ function updateHTML_setback() {
 
         if (tmp.setbackTab === 0) {
             for (let i = 0; i < player.setback.length; i++) {
-                let color = tmp.quarkNames[i]
                 let capsColor = tmp.quarkNamesC[i]
-                html[`setbackSlider${capsColor}`].el.disabled = player.inSetback
-                html[`setback${capsColor}Value`].setTxt(format(player.setback[i]))
-                html[`setback${capsColor}Effect`].setTxt(format(tmp.setbackEffects[i], 2))
+                html[`setbackSlider${capsColor}`].setDisplay(SETBACK_CALC.shown[i]())
+                html[`setbackEffDisp${capsColor}`].setDisplay(SETBACK_CALC.shown[i]())
+                if (SETBACK_CALC.shown[i]()) {
+                    html[`setbackSlider${capsColor}`].el.disabled = player.inSetback
+                    html[`setback${capsColor}Value`].setTxt(format(player.setback[i]))
+                    for (let j = 0; j < tmp.projectedEffects[i].length; j++) {
+                        html[`setback${capsColor}Effect${j+1}`].setTxt(format(tmp.projectedEffects[i][j], 2))
+                    }
+                }
             }
 
             html['setbackToggle'].changeStyle('cursor', player.setback.filter((amt) => Decimal.gt(amt, 0)).length !== 0 ? 'pointer' : 'not-allowed')
@@ -619,46 +713,43 @@ function updateHTML_setback() {
         }
 
         if (tmp.setbackTab === 2) {
-            html['redQuarks'].setTxt(format(player.setbackQuarks[0]))
-            html['greenQuarks'].setTxt(format(player.setbackQuarks[1]))
-            html['blueQuarks'].setTxt(format(player.setbackQuarks[2]))
-            
-            html['redEnergy'].setTxt(format(player.setbackEnergy[0]))
-            html['greenEnergy'].setTxt(format(player.setbackEnergy[1]))
-            html['blueEnergy'].setTxt(format(player.setbackEnergy[2]))
-
             html['dimScalingInterval'].setTxt(format(tmp.quarkBoostInterval))
             html['dimScalingSpeed'].setTxt(format(tmp.quarkBoostCost, 2))
             html['dimScalingBoost'].setTxt(format(tmp.quarkBoostEffect, 2))
 
             for (let i = 0; i < player.setback.length; i++) {
                 let color = tmp.quarkNames[i]
-                html[`${color}Quarks`].setTxt(format(player.setbackQuarks[i]))
-                html[`${color}Energy`].setTxt(format(player.setbackEnergy[i]))
+                let capsColor = tmp.quarkNamesC[i]
+                html[`setbackResDisp${capsColor}`].setDisplay(SETBACK_CALC.shown[i]())
+                html[`setbackDimDisp${capsColor}`].setDisplay(SETBACK_CALC.shown[i]())
+                if (SETBACK_CALC.shown[i]()) {
+                    html[`${color}Quarks`].setTxt(format(player.setbackQuarks[i]))
+                    html[`${color}Energy`].setTxt(format(player.setbackEnergy[i]))
 
-                html[`${tmp.quarkNames[i]}BuyMax`].changeStyle('background-color', `${colorChange(tmp.quarkColors[i], tmp.dimBoughtBM[i].gt(0) ? 0.5 : 0.25, 1.0)}80`)
-                html[`${tmp.quarkNames[i]}BuyMax`].changeStyle('border', `3px solid ${colorChange(tmp.quarkColors[i], tmp.dimBoughtBM[i].gt(0) ? 1.0 : 0.5, 1.0)}`)
-                html[`${tmp.quarkNames[i]}BuyMax`].changeStyle('cursor', tmp.dimBoughtBM[i].gt(0) ? 'pointer' : 'not-allowed')
-                html[`${tmp.quarkNames[i]}BMTotalEst`].setTxt(`${format(tmp.dimBoughtBM[i])}`)
-                
-                html[`${tmp.quarkNames[i]}QuarkEff`].setTxt(format(tmp.quarkEffs[i]))
-                html[`${tmp.quarkNames[i]}EnergyEff`].setTxt(format(tmp.energyEffs[i], 3))
+                    html[`${tmp.quarkNames[i]}BuyMax`].changeStyle('background-color', `${colorChange(tmp.quarkColors[i], tmp.dimBoughtBM[i].gt(0) ? 0.5 : 0.25, 1.0)}80`)
+                    html[`${tmp.quarkNames[i]}BuyMax`].changeStyle('border', `3px solid ${colorChange(tmp.quarkColors[i], tmp.dimBoughtBM[i].gt(0) ? 1.0 : 0.5, 1.0)}`)
+                    html[`${tmp.quarkNames[i]}BuyMax`].changeStyle('cursor', tmp.dimBoughtBM[i].gt(0) ? 'pointer' : 'not-allowed')
+                    html[`${tmp.quarkNames[i]}BMTotalEst`].setTxt(`${format(tmp.dimBoughtBM[i])}`)
 
-                for (let j = 0; j < player.quarkDimsBought[i].length; j++) {
-                    html[`${tmp.quarkNames[i]}Dim${j}`].setDisplay(j === 0 || Decimal.gt(player.quarkDimsBought[i][j - 1], 0) || Decimal.gt(player.quarkDimsAccumulated[i][j - 1], 0))
-                    html[`${tmp.quarkNames[i]}Dim${j}Auto`].setDisplay(false)
-                    if (j === 0 || Decimal.gt(player.quarkDimsBought[i][j - 1], 0) || Decimal.gt(player.quarkDimsAccumulated[i][j - 1], 0)) {
-                        html[`${tmp.quarkNames[i]}Dim${j}`].changeStyle('background-color', `${colorChange(tmp.quarkColors[i], Decimal.gte(player.setbackEnergy[i], tmp.quarkDim[i][j].cost) ? 0.5 : 0.25, 1.0)}80`)
-                        html[`${tmp.quarkNames[i]}Dim${j}`].changeStyle('border', `3px solid ${colorChange(tmp.quarkColors[i], Decimal.gte(player.setbackEnergy[i], tmp.quarkDim[i][j].cost) ? 1.0 : 0.5, 1.0)}`)
-                        html[`${tmp.quarkNames[i]}Dim${j}`].changeStyle('cursor', Decimal.gte(player.setbackEnergy[i], tmp.quarkDim[i][j].cost) ? 'pointer' : 'not-allowed')
-                        html[`${tmp.quarkNames[i]}Dim${j}amount`].setTxt(`${format(player.quarkDimsBought[i][j])} (${format(player.quarkDimsAccumulated[i][j])})`)
-                        html[`${tmp.quarkNames[i]}Dim${j}mult`].setTxt(`${format(tmp.quarkDim[i][j].mult, 2)}`)
-                        html[`${tmp.quarkNames[i]}Dim${j}cost`].setTxt(`${format(tmp.quarkDim[i][j].cost)} ${tmp.quarkNamesC[i]} Energy`)
-                        html[`${tmp.quarkNames[i]}Dim${j}Auto`].setDisplay(setbackAutobuyerEnabledAndSpeed(i, j).enabled)
-                        if (setbackAutobuyerEnabledAndSpeed(i, j).enabled) {
-                            html[`${tmp.quarkNames[i]}Dim${j}Auto`].changeStyle('background-color', `${colorChange(tmp.quarkColors[i], player.quarkDimsAuto[i][j] ? 0.5 : 0.25, 1.0)}80`)
-                            html[`${tmp.quarkNames[i]}Dim${j}Auto`].changeStyle('border', `3px solid ${colorChange(tmp.quarkColors[i], player.quarkDimsAuto[i][j] ? 1.0 : 0.5, 1.0)}`)
-                            html[`${tmp.quarkNames[i]}Dim${j}autoDisp`].setTxt(player.quarkDimsAuto[i][j] ? `${format(setbackAutobuyerEnabledAndSpeed(i, j).speed)}/s` : 'Off')
+                    html[`${tmp.quarkNames[i]}QuarkEff`].setTxt(format(tmp.quarkEffs[i]))
+                    html[`${tmp.quarkNames[i]}EnergyEff`].setTxt(format(tmp.energyEffs[i], 3))
+
+                    for (let j = 0; j < player.quarkDimsBought[i].length; j++) {
+                        html[`${tmp.quarkNames[i]}Dim${j}`].setDisplay(j === 0 || Decimal.gt(player.quarkDimsBought[i][j - 1], 0) || Decimal.gt(player.quarkDimsAccumulated[i][j - 1], 0))
+                        html[`${tmp.quarkNames[i]}Dim${j}Auto`].setDisplay(false)
+                        if (j === 0 || Decimal.gt(player.quarkDimsBought[i][j - 1], 0) || Decimal.gt(player.quarkDimsAccumulated[i][j - 1], 0)) {
+                            html[`${tmp.quarkNames[i]}Dim${j}`].changeStyle('background-color', `${colorChange(tmp.quarkColors[i], Decimal.gte(player.setbackEnergy[i], tmp.quarkDim[i][j].cost) ? 0.5 : 0.25, 1.0)}80`)
+                            html[`${tmp.quarkNames[i]}Dim${j}`].changeStyle('border', `3px solid ${colorChange(tmp.quarkColors[i], Decimal.gte(player.setbackEnergy[i], tmp.quarkDim[i][j].cost) ? 1.0 : 0.5, 1.0)}`)
+                            html[`${tmp.quarkNames[i]}Dim${j}`].changeStyle('cursor', Decimal.gte(player.setbackEnergy[i], tmp.quarkDim[i][j].cost) ? 'pointer' : 'not-allowed')
+                            html[`${tmp.quarkNames[i]}Dim${j}amount`].setTxt(`${format(player.quarkDimsBought[i][j])} (${format(player.quarkDimsAccumulated[i][j])})`)
+                            html[`${tmp.quarkNames[i]}Dim${j}mult`].setTxt(`${format(tmp.quarkDim[i][j].mult, 2)}`)
+                            html[`${tmp.quarkNames[i]}Dim${j}cost`].setTxt(`${format(tmp.quarkDim[i][j].cost)} ${tmp.quarkNamesC[i]} Energy`)
+                            html[`${tmp.quarkNames[i]}Dim${j}Auto`].setDisplay(setbackAutobuyerEnabledAndSpeed(i, j).enabled)
+                            if (setbackAutobuyerEnabledAndSpeed(i, j).enabled) {
+                                html[`${tmp.quarkNames[i]}Dim${j}Auto`].changeStyle('background-color', `${colorChange(tmp.quarkColors[i], player.quarkDimsAuto[i][j] ? 0.5 : 0.25, 1.0)}80`)
+                                html[`${tmp.quarkNames[i]}Dim${j}Auto`].changeStyle('border', `3px solid ${colorChange(tmp.quarkColors[i], player.quarkDimsAuto[i][j] ? 1.0 : 0.5, 1.0)}`)
+                                html[`${tmp.quarkNames[i]}Dim${j}autoDisp`].setTxt(player.quarkDimsAuto[i][j] ? `${format(setbackAutobuyerEnabledAndSpeed(i, j).speed)}/s` : 'Off')
+                            }
                         }
                     }
                 }
@@ -667,35 +758,48 @@ function updateHTML_setback() {
 
         if (tmp.setbackTab === 3) {
             for (let i = 0; i < player.setback.length; i++) {
-                html[`${tmp.quarkNames[i]}EnergyAmt2`].setTxt(format(player.setbackEnergy[i]))
-            }
+                let capsColor = tmp.quarkNamesC[i]
+                html[`setbackUpgDisp${capsColor}`].setDisplay(SETBACK_CALC.shown[i]())
+                if (SETBACK_CALC.shown[i]()) {
+                    html[`${tmp.quarkNames[i]}EnergyAmt2`].setTxt(format(player.setbackEnergy[i]))
 
-            for (let i = 0; i < SETBACK_UPGRADES.length; i++) {
-                for (let j = 0; j < SETBACK_UPGRADES[i].length; j++) {
-                    html[`${tmp.quarkNames[i]}SBUpg${j}`].changeStyle('border', `3px solid ${colorChange(
-                        tmp.quarkColors[i],
-                        0.5 * (Decimal.gte(player.setbackEnergy[i], SETBACK_UPGRADES[i][j].cost) || player.setbackUpgrades.includes(SETBACK_UPGRADES[i][j].id) ? 2 : 1), 
-                        1 / ((tmp.sbSelectedUpg[0] === i && tmp.sbSelectedUpg[1] === j) ? 4 : 1) / (player.setbackUpgrades.includes(SETBACK_UPGRADES[i][j].id) ? 2 : 1)
-                    )}`)
+                    for (let j = 0; j < SETBACK_UPGRADES[i].length; j++) {
+                        html[`${tmp.quarkNames[i]}SBUpg${j}`].changeStyle('border', `3px solid ${colorChange(
+                            tmp.quarkColors[i],
+                            0.5 * (Decimal.gte(player.setbackEnergy[i], SETBACK_UPGRADES[i][j].cost) || hasSetbackUpgrade(SETBACK_UPGRADES[i][j].id) ? 2 : 1), 
+                            1 / ((tmp.sbSelectedUpg[0] === i && tmp.sbSelectedUpg[1] === j) ? 4 : 1) / (hasSetbackUpgrade(SETBACK_UPGRADES[i][j].id) ? 2 : 1)
+                        )}`)
 
-                    html[`${tmp.quarkNames[i]}SBUpg${j}`].changeStyle('background-color', `${colorChange(
-                        tmp.quarkColors[i],
-                        0.25 * (Decimal.gte(player.setbackEnergy[i], SETBACK_UPGRADES[i][j].cost) || player.setbackUpgrades.includes(SETBACK_UPGRADES[i][j].id) ? 2 : 1) * (player.setbackUpgrades.includes(SETBACK_UPGRADES[i][j].id) ? 2 : 1),
-                        1.0
-                    )}80`)
+                        html[`${tmp.quarkNames[i]}SBUpg${j}`].changeStyle('background-color', `${colorChange(
+                            tmp.quarkColors[i],
+                            0.25 * (Decimal.gte(player.setbackEnergy[i], SETBACK_UPGRADES[i][j].cost) || hasSetbackUpgrade(SETBACK_UPGRADES[i][j].id) ? 2 : 1) * (hasSetbackUpgrade(SETBACK_UPGRADES[i][j].id) ? 2 : 1),
+                            1.0
+                        )}80`)
+                    }
                 }
             }
 
             html['upgSBDesc'].setTxt(tmp.sbSelectedUpg.length === 0 ? '' : `${SETBACK_UPGRADES[tmp.sbSelectedUpg[0]][tmp.sbSelectedUpg[1]].desc}`)
-            html['upgSBCost'].setTxt(tmp.sbSelectedUpg.length === 0 ? '' : `Cost: ${format(SETBACK_UPGRADES[tmp.sbSelectedUpg[0]][tmp.sbSelectedUpg[1]].cost)} ${tmp.quarkNames[tmp.sbSelectedUpg[0]]} energy.${player.setbackUpgrades.includes(SETBACK_UPGRADES[tmp.sbSelectedUpg[0]][tmp.sbSelectedUpg[1]].id) ? ' Bought!' : ''}`)
+            html['upgSBCost'].setTxt(tmp.sbSelectedUpg.length === 0 ? '' : `Cost: ${format(SETBACK_UPGRADES[tmp.sbSelectedUpg[0]][tmp.sbSelectedUpg[1]].cost)} ${tmp.quarkNames[tmp.sbSelectedUpg[0]]} energy.${hasSetbackUpgrade(SETBACK_UPGRADES[tmp.sbSelectedUpg[0]][tmp.sbSelectedUpg[1]].id) ? ' Bought!' : ''}`)
         }
-
     }
 }
 
 function toggleSetback() {
-    if (Decimal.eq(player.setback[0], 0) && Decimal.eq(player.setback[1], 0) && Decimal.eq(player.setback[2], 0)) {
+    if (player.setback.filter((x) => Decimal.neq(x, 0)).length === 0) {
         return
+    }
+    if (Decimal.gt(player.setback[3], 0)) {
+        player.bestTotalGenLvs = D(0)
+        player.generatorFeatures.xp = D(0)
+        for (let i = 0; i < player.generatorFeatures.buyable.length; i++) {
+            player.generatorFeatures.buyable[i] = D(0)
+        }
+        player.bestTotalGenLvs = D(0)
+
+        tmp.generatorFeatures.gain = D(0)
+        tmp.generatorFeatures.xpEffGenerators = D(1)
+        tmp.generatorFeatures.xpEffPoints = D(1)
     }
     if (player.inSetback) {
         player.inSetback = false
@@ -709,9 +813,12 @@ function toggleSetback() {
 function displaySetbackCompleted() {
     let txt = ``
     for (let i = 0; i < player.setbackLoadout.length; i++) {
-        const total = Decimal.add(player.setbackLoadout[i][0]).add(player.setbackLoadout[i][1]).add(player.setbackLoadout[i][2])
+        const total = player.setbackLoadout[i].reduce((a,b) => Decimal.add(a, b))
         let txt2 = ``
         for (let j = 0; j < player.setback.length; j++) {
+            if (!SETBACK_CALC.shown[j]()) {
+                continue;
+            }
             let color = tmp.quarkNames[j]
             let capsColor = tmp.quarkNamesC[j]
             txt2 += `
@@ -721,7 +828,7 @@ function displaySetbackCompleted() {
                 `
         }
         txt += `
-            <div style="background-color: #${player.currentSetback === i ? '006060' : '404040'}80; border: 3px solid #${player.currentSetback === i ? '00ff' : 'ffff'}ff; width: 400px; height: 190px">
+            <div style="background-color: #${player.currentSetback === i ? '006060' : '404040'}80; border: 3px solid #${player.currentSetback === i ? '00ff' : 'ffff'}ff; width: 400px;">
                 <div class="font flex-vertical" style="font-size: 12px;">
                     <span style="color: #ffffff; font-size: 16px">Total Difficulty: <b>${format(total)}</b></span>
                     ${txt2}
@@ -766,9 +873,11 @@ function deleteSetback(i) {
 }
 
 function setUsingSetback(i) {
-    html['setbackSliderRed'].el.value = player.setbackLoadout[i][0]
-    html['setbackSliderGreen'].el.value = player.setbackLoadout[i][1]
-    html['setbackSliderBlue'].el.value = player.setbackLoadout[i][2]
+    for (let j = 0; j < player.setback.length; j++) {
+        let capsColor = tmp.quarkNamesC[j]
+        html[`setbackSlider${capsColor}`].el.value = player.setbackLoadout[i][j]
+    }
+
     player.setback = player.setbackLoadout[i]
     displaySetbackCompleted()
 }
@@ -777,6 +886,7 @@ function buySBDim(i, j) {
     if (Decimal.gte(player.setbackEnergy[i], tmp.quarkDim[i][j].cost)) {
         player.setbackEnergy[i] = player.setbackEnergy[i].sub(tmp.quarkDim[i][j].cost)
         player.quarkDimsBought[i][j] = Decimal.add(player.quarkDimsBought[i][j], 1)
+        player.quarkDimsAutobought[i][j] = Decimal.add(player.quarkDimsBought[i][j], 1)
         updateGame_setback()
     }
 }
@@ -785,6 +895,7 @@ function buyMaxSBDim(i) {
     for (let j = player.quarkDimsBought[i].length - 1; j >= 0; j--) {
         if (Decimal.gte(player.setbackEnergy[i], tmp.quarkDim[i][j].cost)) {
             player.quarkDimsBought[i][j] = tmp.quarkDim[i][j].target.floor().add(1).max(player.quarkDimsBought[i][j])
+            player.quarkDimsAutobought[i][j] = tmp.quarkDim[i][j].target.floor().add(1).max(player.quarkDimsBought[i][j])
             player.setbackEnergy[i] = player.setbackEnergy[i].sub(tmp.quarkDim[i][j].cost) // this isn't updated but whatever, not like it actually matters too much
         }
     }
@@ -794,7 +905,7 @@ function buyMaxSBDim(i) {
 function selectSBUpg(i, j) {
     if (tmp.sbSelectedUpg[0] === i && tmp.sbSelectedUpg[1] === j) {
         if (Decimal.gte(player.setbackEnergy[i], SETBACK_UPGRADES[i][j].cost)) {
-            if (!player.setbackUpgrades.includes(SETBACK_UPGRADES[tmp.sbSelectedUpg[0]][tmp.sbSelectedUpg[1]].id)) {
+            if (!hasSetbackUpgrade(SETBACK_UPGRADES[tmp.sbSelectedUpg[0]][tmp.sbSelectedUpg[1]].id)) {
                 player.setbackEnergy[i] = Decimal.sub(player.setbackEnergy[i], SETBACK_UPGRADES[i][j].cost)
                 player.setbackUpgrades.push(SETBACK_UPGRADES[tmp.sbSelectedUpg[0]][tmp.sbSelectedUpg[1]].id)
             }
@@ -807,44 +918,46 @@ function selectSBUpg(i, j) {
 function setbackAutobuyerEnabledAndSpeed(i, j) {
     let auto = false
     let spd = D(0)
-    if (hasTranscendMilestone(3) && (j === 0 || (i === 0 && j >= 1 && j <= 3))) {
-        auto = true
-        spd = D(4)
-    }
-    if (hasTranscendMilestone(4) && (j === 1 || (i === 1 && j >= 2 && j <= 4))) {
-        auto = true
-        spd = D(4)
-    }
-    if (hasTranscendMilestone(5) && (j === 2 || (i === 2 && j >= 3 && j <= 5))) {
-        auto = true
-        spd = D(4)
-    }
-    if (hasTranscendMilestone(6)) {
-        if (j === 0) {
-            spd = spd.mul(2.5)
-        }
-        if (j === 4 || j === 5) {
+    if (i !== 3) {
+        if (hasTranscendMilestone(3) && (j === 0 || (i === 0 && j >= 1 && j <= 3))) {
             auto = true
             spd = D(4)
         }
-    }
-    if (hasTranscendMilestone(7)) {
-        if (j === 1) {
-            spd = spd.mul(2.5)
-        }
-        if (j === 6 || j === 7) {
+        if (hasTranscendMilestone(4) && (j === 1 || (i === 1 && j >= 2 && j <= 4))) {
             auto = true
             spd = D(4)
         }
-    }
-    if (hasTranscendMilestone(8)) {
-        if (j === 2 || j === 3) {
-            spd = spd.mul(2.5)
+        if (hasTranscendMilestone(5) && (j === 2 || (i === 2 && j >= 3 && j <= 5))) {
+            auto = true
+            spd = D(4)
         }
-    }
-    if (hasTranscendMilestone(9)) {
-        if (j >= 4 && j <= 7) {
-            spd = spd.mul(2.5)
+        if (hasTranscendMilestone(6)) {
+            if (j === 0) {
+                spd = spd.mul(2.5)
+            }
+            if (j === 4 || j === 5) {
+                auto = true
+                spd = D(4)
+            }
+        }
+        if (hasTranscendMilestone(7)) {
+            if (j === 1) {
+                spd = spd.mul(2.5)
+            }
+            if (j === 6 || j === 7) {
+                auto = true
+                spd = D(4)
+            }
+        }
+        if (hasTranscendMilestone(8)) {
+            if (j === 2 || j === 3) {
+                spd = spd.mul(2.5)
+            }
+        }
+        if (hasTranscendMilestone(9)) {
+            if (j >= 4 && j <= 7) {
+                spd = spd.mul(2.5)
+            }
         }
     }
 
@@ -855,4 +968,92 @@ function setbackAutobuyerEnabledAndSpeed(i, j) {
         spd = D(Infinity)
     }
     return {enabled: auto, speed: spd}
+}
+
+function displaySetbackUI(list) {
+    let color = {
+        r: 0,
+        g: 0,
+        b: 0
+    }
+    color.r += D(list[0]).toNumber()
+    color.g += D(list[1]).toNumber()
+    color.b += D(list[2]).toNumber()
+    color.g += D(list[3]).toNumber()
+    color.b += D(list[3]).toNumber()
+    let best = Math.max(10, color.r, color.g, color.b)
+    color.r /= best
+    color.g /= best
+    color.b /= best
+    let setbackList = []
+    for (let i = 0; i < list.length; i++) {
+        if (SETBACK_CALC.shown[i]()) {
+            setbackList.push(list[i])
+        }
+    }
+    let setbackTxt = ``
+    for (let i = 0; i < setbackList.length - 1; i++) {
+        setbackTxt += `${format(setbackList[i])}, `
+    }
+    setbackTxt += `${format(setbackList[setbackList.length - 1])}`
+    return `<span style="color: #${Math.ceil(128 + 127 * color.r).toString(16)}${Math.ceil(128 + 127 * color.g).toString(16)}${Math.ceil(128 + 127 * color.b).toString(16)}"><b>Setback</b> (${setbackTxt})</span>`
+}
+
+function colorAmountTotal(color) {
+    let total = D(0)
+    for (let i = 0; i < tmp.setbackTotalStacks.length; i++) {
+        total = total.add(tmp.setbackTotalStacks[i][color])
+    }
+    return total
+}
+
+function resetSetbackEffects() {
+    const arr = []
+    for (let i = 0; i < SETBACK_CALC.difficulty.length; i++) {
+        arr.push(SETBACK_CALC.difficulty[i](0))
+    }
+    return arr
+}
+
+function processSetbackEffects(stackArr, effectArr) {
+    for (let i = 0; i < stackArr.length; i++) {
+        for (let j = 0; j < player.setback.length; j++) {
+            if (stackArr[i][j] === undefined) {
+                stackArr[i][j] = D(0)
+            }
+        }
+        if (i > 10) {
+            console.warn('overrun')
+            break
+        }
+
+        if (Decimal.gte(stackArr[i][3], 1)) {
+            stackArr.push([D(0), SETBACK_CALC.difficulty[3](stackArr[i][3])[2], SETBACK_CALC.difficulty[3](stackArr[i][3])[1]])
+        }
+
+        for (let j = 0; j < player.setback.length; j++) {
+            switch (j) {
+                case 0:
+                case 1:
+                case 2:
+                    effectArr[j][0] = effectArr[j][0].mul(SETBACK_CALC.difficulty[j](stackArr[i][j])[0])
+                    break
+                case 3:
+                    effectArr[j][0] = effectArr[j][0].mul(SETBACK_CALC.difficulty[j](stackArr[i][j])[0])
+                    effectArr[j][1] = effectArr[j][1].add(SETBACK_CALC.difficulty[j](stackArr[i][j])[1])
+                    effectArr[j][2] = effectArr[j][2].add(SETBACK_CALC.difficulty[j](stackArr[i][j])[2])
+                    break;
+                default:
+                    throw new Error('wuh?')
+            }
+        }
+    }
+    return { stacks: stackArr, effect: effectArr }
+}
+
+function hasSetbackUpgrade(id) {
+    if (id[0] === 'c' && !player.generatorFeatures.advanceUpgsChosen.includes(0)) {
+        return false
+    }
+    return player.setbackUpgrades.includes(id)
 }
