@@ -190,7 +190,7 @@ const TEXTBOOK = [
     },
         {
         get show() {
-            return true
+            return Decimal.gte(player.bestPointsInTranscend, 'e1500') || Decimal.gt(player.transcendResetCount, 0)
         },
         title: `Transcension`,
         get stage() {

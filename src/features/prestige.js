@@ -562,6 +562,9 @@ function updateGame_prestige() {
     tmp.totalPrestigeUpgrades = D(0)
     if (!hasTranscendMilestone(1)) {
         for (let i = 0; i < PRESTIGE_UPGRADES.length; i++) {
+            if (Decimal.eq(player.prestigeUpgrades[i], 0)) {
+                continue
+            }
             tmp.prestigeUsed = tmp.prestigeUsed.add(PRESTIGE_UPGRADES[i].cost.mul(prestigeUpgradeCostScaling(i, true)))
         }
     }

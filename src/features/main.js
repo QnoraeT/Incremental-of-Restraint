@@ -205,7 +205,7 @@ function updateGame_main() {
             checkNaN(tmp.buyables[i].target, `NaN detected while attempting to calculate target of Buyable #${i + 1}`)
 
             // auto-upgrade
-            if (player.buyableAuto[i] || tmp.prestigeChal[13].depth.gt(0)) {
+            if (player.buyableAuto[i]) {
                 player.buyableAutobought[i] = Decimal.add(player.buyableAutobought[i], buyableAutoEnabledAndSpeed(i).speed.mul(delta)).min(tmp.buyables[i].target).max(player.buyableAutobought[i])
                 let bought = player.buyables[i]
                 player.buyables[i] = player.buyableAutobought[i].add(0.99999999).floor().max(player.buyables[i])
@@ -454,6 +454,8 @@ function updateGame_main() {
                 tmp.pointGen = tmp.pointGen.mul(tmp.buyables[i].effect)
                 addStatFactor('points', `Buyable ${i+1}`, `×`, tmp.buyables[i].effect, tmp.pointGen)
             }
+        } else {
+            tmp.buyables[i].effective = D(0)
         }
     }
     player.bestTotalGenLvs = Decimal.max(player.bestTotalGenLvs, totalGenLevels)
