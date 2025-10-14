@@ -28,13 +28,13 @@ const TEXTBOOK = [
             let txt = ``
             for (let i = 0; i < player.buyables.length; i++) {
                 if (buyableEnabled(i)) {
-                    txt += `<li>Buyable ${i+1}: Base Cost: ${format([D(2), D(20), D(500), D(10000), D(1e6), D(1e9)][i])}, Scaling: ${i+2}×</li>`
+                    txt += `Buyable ${i+1}: Base Cost: ${format([D(2), D(20), D(500), D(10000), D(1e6), D(1e9)][i])}, which multiplies by ${i+2}× every 10 purchases. Every purchase adds +${format([D(1.0), D(0.5), D(0.25), D(0.1), D(0.05), D(0.01)][i], 2)}× to its effect.<br>`
                 }
             }
             return `
-                Buyables are the game's main source of point generation. These are unlimited, meaning you can buy them infinitely many times. Buyables also give a free level to the previous buyable.<br>
-                However, there is an "interval" attached to them. Every ${format(tmp.bybBoostInterval)}, the buyable's effect increases by ${format(tmp.bybBoostEffect, 2)}x, but their cost scaling speeds up by ${format(tmp.bybBoostCost, 2)}×, essentially making their costs scale double-exponentially. The default interval is every 100 purchases, 2× to boost, and 2× to cost.<br><br>
-                Buyables' costs are as follows:<br>
+                Buyables are the game's main source of point generation. Buyables are clickable buttons that can be bought repeatedly. The basic buyables you see in this game that you see in the very start has a couple of properties, including how fast its cost scales and how much it boosts point generation.<br><br>
+                There is also an extra feature attached to these basic buyables applied individually: an interval. Currently, every ${format(tmp.bybBoostInterval)} purchases, the buyable's effect increases by ${format(tmp.bybBoostEffect, 2)}×, but their cost scales ${format(tmp.bybBoostCost, 2)}× faster.<br><br>
+                The basic buyables' base state are:<br>
                 ${txt}
             `
         },
@@ -49,8 +49,8 @@ const TEXTBOOK = [
         colors: ['#0080FF', '#00408080'],
         get info() {
             return `
-                Prestige is the game's first prestige layer. Every OoM of your best points within the prestige past 1,000,000 gives you 1 prestige point.<br>
-                You can use Prestige Points to buy Prestige Upgrades, which give varying boosts. However, there is a cap to how many Prestige Upgrades you can hold. You may respec your upgrades, which does a prestige reset but does not give you any prestige points.<br><br>
+                Prestige is the game's first prestige layer, go figure. You will be able to prestige when when you have reached 1,000,000 points. Prestige resets your basic buyables and your points. Prestiging gives you prestige points. Every prestige point increases the requirement for the next, where the next prestige point will usually require 10× more points.<br><br>
+                You can use prestige points to purchase prestige upgrades. Upgrades can only be bought once, but they give unique effects. There is also a limit to how many prestige upgrades you can have. This way, you have to prioritize which prestige upgrades to keep. Respeccing is when you refund all prestige upgrades.<br><br>
                 Exact Prestige Point gain formula: log<sub>10</sub>(x/1,000,000)
             `
         },
@@ -65,8 +65,8 @@ const TEXTBOOK = [
         colors: ['#0080FF', '#00408080'],
         get info() {
             return `
-                Prestige Challenges are places where you do a prestige reset, however, the game will be more limiting. You will need to have your current points surpass the prestige challenge's goal and prestige in order to complete the challenge. Challenges have certain rewards that you gain after you complete them.<br>
-                You will see common abbreviations like "PCx" where x is the number of that prestige challenge. You can see which challenge(s) you're in by seeing the text below your point amount.<br><br>
+                Prestige Challenges are features where you can reset and start the game with restrictions. These give rewards if you can surpass their goal and complete them. Points are used as the primary measurement for completing Prestige Challenges.<br>
+                Commonly, you will see abbreviations such as "PC#" where # is the number of that prestige challenge. You can see what prestige challenge you're in by looking below your point amount.<br><br>
                 <span style="color: #ffff00"><b>Warning!</b> Entering and exiting a prestige challenge will not count as an actual prestige! <b>You will not gain any prestige-related resources if you enter and exit any prestige challenge!</b></span>
             `
         },
@@ -82,9 +82,10 @@ const TEXTBOOK = [
         get info() {
             return `
                 Generators are extra features that increase each buyable's effect gradually over time.<br>
-                Generator Speed similarly calculated to the buyable's effect, that being x*${format(tmp.bybBoostEffect, 2)}<sup>⌊x/${format(tmp.bybBoostInterval)}⌋</sup><br>
-                The requirements of each generator level scale factorially. (Lv 1 needs 2 XP, Lv 2 needs 6 XP, etc.), but this requirement gradually scales faster and faster.<br><br>
-                Exact requirement formula: 1,000(e<sup>x/1,000</sup>-1)!
+                The speed of the buyables' generators, commonly referred to as "Generator Speed" is dependent on how many purchases a buyable has and the buyable's interval.<br>
+                Generator levels give a small boost to the buyable that stacks. However, their level requirements grow quickly.<br>
+                Generators will be very important later.<br><br> 
+                Exact requirement formula: x!
             `
         },
         enabled: false

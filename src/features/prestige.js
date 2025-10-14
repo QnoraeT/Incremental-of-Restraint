@@ -48,9 +48,13 @@ const PRESTIGE_UPGRADES = [
     {
         cost: D(5),
         get desc() {
-            return Decimal.neq(player.prestigeUpgrades[3], 0) && Decimal.neq(player.prestigeUpgrades[3], 1)
-                ? `Buyables give ${format(tmp.prestigeUpgEffs[3], 1)} free levels to all previous buyables instead of only the previous upgrade.`
-                : `Buyables give a free level to all previous buyables instead of only the previous upgrade.`
+            return player.prestigeChallengeCompleted.includes(2)
+                ? Decimal.neq(player.prestigeUpgrades[3], 0) && Decimal.neq(player.prestigeUpgrades[3], 1)
+                    ? `Buyables give ${format(tmp.prestigeUpgEffs[3], 1)} free levels to all previous buyables instead of only the previous buyable.`
+                    : `Buyables give a free level to all previous buyables instead of only the previous buyable.`
+                : Decimal.neq(player.prestigeUpgrades[3], 0) && Decimal.neq(player.prestigeUpgrades[3], 1)
+                    ? `Buyables give ${format(tmp.prestigeUpgEffs[3], 1)} free levels to the previous buyable.`
+                    : `Buyables give a free level to the previous buyable.`
         },
         get eff() {
             let eff = Decimal.max(player.prestigeUpgrades[3], 0)
@@ -224,20 +228,20 @@ const PRESTIGE_CHALLENGES = [
             return goal
         },
         name: "Accelerated Spending",
-        desc: "Buyable' scaling intervals are decreased to every 5 levels, but don't give any boost.",
+        desc: "Buyable' scaling intervals now occur every 5 purchases and don't give a bonus.",
         eff: "Increase the cap of prestige upgrades by 1, and unlock Buyable 5."
     },
     {
         get goal() {
-            let goal = D(1e11)
+            let goal = D(1e6)
             if (colorAmountTotal(2).gt(0)) {
                 goal = goal.pow(tmp.setbackEffects[2][0])
             }
             return goal
         },
         name: "No Influencing",
-        desc: "Buyables do not give any free levels.",
-        eff: "Increase the cap of prestige upgrades by 1, and bought buyables are 50% stronger."
+        desc: "Buyables add to the point generation instead of multiplying.",
+        eff: "Increase the cap of prestige upgrades by 1. Buyables now add free levels to their previous buyable, and Prestige Upgrade 4 is improved."
     },
     {
         get goal() {
@@ -860,13 +864,16 @@ function togglePrestigeChallenge(i) {
 }
 
 function doPrestigeReset(doAnyway = false) {
-    if (hasSetbackUpgrade(`b1`)) {
-        player.prestigeEssence = Decimal.add(player.prestigeEssence, tmp.peGain)
+    if (player.prestigeChallenge === null) {
+        if (hasSetbackUpgrade(`b1`)) {
+            player.prestigeEssence = Decimal.add(player.prestigeEssence, tmp.peGain)
+        }
+        player.prestige = Decimal.add(player.prestige, tmp.prestigeAmount)
+        if (!doAnyway) {
+            player.darts = Decimal.add(player.darts, tmp.dartGain)
+        }
     }
-    player.prestige = Decimal.add(player.prestige, tmp.prestigeAmount)
-    if (!doAnyway) {
-        player.darts = Decimal.add(player.darts, tmp.dartGain)
-    }
+
     player.timeInPrestige = D(0)
     player.timeSinceBuyableBought = D(0)
     player.points = D(0)

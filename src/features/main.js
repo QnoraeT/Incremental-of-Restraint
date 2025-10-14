@@ -29,6 +29,7 @@ function initHTML_main() {
     toHTMLvar('upgradeScalingInterval')
     toHTMLvar('upgradeScalingBoost')
     toHTMLvar('upgradeScalingSpeed')
+    toHTMLvar('upgradeScalingBoostExist')
     toHTMLvar('upgradeScalingPC1')
     toHTMLvar('upgradePC1Desc')
     toHTMLvar('upgradeInSetback')
@@ -236,11 +237,9 @@ function updateGame_main() {
             checkNaN(tmp.buyables[i].cost, `NaN detected while attempting to calculate cost of Buyable #${i + 1}`)
 
             tmp.buyables[i].effective = D(player.buyables[i])
+
             if (player.prestigeChallengeCompleted.includes(2)) {
-                tmp.buyables[i].effective = tmp.buyables[i].effective.mul(1.5)
-            }
-            if (tmp.prestigeChal[2].depth.lte(0)) {
-                if (hasPrestigeUpgrade(3)) {
+                if (tmp.prestigeUpgEffs[3].gt(0)) {
                     for (let j = i + 1; j < player.buyables.length; j++) {
                         tmp.buyables[i].effective = tmp.buyables[i].effective.add(tmp.buyables[j].effective.mul(tmp.prestigeUpgEffs[3]))
                     }
@@ -248,6 +247,10 @@ function updateGame_main() {
                     if (i !== player.buyables.length - 1) {
                         tmp.buyables[i].effective = tmp.buyables[i].effective.add(tmp.buyables[i + 1].effective)
                     }
+                }
+            } else {
+                if (i !== player.buyables.length - 1) {
+                    tmp.buyables[i].effective = tmp.buyables[i].effective.add(tmp.buyables[i + 1].effective.mul(tmp.prestigeUpgEffs[3]))
                 }
             }
 
@@ -451,7 +454,12 @@ function updateGame_main() {
             }
 
             if ((tmp.prestigeChal[3].depth.lte(0) || i === 0) && tmp.prestigeChal[12].depth.lte(0)) {
-                tmp.pointGen = tmp.pointGen.mul(tmp.buyables[i].effect)
+                if (tmp.prestigeChal[2].depth.lte(0)) {
+                    tmp.pointGen = tmp.pointGen.mul(tmp.buyables[i].effect)
+                } else {
+                    tmp.pointGen = tmp.pointGen.add(tmp.buyables[i].effect)
+                }
+
                 addStatFactor('points', `Buyable ${i+1}`, `×`, tmp.buyables[i].effect, tmp.pointGen)
             }
         } else {
@@ -657,6 +665,7 @@ function updateHTML_main() {
             html['upgradeScalingInterval'].setTxt(format(tmp.bybBoostInterval))
             html['upgradeScalingSpeed'].setTxt(format(tmp.bybBoostCost, 2))
             html['upgradeScalingBoost'].setTxt(format(tmp.bybBoostEffect, 2))
+            html['upgradeScalingBoostExist'].setDisplay(Decimal.gt(tmp.bybBoostEffect, 1))
             html['upgradeScalingPC1'].setTxt(player.prestigeChallengeCompleted.includes(0) ? ' and generation' : '')
             html['upgradeInSetback'].setTxt(player.inSetback ? `Ascend to complete a setback or exit early in the Setback tab!` : '')
             html['upgradePC1Desc'].setDisplay(player.prestigeChallengeCompleted.includes(0))
@@ -694,7 +703,7 @@ function updateHTML_main() {
             html['transcend'].setDisplay(Decimal.gte(player.bestPointsInTranscend, 'e1500') || Decimal.gt(player.transcendResetCount, 0))
 
             for (let i = 0; i < player.buyables.length; i++) {
-                if (buyableEnabled(i)) {
+                if (buyableEnabled(i) && (i === 0 || (player.buyableInTranscension[i - 1] || Decimal.gte(player.transcendResetCount, 1)))) {
                     html[`upgrade${i}`].setDisplay(true)
                     html[`upgrade${i}all`].setDisplay(true)
                     html[`upgrade${i}generators`].setDisplay(player.prestigeChallengeCompleted.includes(0))
