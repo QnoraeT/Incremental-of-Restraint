@@ -8,21 +8,21 @@ function initHTML_replicators() {
     toHTMLvar('replicatorEffect')
     toHTMLvar('replicatorTrueSpeed')
     toHTMLvar('replicatorTrueSpeed2')
-    
 }
 
 function updateGame_replicators() {
     tmp.replicatorEff = D(1)
     if (player.generatorFeatures.advanceUpgsChosen.includes(1)) {
-        tmp.replicatorSpd = D(Decimal.root(2, 60)) // ! player.replicators can be placed in self even with trilate and no runaway inflation as long as no .pow10()
-        tmp.replicatorStrength = D(100) // ! player.replicators CANNOT be placed in self without .log10() without runaway inflation
+        tmp.replicatorSpd = D(2) // ! player.replicators can be placed in this even with trilate and no runaway inflation as long as no .pow10()
+        tmp.replicatorSpd = tmp.replicatorSpd.root(60)
+        tmp.replicatorStrength = D(100) // ! player.replicators CANNOT be placed in this without .log10() without runaway inflation
 
         tmp.replicatorTrueSpdDisp2 = player.replicators
         player.replicators = Decimal.max(player.replicators, 1).root(tmp.replicatorStrength).sub(1).mul(tmp.replicatorStrength).exp().mul(tmp.replicatorSpd.pow(delta)).ln().div(tmp.replicatorStrength).add(1).pow(tmp.replicatorStrength)
         tmp.replicatorTrueSpdDisp2 = player.replicators.div(tmp.replicatorTrueSpdDisp2).root(delta) // replicators get auto turned into a decimal before this
         tmp.replicatorTrueSpdDisp1 = tmp.replicatorTrueSpdDisp2.eq(1) ? D(Infinity) : Decimal.log(2, tmp.replicatorTrueSpdDisp2)
 
-        tmp.replicatorEff = player.replicators.pow(1000) // player replicators would've already been turned into a Decimal
+        tmp.replicatorEff = player.replicators.pow(40) // player replicators would've already been turned into a Decimal
     }
 }
 

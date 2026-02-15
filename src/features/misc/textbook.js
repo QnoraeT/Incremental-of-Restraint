@@ -114,17 +114,42 @@ const TEXTBOOK = [
         stage: `Unlocked by accumulating 10 <span style="color: #80ff80">Ascension Points</span>`,
         colors: ['rainbow'],
         get info() {
+            let txt = `A "setback" is a custom challenge modifier that allows you to choose how strongly you slow/restrict your game.<br>
+                There are currently ${SETBACK_CALC.shown.filter((isShown) => isShown()).length} sliders that range from 0 (None) or 10 (Maximum) that can cause different effects.<br>
+                Setbacks are completed once you have enough points to do an ascension reset.<br>
+                <span style="color: #ffff00"> You must do an ascension reset in order to enter or complete a setback.</span><br>
+                
+            `
+            if (player.setbackLoadout.length >= 1) {
+                txt += `<br><br>
+                    After you have completed a setback, you will now see an item show up in your "Setback Loadout" tab. Use the item in order to extract quarks from it. The amount of quarks you gain is dependent on how strongly you imposed your setbacks, with higher restrictions equaling higher extraction rates.<br>
+                    Quarks generate energy, for some odd reason. (Seems to be a common thing.) Energy passively buffs various features of the game.<br>
+                    You will also see "dimensions" which are items that boost energy gain and can generate each other. This is like how basic buyables influence each other, but instead of adding to their levels, it adds to their amount over time.<br><br>
+                    Dimensions are also subject to an interval, but this time, the interval's boost influences the multiplier each purchase instead of the effect itself.<br>
+                    You can also see certain energy upgrades, which use different types of energy. These are more permanent boosts that influence the game, including adding new features or greatly buffing certain areas of the game, including Quality of Life (QoL).<br>
+                    <b>If you feel stuck, you might be missing some upgrades. Do some setback runs, gather energy, and purchase the upgrades to continue; some upgrades are very important.</b><br><br>
+                    <span style="color: #ffff00">Do note that Dimensions, Quarks, and Energy resets on Ascension resets. Your energy upgrades are not affected by this.</span><br>
+                `
+            }
+            let list = ``
+            if (SETBACK_CALC.shown[0]()) {
+                list += `<span style="color: #FF8080">Exact Red Energy Formula: (1+log<sub>10</sub>(1+Red Energy))<sup>Every OoM^2 (1e10, 1e100, etc.), this power increases by 1, starting at 1.</sup></span><br>`
+            }
+            if (SETBACK_CALC.shown[1]()) {
+                list += `<span style="color: #80FF80">Exact Green Energy Formula: 1+log<sub>10</sub>(1+Green Energy)/10</span><br>`
+            }
+            if (SETBACK_CALC.shown[2]()) {
+                list += `<span style="color: #8080FF">Exact Blue Energy Formula: 1+log<sub>10</sub>(1+Blue Energy)<sup>2</sup>/200</span><br>`
+            }
+            if (SETBACK_CALC.shown[3]()) {
+                list += `<span style="color: #80FFFF">Exact Cyan Energy Formula: (1+Cyan Energy)<sup>Every OoM, this power increases by 0.05, starting at 1.</sup></span><br>`
+            }
+            
             return `
-                Setback is a custom challenge modifier that does as Ascension reset. You currently have 3 different options that range from 1 to 10 that causes different effects and you must do an ascension reset to complete a setback. Upon completing a setback, you have the option to enable/disable it in your loadouts, which generate quarks and energy.<br>
-                The higher the individual AND total difficulty, the higher your quark gain and multipliers are.<br>
-                There are various upgrades you can buy with energy as well. You may have to swap loadouts so that you can buy the upgrades.<br>
-                <span style="color: #ffff00">Dimensions, Quarks, and Energy reset on Ascensions!</span><br>
-                Dimensions multiply your energy gain as well. They're also subject to a similar interval with buyables, except that every 100 purchases, the dimensions' multiplier per bought (base of 2) increases by +1. The cost scaling per interval is similar to the scaling for buyables. The default interval is every 100 purchases, +1× to mult per bought, and 2× to cost.<br><br>
+                ${txt}<br><br>
                 Exact Quark Gain Formula: Total<sup>2</sup>*Power<sup>2</sup>, where Power is the scale from 0 to 10.<br>
                 Exact Dim. Mult. Formula: 2<sup>0.75*Power+0.25*Total</sup><br>
-                <span style="color: #FF8080">Exact Red Energy Formula: (1+log<sub>10</sub>(1+Red Energy))<sup>Every OoM^2 (1e10, 1e100, etc.), this power increases by 1, starting at 1.</sup></span><br>
-                <span style="color: #80FF80">Exact Green Energy Formula: 1+log<sub>10</sub>(1+Green Energy)/10</span><br>
-                <span style="color: #8080FF">Exact Blue Energy Formula: 1+log<sub>10</sub>(1+Blue Energy)<sup>2</sup>/200</span><br>
+                ${list}
                 Exact Dimension Costs: 10<sup>Dim#<sup>2</sup></sup>*10<sup>Bought*(2+Dim#)</sup>
             `
         },
@@ -202,17 +227,23 @@ const TEXTBOOK = [
             return `
                 Transcension is the third prestige layer that resets everything before it. Its gain is simple, past 1.000e2,400 points, your Points<sup>0.0005</sup> determines transcension point gain.<br>
                 You also have transcension milestones. Each has a total transcension point requirement that decreases by /2 per transcension. Transcension milestones are the beginning source of QoL progress for this layer.<br>
-                Transcension upgrades (yes, I know, basic name) are in a tree formation. Very creative and unique totally. I totally didn't run out of ideas. Moving on... Transcension upgrades need transcension points and sometimes also need a requirement, like how Ascension Buyables are, however, they are more expansive. Some upgrades can be boosted by using strings.<br>
-                Strings are earned by reaching specific milestones. There are three types of strings. Dotted Strings, Blue Strings, and String Factories. Each string can boost different upgrades depending on where they're allocated. Upgrades can themselves be boosted by strings, but they have a cap of 1 boost. Every 10 of that upgrade's string adds 1 to the boost cap. (Ex. An upgrade needs Dotted Strings to be boosted. If you have 10 total dotted strings, this upgrade can now be boosted twice.)
-                <br><br>
-                Exact Dotted String requirements: 10<sup>10,000*1.2<sup>D.S.</sup></sup> Points<br>
-                Exact Blue String requirements: 10,000,000(5(1.2<sup>B.S.</sup>-1)+1) Prestige Points<br>
-                Exact String Factory requirements: 5,000+200*S.F. Best of all Generator Levels<br>
+                Transcension upgrades (yes, I know, basic name) are in a tree formation. Very creative and unique totally. I totally didn't run out of ideas. Moving on... Transcension upgrades need transcension points and sometimes also need a requirement, like how Ascension Buyables are, however, they are more expansive.
             `
         },
         enabled: false
     },
 ]
+
+/*
+strings mention in transcension
+
+Some upgrades can be boosted by using strings.<br>
+Strings are earned by reaching specific milestones. There are three types of strings. Dotted Strings, Blue Strings, and String Factories. Each string can boost different upgrades depending on where they're allocated. Upgrades can themselves be boosted by strings, but they have a cap of 1 boost. Every 10 of that upgrade's string adds 1 to the boost cap. (Ex. An upgrade needs Dotted Strings to be boosted. If you have 10 total dotted strings, this upgrade can now be boosted twice.)
+<br><br>
+Exact Dotted String requirements: 10<sup>10,000*1.2<sup>D.S.</sup></sup> Points<br>
+Exact Blue String requirements: 10,000,000(5(1.2<sup>B.S.</sup>-1)+1) Prestige Points<br>
+Exact String Factory requirements: 5,000+200*S.F. Best of all Generator Levels<br>
+*/
 
 function initHTML_textbook() {
     toHTMLvar('textbookTabButton')
@@ -224,11 +255,11 @@ function initHTML_textbook() {
         if (TEXTBOOK[i].colors.length === 1) {
             console.log(`${TEXTBOOK[i].colors[0]}Border`)
             txt += `
-                <div onclick="TEXTBOOK[${i}].enabled = !TEXTBOOK[${i}].enabled" id="textbookButton${i}" class="flex-vertical whiteText font ${TEXTBOOK[i].colors[0]}Border ${TEXTBOOK[i].colors[0]}Fill" style="padding: 4px; height: 40px; width: 400px; font-size: 16px; margin-top: 2px; margin-bottom: 4px; cursor: pointer">
+                <div onclick="TEXTBOOK[${i}].enabled = !TEXTBOOK[${i}].enabled" id="textbookButton${i}" class="flex-vertical whiteText font ${TEXTBOOK[i].colors[0]}Border ${TEXTBOOK[i].colors[0]}Fill" style="border: 3px solid #ffffff; padding: 4px; height: 40px; width: 400px; font-size: 16px; margin-top: 2px; margin-bottom: 4px; cursor: pointer">
                     <b style="margin-bottom: 4px">${TEXTBOOK[i].title}</b>
                     <span id="textbookStage${i}" style="font-size: 12px">${TEXTBOOK[i].stage}</span>
                 </div>
-                <div id="textbook${i}" class="whiteText font ${TEXTBOOK[i].colors[0]}Border ${TEXTBOOK[i].colors[0]}Fill" style="width: 1000px; padding: 4px; margin-top: -7px; margin-bottom: 3px; font-size: 12px; text-align: center"></div>
+                <div id="textbook${i}" class="whiteText font ${TEXTBOOK[i].colors[0]}Border ${TEXTBOOK[i].colors[0]}Fill" style="border: 3px solid #ffffff; width: 1000px; padding: 4px; margin-top: -7px; margin-bottom: 3px; font-size: 12px; text-align: center"></div>
             `
         } else {
             txt += `

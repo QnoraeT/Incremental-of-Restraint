@@ -157,7 +157,7 @@ const SETBACK_UPGRADES = [
             id: "b2",
             cost: D(1e12),
             get desc() {
-                return `Prestige Upgrades are rebuyable but their costs scale very fast.`
+                return `Make all Prestige Upgrades into Prestige Buyables, making them repeatable. Their costs will scale drastically past the first purchase.`
             }
         },
         {
@@ -287,8 +287,8 @@ const SETBACK_CALC = {
             return eff
         },
         (x) => {
-            let eff = Decimal.max(x, 0).add(1).pow(Decimal.max(x, 1e10).log10().log10().pow(2)) // i doubt a cyan mult would scale non-logarithmically with gen xp so this should be fine
-            return eff
+            let eff = Decimal.max(x, 0).add(1).pow(Decimal.max(x, 0).add(1).log10().floor().mul(0.05).add(1))
+            return eff // i doubt a cyan mult would scale non-logarithmically with gen xp so this should be fine
         }
     ],
     difficulty: [
@@ -322,10 +322,10 @@ const SETBACK_CALC = {
 }
 
 function initHTML_setback() {
-    toHTMLvar('setbackTab')
-    toHTMLvar('setbackTabButton')
-    html['setbackTab'].setDisplay(false)
-    html['setbackTabButton'].setDisplay(false)
+    toHTMLvar('setbackAscend')
+    toHTMLvar('setbackAscendTabButton')
+    html['setbackAscend'].setDisplay(false)
+    html['setbackAscendTabButton'].setDisplay(false)
 
     toHTMLvar('setbackToggle')
     toHTMLvar('setSBTabButton')
@@ -337,6 +337,7 @@ function initHTML_setback() {
     toHTMLvar('setbackTabDims')
     toHTMLvar('setbackTabUpgs')
     toHTMLvar('setbackLoadoutList')
+    toHTMLvar('setbackLoadoutView')
     toHTMLvar('dimScalingInterval')
     toHTMLvar('dimScalingBoost')
     toHTMLvar('dimScalingSpeed')
@@ -371,8 +372,8 @@ function initHTML_setback() {
         txt.effect += `<span id="setbackEffDisp${capsColor}" class="font" style="color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}; font-size: 12px">Your ${color} setback is at difficulty <b><span id="setback${capsColor}Value"></span></b>, which ${
         [
             'raises point gain to the <b>^<span id="setback' + capsColor + 'Effect1"></span></b>',
-            'make buyables, prestige points, and generators scale <b><span id="setback' + capsColor + 'Effect1"></span>&times;</b>',
-            'increases the prestige challenge and ascension reqs. by <b>^<span id="setback' + capsColor + 'Effect1"></span></b> faster.',
+            'make buyables, prestige points, and generators scale <b><span id="setback' + capsColor + 'Effect1"></span>&times;</b> faster',
+            'increases the prestige challenge and ascension reqs. by <b>^<span id="setback' + capsColor + 'Effect1"></span></b>',
             'resets Generator XP (>0), disabling enhancer related features and Generator XP\'s gain from generators are reduced by <b>/<span id="setback' + capsColor + 'Effect1"></span></b>. This also applies a <b>(0, <span id="setback' + capsColor + 'Effect3"></span>, <span id="setback' + capsColor + 'Effect2"></span>)</b> setback',
         ][i]
         }.</span>`
@@ -392,10 +393,10 @@ function initHTML_setback() {
                 <span class="font" style="font-size: 10px; color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}">${capsColor} Quarks boost ${capsColor} Energy gain by &times;<b><span id="${color}QuarkEff"></span></b>.</span>
                 <span class="font" style="font-size: 10px; color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}">${capsColor} Energy ${
                 [
-                    'boost point gain',
-                    'multiply Buyables\' cost scaling',
-                    'increase prestige point gain',
-                    'multiplying Generator XP gain outside of setbacks'
+                    'boosts point gain',
+                    'multiplies Buyables\' cost scaling',
+                    'increases prestige point gain',
+                    'multiplies Generator XP gain outside of setbacks'
                 ][i]} by &times;<b><span id="${color}EnergyEff"></span></b>.</span>
                 <div id="setback${capsColor}DimList" class="flex-vertical"></div>
             </div>
@@ -427,10 +428,15 @@ function initHTML_setback() {
 
         txt.dimDisp = ``
         txt.dimDisp += `
-            <button onclick="buyMaxSBDim(${i})" id="${color}BuyMax" class="whiteText font" style="height: 45px; width: 250px; font-size: 9px; margin: 2px">
-                Buy Max all ${capsColor} Dims.<br>
-                You can buy ~<span id="${color}BMTotalEst"></span> dimensions currently.
-            </button>
+            <div class="flex-horizontal">
+                <button onclick="buyMaxSBDim(${i})" id="${color}BuyMax" class="whiteText font" style="height: 45px; width: 250px; font-size: 9px; margin: 2px">
+                    Buy Max all ${capsColor} Dims.<br>
+                    You can buy ~<span id="${color}BMTotalEst"></span> dimensions currently.
+                </button>
+                <button onclick="toggleAllSBAuto(${i})" id="${color}DimAuto" class="whiteText font" style="cursor: pointer; height: 45px; width: 50px; font-size: 9px; margin: 2px">
+                    Auto: <span id="${color}DimAutoDisp"></span>
+                </button>
+            </div>
         `
         for (let j = 0; j < player.quarkDimsBought[i].length; j++) {
             txt.dimDisp += `
@@ -441,7 +447,7 @@ function initHTML_setback() {
                         Cost: <span id="${color}Dim${j}cost"></span>
                     </button>
                     <button onclick="player.quarkDimsAuto[${i}][${j}] = !player.quarkDimsAuto[${i}][${j}]" id="${color}Dim${j}Auto" class="whiteText font" style="cursor: pointer; height: 45px; width: 50px; font-size: 9px; margin: 2px">
-                        Auto: <span id="${color}Dim${j}autoDisp"></span>
+                        Auto: <span id="${color}Dim${j}AutoDisp"></span>
                     </button>
                 </div>
             `
@@ -485,10 +491,12 @@ function initHTML_setback() {
             toHTMLvar(`${color}Dim${j}mult`)
             toHTMLvar(`${color}Dim${j}cost`)
             toHTMLvar(`${color}Dim${j}Auto`)
-            toHTMLvar(`${color}Dim${j}autoDisp`)
+            toHTMLvar(`${color}Dim${j}AutoDisp`)
         }
         toHTMLvar(`${color}BuyMax`)
         toHTMLvar(`${color}BMTotalEst`)
+        toHTMLvar(`${color}DimAuto`)
+        toHTMLvar(`${color}DimAutoDisp`)
 
         toHTMLvar(`${color}SBUpgrades`)
     }
@@ -545,6 +553,54 @@ function updateGame_setback() {
     tmp.setbackTotalStacks = actual.stacks
     tmp.setbackEffects = actual.effect
 
+    for (let i = 0; i < player.quarkDimsBought.length; i++) {
+        for (let j = 0; j < player.quarkDimsBought[i].length; j++) {
+            tmp.quarkDimAutoData[i][j] = D(0)
+            if (i !== 3) {
+                if (hasTranscendMilestone(3) && (j === 0 || (i === 0 && j >= 1 && j <= 3))) {
+                    tmp.quarkDimAutoData[i][j] = D(4)
+                }
+                if (hasTranscendMilestone(4) && (j === 1 || (i === 1 && j >= 2 && j <= 4))) {
+                    tmp.quarkDimAutoData[i][j] = D(4)
+                }
+                if (hasTranscendMilestone(5) && (j === 2 || (i === 2 && j >= 3 && j <= 5))) {
+                    tmp.quarkDimAutoData[i][j] = D(4)
+                }
+                if (hasTranscendMilestone(6)) {
+                    if (j === 0) {
+                        tmp.quarkDimAutoData[i][j] = tmp.quarkDimAutoData[i][j].mul(2.5)
+                    }
+                    if (j === 4 || j === 5) {
+                        tmp.quarkDimAutoData[i][j] = D(4)
+                    }
+                }
+                if (hasTranscendMilestone(7)) {
+                    if (j === 1) {
+                        tmp.quarkDimAutoData[i][j] = tmp.quarkDimAutoData[i][j].mul(2.5)
+                    }
+                    if (j === 6 || j === 7) {
+                        tmp.quarkDimAutoData[i][j] = D(4)
+                    }
+                }
+                if (hasTranscendMilestone(8)) {
+                    if (j === 2 || j === 3) {
+                        tmp.quarkDimAutoData[i][j] = tmp.quarkDimAutoData[i][j].mul(2.5)
+                    }
+                }
+                if (hasTranscendMilestone(9)) {
+                    if (j >= 4 && j <= 7) {
+                        tmp.quarkDimAutoData[i][j] = tmp.quarkDimAutoData[i][j].mul(2.5)
+                    }
+                }
+            }
+
+            tmp.quarkDimAutoData[i][j] = tmp.quarkDimAutoData[i][j].mul(tmp.timeSpeedTiers[0])
+            if (player.cheats.autoDim) {
+                tmp.quarkDimAutoData[i][j] = D(Infinity)
+            }
+        }
+    }
+
     tmp.trueQuarkTotal = D(0)
     tmp.predictedQuarkTotal = D(0)
     for (let i = 0; i < player.setback.length; i++) {
@@ -586,7 +642,7 @@ function updateGame_setback() {
         tmp.trueQuarkTotal = tmp.trueQuarkTotal.add(player.currentSetback === null ? D(0) : player.setbackLoadout[player.currentSetback][i])
     }
 
-    for (let i = 0; i < player.setback.length; i++) {
+    for (let i = 0; i < player.quarkDimsBought.length; i++) {
         tmp.dimBoughtBM[i] = D(0)
         for (let j = player.quarkDimsBought[i].length - 1; j >= 0; j--) {
             if (tmp.quarkDim[i][j] === undefined) {
@@ -608,7 +664,7 @@ function updateGame_setback() {
             checkNaN(tmp.quarkDim[i][j].target, `NaN detected while attempting to calculate target of ${tmp.quarkNamesC[i]} Quark Dimension #${j + 1}`)
 
             if (player.quarkDimsAuto[i][j]) {
-                player.quarkDimsAutobought[i][j] = Decimal.add(player.quarkDimsAutobought[i][j], setbackAutobuyerEnabledAndSpeed(i, j).speed.mul(delta)).min(tmp.quarkDim[i][j].target).max(player.quarkDimsAutobought[i][j])
+                player.quarkDimsAutobought[i][j] = Decimal.add(player.quarkDimsAutobought[i][j], setbackAutobuyerSpeed(i, j).mul(delta)).min(tmp.quarkDim[i][j].target).max(player.quarkDimsAutobought[i][j])
                 let bought = player.quarkDimsBought[i][j]
                 player.quarkDimsBought[i][j] = player.quarkDimsAutobought[i][j].add(0.99999999).floor().max(player.quarkDimsBought[i][j])
                 bought = Decimal.sub(bought, player.quarkDimsBought[i][j])
@@ -634,9 +690,6 @@ function updateGame_setback() {
 
             let baseMultBoost = D(2)
             baseMultBoost = baseMultBoost.add(Decimal.div(player.quarkDimsBought[i][j], tmp.quarkBoostInterval).floor().mul(tmp.quarkBoostEffect))
-            // cheat
-            // baseMultBoost = baseMultBoost.pow(8)
-            // end cheat
 
             tmp.quarkDim[i][j].mult = D(1)
             tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(Decimal.pow(baseMultBoost, player.quarkDimsBought[i][j]))
@@ -677,10 +730,10 @@ function updateGame_setback() {
 }
 
 function updateHTML_setback() {
-    html['setbackTab'].setDisplay(tmp.tab === 4)
-    html['setbackTabButton'].setDisplay(Decimal.gte(player.ascend, 10))
+    html['setbackAscend'].setDisplay(tmp.ascendTab == 1)
+    html['setbackAscendTabButton'].setDisplay(Decimal.gte(player.ascend, 10))
 
-    if (tmp.tab === 4) {
+    if (tmp.ascendTab == 1) {
         html['setSBTabButton'].setDisplay(player.setbackLoadout.length > 0 || Decimal.gt(player.transcendResetCount, 0))
         html['loadSBTabButton'].setDisplay(player.setbackLoadout.length > 0 || Decimal.gt(player.transcendResetCount, 0))
         html['dimSBTabButton'].setDisplay(player.setbackLoadout.length > 0 || Decimal.gt(player.transcendResetCount, 0))
@@ -705,6 +758,10 @@ function updateHTML_setback() {
                 }
             }
 
+            // i hate this because even though it uses the same/similar code, it's just highly inefficient because its redoing a lot of long HTML stuff
+            // i should probably make this static (in HTML file) and edited from there, even tho the code will be different 
+            // which'll likely mean that i'll have to figure something out
+            displaySetbackView()
             html['setbackToggle'].changeStyle('cursor', player.setback.filter((amt) => Decimal.gt(amt, 0)).length !== 0 ? 'pointer' : 'not-allowed')
         }
 
@@ -726,10 +783,15 @@ function updateHTML_setback() {
                     html[`${color}Quarks`].setTxt(format(player.setbackQuarks[i]))
                     html[`${color}Energy`].setTxt(format(player.setbackEnergy[i]))
 
-                    html[`${tmp.quarkNames[i]}BuyMax`].changeStyle('background-color', `${colorChange(tmp.quarkColors[i], tmp.dimBoughtBM[i].gt(0) ? 0.5 : 0.25, 1.0)}80`)
-                    html[`${tmp.quarkNames[i]}BuyMax`].changeStyle('border', `3px solid ${colorChange(tmp.quarkColors[i], tmp.dimBoughtBM[i].gt(0) ? 1.0 : 0.5, 1.0)}`)
+                    html[`${tmp.quarkNames[i]}BuyMax`].changeStyle('background-color', `${tmp.quarkColorsCalc[i][tmp.dimBoughtBM[i].gt(0) ? 'yes' : 'no'].bg}`)
+                    html[`${tmp.quarkNames[i]}BuyMax`].changeStyle('border', `3px solid ${tmp.quarkColorsCalc[i][tmp.dimBoughtBM[i].gt(0) ? 'yes' : 'no'].border}`)
                     html[`${tmp.quarkNames[i]}BuyMax`].changeStyle('cursor', tmp.dimBoughtBM[i].gt(0) ? 'pointer' : 'not-allowed')
+
                     html[`${tmp.quarkNames[i]}BMTotalEst`].setTxt(`${format(tmp.dimBoughtBM[i])}`)
+
+                    html[`${tmp.quarkNames[i]}DimAuto`].setDisplay(tmp.quarkDimAutoData[i].filter((x) => Decimal.gt(x, 0)).length > 0)
+                    html[`${tmp.quarkNames[i]}DimAuto`].changeStyle('background-color', `${tmp.quarkColorsCalc[i][player.quarkDimsAuto[i].filter((x) => x).length > 0 ? 'yes' : 'no'].bg}`)
+                    html[`${tmp.quarkNames[i]}DimAuto`].changeStyle('border', `3px solid ${tmp.quarkColorsCalc[i][player.quarkDimsAuto[i].filter((x) => x).length > 0 ? 'yes' : 'no'].border}`)
 
                     html[`${tmp.quarkNames[i]}QuarkEff`].setTxt(format(tmp.quarkEffs[i]))
                     html[`${tmp.quarkNames[i]}EnergyEff`].setTxt(format(tmp.energyEffs[i], 3))
@@ -738,17 +800,19 @@ function updateHTML_setback() {
                         html[`${tmp.quarkNames[i]}Dim${j}`].setDisplay(j === 0 || Decimal.gt(player.quarkDimsBought[i][j - 1], 0) || Decimal.gt(player.quarkDimsAccumulated[i][j - 1], 0))
                         html[`${tmp.quarkNames[i]}Dim${j}Auto`].setDisplay(false)
                         if (j === 0 || Decimal.gt(player.quarkDimsBought[i][j - 1], 0) || Decimal.gt(player.quarkDimsAccumulated[i][j - 1], 0)) {
-                            html[`${tmp.quarkNames[i]}Dim${j}`].changeStyle('background-color', `${colorChange(tmp.quarkColors[i], Decimal.gte(player.setbackEnergy[i], tmp.quarkDim[i][j].cost) ? 0.5 : 0.25, 1.0)}80`)
-                            html[`${tmp.quarkNames[i]}Dim${j}`].changeStyle('border', `3px solid ${colorChange(tmp.quarkColors[i], Decimal.gte(player.setbackEnergy[i], tmp.quarkDim[i][j].cost) ? 1.0 : 0.5, 1.0)}`)
+                            html[`${tmp.quarkNames[i]}Dim${j}`].changeStyle('background-color', `${tmp.quarkColorsCalc[i][Decimal.gte(player.setbackEnergy[i], tmp.quarkDim[i][j].cost) ? 'yes' : 'no'].bg}`)
+                            html[`${tmp.quarkNames[i]}Dim${j}`].changeStyle('border', `3px solid ${tmp.quarkColorsCalc[i][Decimal.gte(player.setbackEnergy[i], tmp.quarkDim[i][j].cost) ? 'yes' : 'no'].border}`)
                             html[`${tmp.quarkNames[i]}Dim${j}`].changeStyle('cursor', Decimal.gte(player.setbackEnergy[i], tmp.quarkDim[i][j].cost) ? 'pointer' : 'not-allowed')
+
                             html[`${tmp.quarkNames[i]}Dim${j}amount`].setTxt(`${format(player.quarkDimsBought[i][j])} (${format(player.quarkDimsAccumulated[i][j])})`)
                             html[`${tmp.quarkNames[i]}Dim${j}mult`].setTxt(`${format(tmp.quarkDim[i][j].mult, 2)}`)
                             html[`${tmp.quarkNames[i]}Dim${j}cost`].setTxt(`${format(tmp.quarkDim[i][j].cost)} ${tmp.quarkNamesC[i]} Energy`)
-                            html[`${tmp.quarkNames[i]}Dim${j}Auto`].setDisplay(setbackAutobuyerEnabledAndSpeed(i, j).enabled)
-                            if (setbackAutobuyerEnabledAndSpeed(i, j).enabled) {
-                                html[`${tmp.quarkNames[i]}Dim${j}Auto`].changeStyle('background-color', `${colorChange(tmp.quarkColors[i], player.quarkDimsAuto[i][j] ? 0.5 : 0.25, 1.0)}80`)
-                                html[`${tmp.quarkNames[i]}Dim${j}Auto`].changeStyle('border', `3px solid ${colorChange(tmp.quarkColors[i], player.quarkDimsAuto[i][j] ? 1.0 : 0.5, 1.0)}`)
-                                html[`${tmp.quarkNames[i]}Dim${j}autoDisp`].setTxt(player.quarkDimsAuto[i][j] ? `${format(setbackAutobuyerEnabledAndSpeed(i, j).speed)}/s` : 'Off')
+
+                            html[`${tmp.quarkNames[i]}Dim${j}Auto`].setDisplay(setbackAutobuyerSpeed(i, j).gt(0))
+                            if (setbackAutobuyerSpeed(i, j).gt(0)) {
+                                html[`${tmp.quarkNames[i]}Dim${j}Auto`].changeStyle('background-color', `${tmp.quarkColorsCalc[i][player.quarkDimsAuto[i][j] ? 'yes' : 'no'].bg}`)
+                                html[`${tmp.quarkNames[i]}Dim${j}Auto`].changeStyle('border', `3px solid ${tmp.quarkColorsCalc[i][player.quarkDimsAuto[i][j] ? 'yes' : 'no'].border}`)
+                                html[`${tmp.quarkNames[i]}Dim${j}AutoDisp`].setTxt(player.quarkDimsAuto[i][j] ? `${format(setbackAutobuyerSpeed(i, j))}/s` : 'Off')
                             }
                         }
                     }
@@ -850,6 +914,35 @@ function displaySetbackCompleted() {
     html['setbackLoadoutList'].setHTML(txt)
 }
 
+function displaySetbackView() {
+    let txt = ``
+
+    const total = player.setback.reduce((a,b) => Decimal.add(a, b))
+    let txt2 = ``
+    for (let i = 0; i < player.setback.length; i++) {
+        if (!SETBACK_CALC.shown[i]()) {
+            continue;
+        }
+        let color = tmp.quarkNames[i]
+        let capsColor = tmp.quarkNamesC[i]
+        txt2 += `
+                <span style="color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}; font-size: 14px">${capsColor}: <b>${format(player.setback[i])}</b></span>
+                <span style="color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}; font-size: 12px">This will generate <b>${format(total.pow(2).mul(Decimal.pow(player.setback[i], 2)))}</b> base ${color} quarks per second.</span>
+                <span style="color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}; font-size: 12px">${capsColor} multipliers are increased by <b>${format(Decimal.pow(2, Decimal.mul(player.setback[i], 0.75).add(total.mul(0.25))), 2)}×</b>.</span>
+            `
+    }
+    txt += `
+        <div style="background-color: #40404080; border: 3px solid #ffffff; width: 400px;">
+            <div class="font flex-vertical" style="font-size: 12px;">
+                <span style="color: #ffffff; font-size: 16px">Total Difficulty: <b>${format(total)}</b></span>
+                ${txt2}
+            </div>
+        </div>
+    `
+
+    html['setbackLoadoutView'].setHTML(txt)
+}
+
 function useSetback(i) {
     if (player.currentSetback === i) {
         player.currentSetback = null
@@ -915,59 +1008,8 @@ function selectSBUpg(i, j) {
     tmp.sbSelectedUpg[1] = j
 }
 
-function setbackAutobuyerEnabledAndSpeed(i, j) {
-    let auto = false
-    let spd = D(0)
-    if (i !== 3) {
-        if (hasTranscendMilestone(3) && (j === 0 || (i === 0 && j >= 1 && j <= 3))) {
-            auto = true
-            spd = D(4)
-        }
-        if (hasTranscendMilestone(4) && (j === 1 || (i === 1 && j >= 2 && j <= 4))) {
-            auto = true
-            spd = D(4)
-        }
-        if (hasTranscendMilestone(5) && (j === 2 || (i === 2 && j >= 3 && j <= 5))) {
-            auto = true
-            spd = D(4)
-        }
-        if (hasTranscendMilestone(6)) {
-            if (j === 0) {
-                spd = spd.mul(2.5)
-            }
-            if (j === 4 || j === 5) {
-                auto = true
-                spd = D(4)
-            }
-        }
-        if (hasTranscendMilestone(7)) {
-            if (j === 1) {
-                spd = spd.mul(2.5)
-            }
-            if (j === 6 || j === 7) {
-                auto = true
-                spd = D(4)
-            }
-        }
-        if (hasTranscendMilestone(8)) {
-            if (j === 2 || j === 3) {
-                spd = spd.mul(2.5)
-            }
-        }
-        if (hasTranscendMilestone(9)) {
-            if (j >= 4 && j <= 7) {
-                spd = spd.mul(2.5)
-            }
-        }
-    }
-
-    auto ||= player.cheats.autoDim
-
-    spd = spd.mul(tmp.timeSpeedTiers[0])
-    if (player.cheats.autoDim) {
-        spd = D(Infinity)
-    }
-    return {enabled: auto, speed: spd}
+function setbackAutobuyerSpeed(i, j) {
+    return tmp.quarkDimAutoData[i][j]
 }
 
 function displaySetbackUI(list) {
@@ -1007,14 +1049,6 @@ function colorAmountTotal(color) {
     return total
 }
 
-function resetSetbackEffects() {
-    const arr = []
-    for (let i = 0; i < SETBACK_CALC.difficulty.length; i++) {
-        arr.push(SETBACK_CALC.difficulty[i](0))
-    }
-    return arr
-}
-
 function processSetbackEffects(stackArr, effectArr) {
     for (let i = 0; i < stackArr.length; i++) {
         for (let j = 0; j < player.setback.length; j++) {
@@ -1023,8 +1057,7 @@ function processSetbackEffects(stackArr, effectArr) {
             }
         }
         if (i > 10) {
-            console.warn('overrun')
-            break
+            throw new Error(`processSetbackEffects fell into a (likely) infinite loop. (>10 iterations)`)
         }
 
         if (Decimal.gte(stackArr[i][3], 1)) {
@@ -1044,7 +1077,7 @@ function processSetbackEffects(stackArr, effectArr) {
                     effectArr[j][2] = effectArr[j][2].add(SETBACK_CALC.difficulty[j](stackArr[i][j])[2])
                     break;
                 default:
-                    throw new Error('wuh?')
+                    throw new Error(`Setback id ${j} doesn't exist!`)
             }
         }
     }

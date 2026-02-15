@@ -78,11 +78,11 @@ function updateHTML_stats() {
                     }
 
                     html[`statUpgrade${i}cost`].setTxt(`${format(i+2)}× per ${format(tmp.buyables[i].costSpeed.recip().mul(10))} purchases, sped up by ${format(Decimal.div(player.buyables[i], tmp.bybBoostInterval).floor().pow_base(tmp.bybBoostCost))}×`)
-                    html[`statUpgrade${i}eff`].setTxt(`×${format(tmp.buyables[i].effectBase, 3)}`)
+                    html[`statUpgrade${i}eff`].setTxt(`${player.prestigeChallenge === 2? '' : '×'}${format(tmp.buyables[i].effectBase, 3)}`)
 
-                    html[`statUpgrade${i}auto`].setDisplay(buyableAutoEnabledAndSpeed(i).enabled)
-                    if (buyableAutoEnabledAndSpeed(i).enabled) {
-                        html[`statUpgrade${i}autoStatus`].setTxt(`${buyableAutoEnabledAndSpeed(i).speed.gte(1e6) ? 'A.' : 'Autobuyer'} Speed: ${format(buyableAutoEnabledAndSpeed(i).speed, 1)}`)
+                    html[`statUpgrade${i}auto`].setDisplay(buyableAutobSpeed(i).gt(0))
+                    if (buyableAutobSpeed(i).gt(0)) {
+                        html[`statUpgrade${i}autoStatus`].setTxt(`${buyableAutobSpeed(i).gte(1e6) ? 'A.' : 'Autobuyer'} Speed: ${format(buyableAutobSpeed(i), 1)}`)
                     }
                 } else {
                     html[`statUpgrade${i}`].setDisplay(false)
@@ -102,7 +102,7 @@ function updateHTML_stats() {
             for (let i = 0; i < tmp.factors.prestige.length; i++) {
                 txt += `<li>${tmp.factors.prestige[i]}</li>`
             }
-            txt += `<b style="font-size: 14px">Final: ${format(tmp.prestigeAmount)}</b>`
+            txt += `<b style="font-size: 14px">Final: ${format(tmp.prestigePointGain)}</b>`
             html['prestigeFactors'].setHTML(txt)
 
             html['generatorFactors'].setDisplay(player.prestigeChallengeCompleted.includes(0))
@@ -121,7 +121,7 @@ function updateHTML_stats() {
                 for (let i = 0; i < tmp.factors.ascend.length; i++) {
                     txt += `<li>${tmp.factors.ascend[i]}</li>`
                 }
-                txt += `<b style="font-size: 14px">Final: ${format(tmp.ascendAmount)}</b>`
+                txt += `<b style="font-size: 14px">Final: ${format(tmp.ascendPointGain)}</b>`
                 html['ascendFactors'].setHTML(txt)
             }
 

@@ -105,15 +105,15 @@ const TRANSCENSION_UPGRADES = [
             },
             name: "Patience",
             get desc() {
-                return `Point gain is boosted by <b>${format(tmp.transEffs[0][0][0], 2)}×</b>, then <b>^${format(tmp.transEffs[0][0][1], 3)}</b> based off time since a transcension.`
+                return `Point gain is boosted by <b>${format(tmp.transEffs[0][0][0], 2)}×</b>, then <b>^${format(tmp.transEffs[0][0][1], 3)}</b> based off time since a transcension, up to one hour.`
             },
             get eff() {
                 const eff = [
-                    Decimal.max(player.timeInTranscension, 0).div(86400).add(1).ln().pow_base(Number.MAX_VALUE), 
-                    Decimal.max(player.timeInTranscension, 0).div(86400).add(1).ln().sqrt().mul(0.125).add(1)
+                    Decimal.max(player.timeInTranscension, 0).div(3600).min(1).sqrt().pow_base(1e20), 
+                    Decimal.max(player.timeInTranscension, 0).div(3600).min(1).sqrt().mul(0.02).add(1)
                 ]
-                if (player.currentHinderance === 3) {
-                    eff[1] = eff[1].pow(0.2)
+                if (tmp.hinderances[3].depth.gt(0)) {
+                    eff[1] = eff[1].pow(Decimal.pow(0.2, tmp.hinderances[3].depth))
                 }
                 return eff
             }
@@ -324,10 +324,13 @@ const TRANSCENSION_UPGRADES = [
                     if (!(player.inSetback && Decimal.eq(player.setback[0], 4) && Decimal.eq(player.setback[1], 4))) {
                         return false;
                     }
-                    if (player.currentHinderance !== 1) {
+                    if (!tmp.hinderances[1].depth.gt(0)) {
                         return false;
                     }
                     if (Decimal.gt(player.generatorFeatures.enhancerBuyables[1], 0)) {
+                        return false;
+                    }
+                    if (tmp.buyables.reduce((accumulator, current) => Decimal.max(accumulator, current.genLevels)).lt(40)) {
                         return false;
                     }
                     return tmp.buyables.reduce((accumulator, current) => Decimal.max(accumulator, current.genLevels)).gte(40)
@@ -485,7 +488,7 @@ const TRANSCENSION_UPGRADES = [
             get eff() {
                 let eff = Decimal.max(player.generatorFeatures.enhancer, 0).add(1).log10().add(1).log10().div(20).add(1)
                 if (player.currentHinderance === 3) {
-                    eff = eff.pow(0.2)
+                    eff = eff.pow(Decimal.pow(0.2, tmp.hinderances[3].depth))
                 }
                 return eff
             }
@@ -500,11 +503,11 @@ const TRANSCENSION_UPGRADES = [
             },
             unlock: {
                 get req() {
-                    return Decimal.gte(player.bestPointsInTranscend, '7.777e7777') && Decimal.lte(player.prestigeCountInTrans, 1) && Decimal.lte(player.ascendCount, 1) && Decimal.lte(player.enhanceCount, 1) && player.transcendInSpecialReq === "prest4"
+                    return Decimal.gte(player.bestPointsInTranscend, '7.777e7777') && player.transcendInSpecialReq === "prest4"
                 },
                 restriction: true,
                 get desc() {
-                    return `${conditionMet(player.transcendInSpecialReq === "prest4")} Auto-prestige, prestige essence, ascend, and enhancer gains are disabled. You may only ${conditionMet(Decimal.lte(player.prestigeCountInTrans, 1))} prestige, ${conditionMet(Decimal.lte(player.ascendCount, 1))} ascend, and ${conditionMet(Decimal.lte(player.enhanceCount, 1))} enhance once in a transcension reset, and reach ${conditionMet(Decimal.gte(player.bestPointsInTranscend, '7.777e7777'), format(player.bestPointsInTranscend) + ' / 7.777e7,777')} points. (Remember, challenges don't count.)`
+                    return `${conditionMet(player.transcendInSpecialReq === "prest4")} Auto-prestige, prestige essence, ascend, and enhancer gains are disabled. You may only prestige, ascend, and enhance once in a transcension reset, and reach ${conditionMet(Decimal.gte(player.bestPointsInTranscend, '7.777e7777'), format(player.bestPointsInTranscend) + ' / 7.777e7,777')} points. (Remember, challenges don't count.)`
                 }
             },
             name: "Advantageous 'Challenge'",
@@ -572,16 +575,16 @@ const TRANSCENSION_UPGRADES = [
             },
             unlock: {
                 get req() {
-                    return Decimal.gte(player.bestPointsInTranscend[1], 'ee4') && player.transcendInSpecialReq === "point4"
+                    return Decimal.gte(player.bestPointsInTranscend, 'e6000') && player.transcendInSpecialReq === "point4"
                 },
                 restriction: true,
                 get desc() {
-                    return `Reach ${conditionMet(Decimal.gte(player.bestPointsInTranscend, 'ee4'), format(player.bestPointsInTranscend) + ' / 1.000e10,000')} points while buyables, ascension buyables, and generators scale 10,000× faster. This resets ascension buyables!`
+                    return `Reach ${conditionMet(Decimal.gte(player.bestPointsInTranscend, 'e6000'), format(player.bestPointsInTranscend) + ' / 1.000e10,000')} points while ${conditionMet(player.transcendInSpecialReq === "point4")} basic buyables, ascension buyables, and generators scale 1,000× faster. This resets ascension buyables!`
                 }
             },
             name: "Extreme Buyable Boost",
             get desc() {
-                return `The generator effect to buyables are dilated by 3.`
+                return `The generator effect to buyables are dilated by 1.4.`
             },
             eff: null
         },
@@ -597,11 +600,11 @@ const TRANSCENSION_UPGRADES = [
             },
             unlock: {
                 get req() {
-                    return Decimal.gte(player.bestPointsInTranscend[1], 'e1185') && player.transcendInSpecialReq === "hinderance2"
+                    return Decimal.gte(player.bestPointsInTranscend, 'e1185') && player.transcendInSpecialReq === "hinderance2"
                 },
                 restriction: true,
                 get desc() {
-                    return `Reach ${conditionMet(Decimal.gte(player.bestPointsInTranscend, 'e1185'), format(player.bestPointsInTranscend) + ' / 1.000e1,185')} points while trapped in Hinderances 2, 3, and 4.`
+                    return `Reach ${conditionMet(Decimal.gte(player.bestPointsInTranscend, 'e1185'), format(player.bestPointsInTranscend) + ' / 1.000e1,185')} points while ${conditionMet(player.transcendInSpecialReq === "hinderance2")} trapped in Hinderances 3 and 4.`
                 }
             },
             name: "Distant Stars",
@@ -683,7 +686,7 @@ const TRANSCENSION_UPGRADES = [
         },
         {
             id: "prest5",
-            color: "prest",
+            color: "prestige",
             cost: D(1e52),
             prereq: ["hinderance2"],
             get shown() {
@@ -764,6 +767,7 @@ function initHTML_transcend() {
     toHTMLvar('transcendNext')
     toHTMLvar('transcendPoints')
     toHTMLvar('transcendPointEffect')
+    toHTMLvar('transcendPointEffectNext')
     toHTMLvar('transcendResets')
     toHTMLvar('transcendResetEffect')
 
@@ -778,6 +782,8 @@ function initHTML_transcend() {
     toHTMLvar('upgradeTransTabButton')
     toHTMLvar('milestoneTransTabButton')
     toHTMLvar('perkTransTabButton')
+    // does nothing as of now
+    html['perkTransTabButton'].setDisplay(false)
 
     toHTMLvar('UpgradeTransTab')
     toHTMLvar('MilestoneTransTab')
@@ -855,21 +861,37 @@ function updateGame_transcend() {
     tmp.transcendNext = tmp.transcendNext.add(1).root(0.0005).mul(tmp.transcendReq)
 
     tmp.transcendEffect = Decimal.max(player.transcendPointTotal, 0).add(1).log10().mul(0.02).add(1).ln().mul(100).pow10()
+    tmp.transcendEffectNext = Decimal.add(player.transcendPointTotal, tmp.transcendAmount).max(0).add(1).log10().mul(0.02).add(1).ln().mul(100).pow10()
     tmp.transcendResetEffect = Decimal.max(player.transcendResetCount, 0).pow_base(2) // this is probably risky, i should change this at some point
+    tmp.transcendResetEffectMilestone = Decimal.max(player.transcendResetCount, 0).pow_base(2)
 }
 
 function updateHTML_transcend() {
-    html['transcendTab'].setDisplay(tmp.tab === 5)
+    html['transcendTab'].setDisplay(tmp.tab === 4)
     html['transcendTabButton'].setDisplay(Decimal.gt(player.transcendResetCount, 0))
-    if (tmp.tab === 5) {
+
+    if (tmp.tab === 0 && tmp.mainTab === 0) {
+        html['transcendAmount'].setTxt(`${format(tmp.transcendAmount)}`);
+
+        let show = Decimal.lt(tmp.transcendAmount, 100)
+        html['transcendNext'].setDisplay(show)
+        if (show) {
+            html['transcendNext'].setTxt(`Next transcension point at ${format(tmp.transcendNext)} points.`);
+        }
+
+        html['transcend'].setDisplay(Decimal.gte(player.bestPointsInTranscend, 'e1500') || Decimal.gt(player.transcendResetCount, 0));
+    }
+
+    if (tmp.tab === 4) {
         html['transcendPoints'].setTxt(`${format(player.transcendPoints)}`)
         html['transcendPointEffect'].setTxt(`Multiplying point gain by ${format(tmp.transcendEffect, 2)}`)
+        html['transcendPointEffectNext'].setTxt(`×${format(tmp.transcendEffectNext.div(tmp.transcendEffect), 2)} upon next reset`)
         html['transcendResets'].setTxt(`${format(player.transcendResetCount)}`)
         html['transcendResetEffect'].setTxt(`Multiplying point gain by ${format(tmp.transcendResetEffect, 2)}`)
 
         html['MilestoneTransTab'].setDisplay(tmp.transTab === 0)
         html['UpgradeTransTab'].setDisplay(tmp.transTab === 1)
-        html['PerkTransTab'].setDisplay(tmp.transTab === 1)
+        html['PerkTransTab'].setDisplay(tmp.transTab === 2)
         if (tmp.transTab === 0) {
             for (let i = 0; i < TRANSCENSION_MILESTONES.length; i++) {
                 if (i > 0) {
@@ -915,14 +937,44 @@ function updateHTML_transcend() {
                 html['transUpgName2'].setTxt(transUpg.name)
                 html['transUpgCost'].setTxt(player.transcendUpgrades.includes(transUpg.id) ? 'This upgrade is already bought.' : (preReqLimited ? `You need to buy ${preReqText} in order to buy ${transUpg.name}.` : (unlocked ? `Cost: ${format(transUpg.cost)} Transcension Points` : `You need to meet the upgrade's requirements before buying ${transUpg.name}!`)))
 
-                html['buyTransUpgrade'].changeStyle('background-color', unlocked ? (Decimal.gte(player.transcendPoints, transUpg.cost) ? '#40008080' : '#20004080') : '#20202080')
-                html['buyTransUpgrade'].changeStyle('border', '3px solid ' + (unlocked ? (Decimal.gte(player.transcendPoints, transUpg.cost) ? '#8000ff' : '#400080') : '#404040'))
-                html['buyTransUpgrade'].changeStyle('cursor', unlocked && Decimal.gte(player.transcendPoints, transUpg.cost) ? 'pointer' : 'not-allowed')
+                html['buyTransUpgrade'].changeStyle('background-color', unlocked 
+                    ? (Decimal.gte(player.transcendPoints, transUpg.cost) 
+                        ? '#40008080' 
+                        : '#20004080') 
+                    : '#20202080')
+                html['buyTransUpgrade'].changeStyle('border', '3px solid ' + (
+                    unlocked 
+                        ? (Decimal.gte(player.transcendPoints, transUpg.cost) 
+                            ? '#8000ff' 
+                            : '#400080') 
+                        : '#404040'))
+                html['buyTransUpgrade'].changeStyle('cursor', 
+                    unlocked && Decimal.gte(player.transcendPoints, transUpg.cost) 
+                        ? 'pointer' 
+                        : 'not-allowed')
 
-                html['enterTransRestriction'].setTxt(!transUpg.unlock.restriction ? 'This upgrade does not have a custom restriction.' : `Press this button to do a transcension reset and enter ${transUpg.name}.`)
-                html['enterTransRestriction'].changeStyle('background-color', transUpg.unlock.restriction ? (player.transcendInSpecialReq === TRANSCENSION_UPGRADES[tmp.transSelectedUpg[0]][tmp.transSelectedUpg[1]].id ? '#40008080' : '#20004080') : '#20202080')
-                html['enterTransRestriction'].changeStyle('border', '3px solid ' + (transUpg.unlock.restriction ? (player.transcendInSpecialReq === TRANSCENSION_UPGRADES[tmp.transSelectedUpg[0]][tmp.transSelectedUpg[1]].id ? '#8000ff' : '#400080') : '#404040'))
-                html['enterTransRestriction'].changeStyle('cursor', transUpg.unlock.restriction ? 'pointer' : 'not-allowed')
+                html['enterTransRestriction'].setTxt(
+                    !transUpg.unlock.restriction 
+                        ? 'This upgrade does not have a custom restriction.' 
+                        : preReqLimited
+                            ? `You need to buy ${preReqText} in order to enter ${transUpg.name}.`
+                            : `Press this button to do a transcension reset and enter ${transUpg.name}.`)
+                html['enterTransRestriction'].changeStyle('background-color', 
+                    transUpg.unlock.restriction && !preReqLimited 
+                        ? (player.transcendInSpecialReq === TRANSCENSION_UPGRADES[tmp.transSelectedUpg[0]][tmp.transSelectedUpg[1]].id 
+                            ? '#40008080' 
+                            : '#20004080') 
+                        : '#20202080')
+                html['enterTransRestriction'].changeStyle('border', '3px solid ' + (
+                    transUpg.unlock.restriction && !preReqLimited 
+                        ? (player.transcendInSpecialReq === TRANSCENSION_UPGRADES[tmp.transSelectedUpg[0]][tmp.transSelectedUpg[1]].id 
+                            ? '#8000ff' 
+                            : '#400080')
+                        : '#404040'))
+                html['enterTransRestriction'].changeStyle('cursor', 
+                    transUpg.unlock.restriction && !preReqLimited 
+                        ? 'pointer' 
+                        : 'not-allowed')
             }
 
             for (let i = 0; i < TRANSCENSION_UPGRADES.length; i++) {
@@ -968,7 +1020,7 @@ function willGetTM(id) {
 }
 
 function getTranscendMilestoneReq(id) {
-    return TRANSCENSION_MILESTONES[id].baseReq.div(Decimal.pow(2, player.transcendResetCount))
+    return TRANSCENSION_MILESTONES[id].baseReq.div(tmp.transcendResetEffectMilestone)
 }
 
 // ! note, Gen XP may not reset correctly!
@@ -977,11 +1029,11 @@ function doTranscendReset(doAnyway = false) {
         if (tmp.transcendAmount.lte(0)) {
             return
         }
-    }
 
-    player.transcendPoints = Decimal.add(player.transcendPoints, tmp.transcendAmount)
-    player.transcendPointTotal = Decimal.add(player.transcendPointTotal, tmp.transcendAmount)
-    player.transcendResetCount = Decimal.add(player.transcendResetCount, 1)
+        player.transcendPoints = Decimal.add(player.transcendPoints, tmp.transcendAmount)
+        player.transcendPointTotal = Decimal.add(player.transcendPointTotal, tmp.transcendAmount)
+        player.transcendResetCount = Decimal.add(player.transcendResetCount, 1)
+    }
 
     player.bestPointsInTranscend = D(0)
     player.timeInTranscension = D(0)
@@ -1011,7 +1063,7 @@ function doTranscendReset(doAnyway = false) {
     player.ascendCount = D(0)
     player.ascendGems = D(0)
     for (let i = 0; i < player.ascendUpgrades.length; i++) {
-        if (hasTranscendMilestone(11) && i >= 8 && i <= 15) {
+        if (hasTranscendMilestone(11) && i >= 8 && i <= 15 && player.transcendInSpecialReq != "point4") {
             continue;
         }
         player.ascendUpgrades[i] = D(0)
@@ -1059,7 +1111,7 @@ function doTranscendReset(doAnyway = false) {
 
     tmp.generatorFeatures.genXPBuyables = resetGenXPBuyables()
     tmp.generatorFeatures.genEnhBuyables = resetGenEnhBuyables()
-    tmp.ascendAmount = D(0)
+    tmp.ascendPointGain = D(0)
     tmp.setbackTab = 0
     tmp.ascendTab = 0
 
@@ -1081,10 +1133,25 @@ function buyTransUpg(i, j) {
 }
 
 function toggleTransRest() {
-    if (player.transcendInSpecialReq === TRANSCENSION_UPGRADES[tmp.transSelectedUpg[0]][tmp.transSelectedUpg[1]].id) {
+    const transUpg = TRANSCENSION_UPGRADES[tmp.transSelectedUpg[0]][tmp.transSelectedUpg[1]]
+    if (!transUpg.unlock.restriction) {
+        return
+    }
+    if (tmp.transSelectedUpg[0] === undefined || tmp.transSelectedUpg[1] === undefined) {
+        spawnPopup(0, "I don't think you can go into a non-existant upgrade's restriction...", "Huh?", 5, "#808080")
+        return
+    }
+    if (transUpg.prereq !== null) {
+        for (let i = 0; i < transUpg.prereq.length; i++) {
+            if (!player.transcendUpgrades.includes(transUpg.prereq[i])) {
+                return // return early, we're not counting all prereqs missing
+            }
+        }
+    }
+    if (player.transcendInSpecialReq === transUpg.id) {
         player.transcendInSpecialReq = null
     } else {
-        player.transcendInSpecialReq = TRANSCENSION_UPGRADES[tmp.transSelectedUpg[0]][tmp.transSelectedUpg[1]].id
+        player.transcendInSpecialReq = transUpg.id
     }
     doTranscendReset(true)
 }

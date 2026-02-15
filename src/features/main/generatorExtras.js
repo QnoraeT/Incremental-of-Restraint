@@ -159,6 +159,9 @@ const GEN_ENH_BUYABLES = [
             return eff
         },
         get desc() {
+            if (player.transcendInSpecialReq === "exp2") {
+                return `Slow down tier gain significantly.`
+            }
             return `Unlock Tiers (like generators) that slows down buyable costs. Tier gain speeds up with more purchases.`
         }
     },
@@ -203,7 +206,7 @@ const GEN_ENH_BUYABLES = [
             return target
         },
         get eff() {
-            let eff = player.buyableTierPoints.reduce((accumulator, current) => Decimal.mul(accumulator, current), player.buyableTierPoints[0])
+            let eff = player.buyableTierPoints.reduce((accumulator, current) => Decimal.mul(accumulator, Decimal.max(current, 0).add(1)), player.buyableTierPoints[0])
             eff = eff.pow(player.generatorFeatures.enhancerBuyables[4])
             if (colorAmountTotal(3).gt(0)) {
                 return D(1)
@@ -379,10 +382,13 @@ function updateGame_generatorExtras() {
         }
 
         tmp.generatorFeatures.enhancerGain = Decimal.gte(player.generatorFeatures.xp, 1e33) && colorAmountTotal(3).lte(0) ? Decimal.div(player.generatorFeatures.xp, 1e33).pow(0.02) : D(0)
+        if (player.transcendInSpecialReq === "prest4" && Decimal.gte(player.generatorFeatures.enhanceCount, 1)) {
+            tmp.generatorFeatures.enhancerGain = new Decimal(0)
+        }
         tmp.generatorFeatures.enhancerGain = tmp.generatorFeatures.enhancerGain.mul(tmp.generatorFeatures.genEnhBuyables[3].eff)
         tmp.generatorFeatures.enhancerGain = cheatDilateBoost(tmp.generatorFeatures.enhancerGain).floor()
 
-        if (colorAmountTotal(3).gt(0)) {
+        if (colorAmountTotal(3).gt(0) || (player.transcendInSpecialReq === "prest4" && Decimal.gte(player.generatorFeatures.enhanceCount, 1))) {
             tmp.generatorFeatures.enhancerNext = D(Infinity)
         } else {
             tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerGain.add(1)
@@ -452,7 +458,7 @@ function updateGame_generatorExtras() {
             tmp.generatorFeatures.xpEffPoints = D(0.05)
         }
         tmp.generatorFeatures.xpEffPoints = player.generatorFeatures.xp.add(1).log10().add(1).log10().mul(total.max(1).log2()).mul(tmp.generatorFeatures.xpEffPoints).add(1)
-        if (player.currentHinderance === 3) {
+        if (tmp.hinderances[3].depth.gt(0)) {
             tmp.generatorFeatures.xpEffPoints = tmp.generatorFeatures.xpEffPoints.pow(0.2)
         }
     }
@@ -490,7 +496,12 @@ function updateHTML_generatorExtras() {
         html['genLvTotalBest'].setTxt(format(player.bestTotalGenLvs))
 
         html['enhAmount'].setTxt(format(tmp.generatorFeatures.enhancerGain))
-        html['enhNext'].setTxt(format(tmp.generatorFeatures.enhancerNext))
+        let show = Decimal.lt(tmp.generatorFeatures.enhancerGain, 100)
+        html['enhNext'].setDisplay(show)
+        if (show) {
+            html['enhNext'].setTxt(`Next enhancer at ${format(tmp.generatorFeatures.enhancerNext)} generator XP.`);
+        }
+
         html['generatorEnhance'].changeStyle('cursor', Decimal.gt(tmp.generatorFeatures.enhancerGain, 0) ? 'pointer' : 'not-allowed')
         html['generatorAdvance'].setDisplay(Decimal.gt(player.generatorFeatures.enhancerBuyables[5], 0) || Decimal.gt(player.generatorFeatures.totalAdv, 0))
         html['generatorAdvance'].changeStyle('cursor', Decimal.gt(tmp.generatorFeatures.advanceGain, 0) ? 'pointer' : 'not-allowed')
@@ -534,7 +545,13 @@ function updateHTML_generatorExtras() {
             html['genAdvance'].setTxt(format(player.generatorFeatures.advance))
             html['genAdvEff'].setTxt(format(tmp.generatorFeatures.advanceEff, 2))
             html['advAmount'].setTxt(format(tmp.generatorFeatures.advanceGain))
-            html['advNext'].setTxt(format(tmp.generatorFeatures.advanceNext))
+
+            let show = Decimal.lt(tmp.generatorFeatures.advanceGain, 100)
+            html['advNext'].setDisplay(show)
+            if (show) {
+                html['advNext'].setTxt(`Next advance at ${format(tmp.generatorFeatures.advanceNext)} generator enhancers.`);
+            }
+
             for (let i = 0; i < GEN_ADV.length; i++) {
                 html[`genAdvBuy${i}`].setDisplay(GEN_ADV[i].show)
                 if (GEN_ADV[i].show) {
@@ -557,10 +574,11 @@ function doGenEnhReset(doAnyway = false) {
         if (tmp.generatorFeatures.enhancerGain.lte(0)) {
             return;
         }
-    }
 
-    player.generatorFeatures.enhancer = Decimal.add(player.generatorFeatures.enhancer, tmp.generatorFeatures.enhancerGain)
-    player.generatorFeatures.totalEnh = Decimal.add(player.generatorFeatures.totalEnh, tmp.generatorFeatures.enhancerGain)
+        player.generatorFeatures.enhancer = Decimal.add(player.generatorFeatures.enhancer, tmp.generatorFeatures.enhancerGain)
+        player.generatorFeatures.totalEnh = Decimal.add(player.generatorFeatures.totalEnh, tmp.generatorFeatures.enhancerGain)
+        player.generatorFeatures.enhanceCount = Decimal.add(player.generatorFeatures.enhanceCount, 1)
+    }
 
     player.generatorFeatures.xp = D(0)
     for (let i = 0; i < GEN_XP_BUYABLES.length; i++) {

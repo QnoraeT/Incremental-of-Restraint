@@ -2,16 +2,6 @@
 // ! Ultimate Goal:
 // ! Make inflation hard to do -- To test all currencies, try raising the third exponent by 2 (dilate true, dilateStage 2, dilateValue 2) to see what happens, it should stay stable
 
-// upgrade/study ideas
-// .
-// 100 levels
-// UP1: +1x,    ^1.5   = 100 -> 1,000
-// UP2: +0.5x,  ^1.75  = 50  -> 1,000
-// UP3: +0.25x, ^2.125 = 25  -> 1,000
-// UP4: +0.1x,  ^2.9   = 10  -> 1,000
-// UP5: +0.05x, ^3.9   = 5   -> 1,000
-// UP6: +0.01x, ^10    = 2   -> 1,000 (base cost: 1.000 B, but due to g9, is 1)
-
 // START GAME LOGIC
 const saveID = "restraint_inc_tearonq";
 function initPlayer() {
@@ -152,26 +142,35 @@ function initTmp() {
         timeSpeedTiers: [D(1)],
         pointGen: D(1),
         buyables: [],
+        basicBuyableEnabled: [],
+        basicBuyableAutobData: [],
         bybBoostInterval: D(100),
         bybBoostEffect: D(2),
         bybBoostCost: D(2),
         pc11Eff: D(1),
-        prestigeAmount: D(0),
-        prestigeNext: D(0),
-        prestigeUsed: D(0),
-        prestigeUpgradeCap: D(0),
+        autoPrestige: false,
+        prestigePointGain: D(0),
+        prestigePointNext: D(0),
         prestigePointEffect: D(1),
+        prestigePointEffectNext: D(1),
+        prestigePointsUsed: D(0),
+        prestigeUpgCap: D(0),
         prestigeUpgEffs: [],
         prestigeUpgDescs: [],
         prestigeChal: [],
-        totalPrestigeUpgrades: D(0),
+        prestigeIsUpg: true,
+        prevPrestigeIsUpg: false,
+        totalPrestigeUpg: D(0),
         peGain: D(0),
         peNext: D(0),
         peEffect: D(1),
+        peEffectNext: D(1),
         generatorSpeed: D(1),
-        ascendAmount: D(0),
-        ascendNext: D(0),
+        autoAscend: false,
+        ascendPointGain: D(0),
+        ascendPointNext: D(0),
         ascendPointEffect: D(0),
+        ascendPointEffectNext: D(0),
         dartGain: D(0),
         dartEffect: D(1),
         setbackTotalStacks: [],
@@ -189,9 +188,11 @@ function initTmp() {
         quarkEffs: [],
         energyEffs: [],
         dimBoughtBM: [],
+        quarkDimAutoData: [],
         quarkNames: ['red', 'green', 'blue', 'cyan', 'magenta', 'yellow'],
         quarkNamesC: ['Red', 'Green', 'Blue', 'Cyan', 'Magenta', 'Yellow'],
         quarkColors: ['FF0000', '00FF00', '0000FF', '00FFFF', 'FF00FF', 'FFFF00'],
+        quarkColorsCalc: [],
         sbSelectedUpg: [],
         generatorFeatures: {
             gain: D(0),
@@ -206,12 +207,15 @@ function initTmp() {
             advanceNext: D(0),
             advanceEff: D(1)
         },
+        hinderances: [],
         transcendReq: D(0),
         transcendAmount: D(0),
         transcendNext: D(0),
         transcendUsed: D(0),
         transcendEffect: D(1),
+        transcendEffectNext: D(1),
         transcendResetEffect: D(1),
+        transcendResetEffectMilestone: D(1),
         transEffs: [],
         transSelectedUpg: [],
         replicatorSpd: D(1.01),
@@ -221,6 +225,8 @@ function initTmp() {
         replicatorTrueSpdDisp2: D(1)
     }
     obj.buyables = resetMainBuyables()
+    obj.basicBuyableEnabled = resetBuyableEnable()
+    obj.basicBuyableAutobData = resetBuyableAuto()
     for (let i = PRESTIGE_CHALLENGES.length - 1; i >= 0; i--) {
         obj.prestigeChal[i] = {
             entered: false,
@@ -228,7 +234,16 @@ function initTmp() {
             depth: D(0)
         }
     }
+    for (let i = HINDERANCES.length - 1; i >= 0; i--) {
+        obj.hinderances[i] = {
+            entered: false,
+            trapped: false,
+            depth: D(0)
+        }
+    }
     obj.setbackEffects = resetSetbackEffects()
+    obj.quarkDimAutoData = resetQuarkDimAuto()
+    obj.quarkColorsCalc = resetQuarkColors(obj.quarkColors)
     obj.generatorFeatures.genXPBuyables = resetGenXPBuyables()
     obj.generatorFeatures.genEnhBuyables = resetGenEnhBuyables()
     obj.transEffs = resetTransUpgBuyables()
@@ -250,6 +265,60 @@ function resetMainBuyables() {
             tierLevels: D(0),
             tierEffect: D(1)
         }
+    }
+    return arr
+}
+
+function resetBuyableEnable() {
+    const arr = []
+    for (let i = 0; i < player.buyables.length; i++) {
+        arr[i] = false
+    }
+    return arr
+}
+
+function resetBuyableAuto() {
+    const arr = []
+    for (let i = 0; i < player.buyables.length; i++) {
+        arr[i] = D(0)
+    }
+    return arr
+}
+
+function resetSetbackEffects() {
+    const arr = []
+    for (let i = 0; i < SETBACK_CALC.difficulty.length; i++) {
+        arr.push(SETBACK_CALC.difficulty[i](0))
+    }
+    return arr
+}
+
+function resetQuarkDimAuto() {
+    const arr = []
+    for (let i = 0; i < player.quarkDimsBought.length; i++) {
+        arr.push([])
+    }
+    for (let i = 0; i < player.quarkDimsBought.length; i++) {
+        for (let j = 0; j < player.quarkDimsBought[i].length; j++) {
+            arr[i].push({ enabled: false, spd: D(0) })
+        }
+    }
+    return arr
+}
+
+function resetQuarkColors(colors) {
+    const arr = []
+    for (let i = 0; i < player.quarkDimsBought.length; i++) {
+        arr.push({
+            yes: {
+                border: `${colorChange(colors[i], 1.0, 1.0)}`,
+                bg: `${colorChange(colors[i], 0.5, 1.0)}80`,
+            },
+            no: {
+                border: `${colorChange(colors[i], 0.5, 1.0)}`,
+                bg: `${colorChange(colors[i], 0.25, 1.0)}80`,
+            }
+        })
     }
     return arr
 }
@@ -311,6 +380,7 @@ let pen
 let gameTick
 const gameVars = {
     timeUntilSave: 5,
+    delta: 0,
     offlineTimeFailed: false,
     saveDisabled: false
 };
@@ -516,6 +586,7 @@ function initHTML() {
         toHTMLvar('offlineTimeProgressBar')
         toHTMLvar('offlineTimeProgressBarBase')
         toHTMLvar('offlineTimeDisplay')
+        toHTMLvar('popup-container')
 
         html['inGame'].setDisplay(false)
         html['offlineTime'].setDisplay(false)
@@ -634,6 +705,7 @@ function gameLoop() {
     }
 
     delta = (Date.now() - player.lastTick) / 1000
+    gameVars.delta = delta
     if (!tmp.offlineTime.active) {
         player.lastTick = Date.now()
         if (delta >= 10) {
@@ -676,17 +748,22 @@ function gameLoop() {
         html['offlineTime'].setDisplay(false)
 
         updateHTML()
+        diePopupsDie()
         drawing()
 
         gameVars.timeUntilSave -= delta
-        if (gameVars.timeUntilSave <= 0) {
-            gameVars.timeUntilSave += 5
-            localStorage.setItem(saveID, LZString.compressToBase64(JSON.stringify(player)));
-        }
+        // if (gameVars.timeUntilSave <= 0) {
+        //     gameVars.timeUntilSave += 5
+        //     localStorage.setItem(saveID, LZString.compressToBase64(JSON.stringify(player)));
+        // }
     }
 }
 
 function updateHTML() {
+    for (let i = 0; i < popupList.length; i++) {
+        html[`popupID${i}`].style.opacity = `${popupList[i].opacity}`
+    }
+
     let txt = ``
     updateHTML_replicators()
     updateHTML_transcend()
@@ -705,6 +782,11 @@ function updateHTML() {
     for (let i = 0; i < PRESTIGE_CHALLENGES.length; i++) {
         if (tmp.prestigeChal[i].trapped) {
             trappedArr.push(`<span style="color: #0080ff"><b>PC${i + 1}</b>: ${PRESTIGE_CHALLENGES[i].name}${tmp.prestigeChal[i].depth.neq(1) ? ' <b>×' + format(tmp.prestigeChal[i].depth) + '</b>' : ''}</span>`)
+        }
+    }
+    for (let i = 0; i < HINDERANCES.length; i++) {
+        if (tmp.hinderances[i].trapped) {
+            trappedArr.push(`<span style="color: #ff0020"><b>H${i + 1}</b>: ${HINDERANCES[i].name}${tmp.hinderances[i].depth.neq(1) ? ' <b>×' + format(tmp.hinderances[i].depth) + '</b>' : ''}</span>`)
         }
     }
     if (tmp.setbackTotalStacks.length >= 1) {
