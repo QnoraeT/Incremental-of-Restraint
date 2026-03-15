@@ -43,6 +43,7 @@ const UPDATE_LOG = [
             "Fixed setback effects being incorrect.",
             "Fixed minor grammatical issues in Setback Dimensions.",
             "Fixed Hinderance 2: Undesirable Rot's effect on Prestige Upgrade 12, it incorrectly affected generators.",
+            "Fixed Hinderance 3: Multitude's effect on PC4: Stacking Interest, where it actually *enabled* its effect of intervals.",
             "Fixed an exploit when unlocking Ascension Buyable persistence, you can infinitely force transcend reset to gain increasing transcension reset boosts. Now you need 1.000e2,400 points for the reset to count.",
         ]
     }

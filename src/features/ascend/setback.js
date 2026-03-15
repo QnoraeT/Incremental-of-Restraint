@@ -616,10 +616,16 @@ function updateGame_setback() {
 
     for (let i = 0; i < player.setback.length; i++) {
         tmp.trueQuarkGain[i] = Decimal.pow(tmp.trueQuarkGain[i], 2).mul(tmp.trueQuarkTotal)
+        if (tmp.hinderances[4].depth.gt(0)) {
+            tmp.trueQuarkGain[i] = tmp.trueQuarkGain[i].pow(tmp.hinderances[4].effects.resource);
+        }
         tmp.trueQuarkGain[i] = cheatDilateBoost(tmp.trueQuarkGain[i])
         tmp.trueQuarkGain[i] = tmp.trueQuarkGain[i].mul(tmp.timeSpeedTiers[0])
 
         tmp.predictedQuarkGain[i] = Decimal.pow(tmp.predictedQuarkGain[i], 2).mul(tmp.predictedQuarkTotal)
+        if (tmp.hinderances[4].depth.gt(0)) {
+            tmp.predictedQuarkGain[i] = tmp.predictedQuarkGain[i].pow(tmp.hinderances[4].effects.resource);
+        }
         tmp.predictedQuarkGain[i] = cheatDilateBoost(tmp.predictedQuarkGain[i])
         tmp.predictedQuarkGain[i] = tmp.predictedQuarkGain[i].mul(tmp.timeSpeedTiers[0])
 
@@ -655,6 +661,8 @@ function updateGame_setback() {
 
             tmp.quarkDim[i][j].target = Decimal.max(player.setbackEnergy[i], 1).log10()
             tmp.quarkDim[i][j].target = tmp.quarkDim[i][j].target.sub(Decimal.pow(j + 1, 2)).div(j + 3)
+
+            tmp.quarkDim[i][j].target = tmp.quarkDim[i][j].target.max(-0.0001) // put this after all cost scaling changes
 
             let h = tmp.quarkDim[i][j].target.mul(tmp.quarkBoostCost.sub(1)).div(tmp.quarkBoostInterval).add(1).log(tmp.quarkBoostCost).floor()
             tmp.quarkDim[i][j].target = tmp.quarkDim[i][j].target.add(tmp.quarkBoostInterval.div(tmp.quarkBoostCost.sub(1))).div(tmp.quarkBoostCost.pow(h)).add(h.sub(tmp.quarkBoostCost.sub(1).recip()).mul(tmp.quarkBoostInterval))
@@ -716,6 +724,9 @@ function updateGame_setback() {
             let gen = tmp.quarkDim[i][j].mult.mul(Decimal.add(player.quarkDimsAccumulated[i][j], player.quarkDimsBought[i][j]))
             if (j === 0) {
                 gen = gen.mul(tmp.quarkEffs[i])
+                if (tmp.hinderances[4].depth.gt(0)) {
+                    gen = gen.pow(tmp.hinderances[4].effects.resource);
+                }
                 gen = cheatDilateBoost(gen)
             } 
             gen = gen.mul(delta).mul(tmp.timeSpeedTiers[0])

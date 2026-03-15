@@ -113,7 +113,7 @@ const TRANSCENSION_UPGRADES = [
                     Decimal.max(player.timeInTranscension, 0).div(3600).min(1).sqrt().mul(0.02).add(1)
                 ]
                 if (tmp.hinderances[3].depth.gt(0)) {
-                    eff[1] = eff[1].pow(Decimal.pow(0.2, tmp.hinderances[3].depth))
+                    eff[1] = eff[1].pow(tmp.hinderances[3].effects.pts)
                 }
                 return eff
             }
@@ -488,7 +488,7 @@ const TRANSCENSION_UPGRADES = [
             get eff() {
                 let eff = Decimal.max(player.generatorFeatures.enhancer, 0).add(1).log10().add(1).log10().div(20).add(1)
                 if (player.currentHinderance === 3) {
-                    eff = eff.pow(Decimal.pow(0.2, tmp.hinderances[3].depth))
+                    eff = eff.pow(tmp.hinderances[3].effects.pts)
                 }
                 return eff
             }

@@ -5,7 +5,7 @@
 // START GAME LOGIC
 const saveID = "restraint_inc_tearonq";
 function initPlayer() {
-    const obj = {
+    return {
         cheats: {
             autobuyUnlock: false,
             autobuyBulk: false,
@@ -116,11 +116,9 @@ function initPlayer() {
         repliupgrades: [],
         perksUsed: []
     }
-
-    return obj
 }
 function initTmp() {
-    const obj = {
+    return {
         fps: [],
         lastFPSTick: 0,
         offlineTime: {
@@ -141,9 +139,9 @@ function initTmp() {
         factors: {},
         timeSpeedTiers: [D(1)],
         pointGen: D(1),
-        buyables: [],
-        basicBuyableEnabled: [],
-        basicBuyableAutobData: [],
+        buyables: resetMainBuyables(),
+        basicBuyableEnabled: resetBuyableEnable(),
+        basicBuyableAutobData: resetBuyableAuto(),
         bybBoostInterval: D(100),
         bybBoostEffect: D(2),
         bybBoostCost: D(2),
@@ -157,7 +155,7 @@ function initTmp() {
         prestigeUpgCap: D(0),
         prestigeUpgEffs: [],
         prestigeUpgDescs: [],
-        prestigeChal: [],
+        prestigeChal: resetPrestigeChalEffs(),
         prestigeIsUpg: true,
         prevPrestigeIsUpg: false,
         totalPrestigeUpg: D(0),
@@ -167,6 +165,7 @@ function initTmp() {
         peEffectNext: D(1),
         generatorSpeed: D(1),
         autoAscend: false,
+        ascendBuyables: resetAscendBuyables(),
         ascendPointGain: D(0),
         ascendPointNext: D(0),
         ascendPointEffect: D(0),
@@ -174,7 +173,7 @@ function initTmp() {
         dartGain: D(0),
         dartEffect: D(1),
         setbackTotalStacks: [],
-        setbackEffects: [],
+        setbackEffects: resetSetbackEffects(),
         projectedEffects: [],
         predictedQuarkGain: [],
         predictedQuarkTotal: D(0),
@@ -188,26 +187,27 @@ function initTmp() {
         quarkEffs: [],
         energyEffs: [],
         dimBoughtBM: [],
-        quarkDimAutoData: [],
+        quarkDimAutoData: resetQuarkDimAuto(),
         quarkNames: ['red', 'green', 'blue', 'cyan', 'magenta', 'yellow'],
         quarkNamesC: ['Red', 'Green', 'Blue', 'Cyan', 'Magenta', 'Yellow'],
         quarkColors: ['FF0000', '00FF00', '0000FF', '00FFFF', 'FF00FF', 'FFFF00'],
-        quarkColorsCalc: [],
+        // reuse array here
+        quarkColorsCalc: resetQuarkColors(['FF0000', '00FF00', '0000FF', '00FFFF', 'FF00FF', 'FFFF00']),
         sbSelectedUpg: [],
         generatorFeatures: {
             gain: D(0),
-            genXPBuyables: [],
+            genXPBuyables: resetGenXPBuyables(),
             xpEffGenerators: D(1),
             xpEffPoints: D(1),
             enhancerGain: D(0),
             enhancerNext: D(0),
             enhancerEff: D(1),
-            genEnhBuyables: [],
+            genEnhBuyables: resetGenEnhBuyables(),
             advanceGain: D(0),
             advanceNext: D(0),
             advanceEff: D(1)
         },
-        hinderances: [],
+        hinderances: resetHinderanceEffs(),
         transcendReq: D(0),
         transcendAmount: D(0),
         transcendNext: D(0),
@@ -216,7 +216,7 @@ function initTmp() {
         transcendEffectNext: D(1),
         transcendResetEffect: D(1),
         transcendResetEffectMilestone: D(1),
-        transEffs: [],
+        transEffs: resetTransUpgBuyables(),
         transSelectedUpg: [],
         replicatorSpd: D(1.01),
         replicatorStrength: D(1),
@@ -224,30 +224,6 @@ function initTmp() {
         replicatorTrueSpdDisp1: D(1),
         replicatorTrueSpdDisp2: D(1)
     }
-    obj.buyables = resetMainBuyables()
-    obj.basicBuyableEnabled = resetBuyableEnable()
-    obj.basicBuyableAutobData = resetBuyableAuto()
-    for (let i = PRESTIGE_CHALLENGES.length - 1; i >= 0; i--) {
-        obj.prestigeChal[i] = {
-            entered: false,
-            trapped: false,
-            depth: D(0)
-        }
-    }
-    for (let i = HINDERANCES.length - 1; i >= 0; i--) {
-        obj.hinderances[i] = {
-            entered: false,
-            trapped: false,
-            depth: D(0)
-        }
-    }
-    obj.setbackEffects = resetSetbackEffects()
-    obj.quarkDimAutoData = resetQuarkDimAuto()
-    obj.quarkColorsCalc = resetQuarkColors(obj.quarkColors)
-    obj.generatorFeatures.genXPBuyables = resetGenXPBuyables()
-    obj.generatorFeatures.genEnhBuyables = resetGenEnhBuyables()
-    obj.transEffs = resetTransUpgBuyables()
-    return obj
 }
 
 function resetMainBuyables() {
@@ -255,7 +231,7 @@ function resetMainBuyables() {
     for (let i = 0; i < player.buyables.length; i++) {
         arr[i] = {
             effective: D(0),
-            effect: D(1),
+            effect: D(0),
             cost: D(10),
             effectBase: D(0),
             costSpeed: D(1),
@@ -263,7 +239,8 @@ function resetMainBuyables() {
             genLevels: D(0),
             genEffect: D(1),
             tierLevels: D(0),
-            tierEffect: D(1)
+            tierEffect: D(1),
+            canBuy: false,
         }
     }
     return arr
@@ -285,23 +262,36 @@ function resetBuyableAuto() {
     return arr
 }
 
-function resetSetbackEffects() {
+function resetPrestigeChalEffs() {
     const arr = []
-    for (let i = 0; i < SETBACK_CALC.difficulty.length; i++) {
-        arr.push(SETBACK_CALC.difficulty[i](0))
+    for (let i = PRESTIGE_CHALLENGES.length - 1; i >= 0; i--) {
+        arr[i] = {
+            entered: false,
+            trapped: false,
+            effects: {},
+            depth: D(0)
+        }
     }
     return arr
 }
 
-function resetQuarkDimAuto() {
+function resetAscendBuyables() {
     const arr = []
-    for (let i = 0; i < player.quarkDimsBought.length; i++) {
-        arr.push([])
-    }
-    for (let i = 0; i < player.quarkDimsBought.length; i++) {
-        for (let j = 0; j < player.quarkDimsBought[i].length; j++) {
-            arr[i].push({ enabled: false, spd: D(0) })
+    for (let i = ASCENSION_UPGRADES.length - 1; i >= 0; i--) {
+        arr[i] = {
+            eff: D(0),
+            cost: D(1),
+            target: D(0),
+            canBuy: false
         }
+    }
+    return arr
+}
+
+function resetSetbackEffects() {
+    const arr = []
+    for (let i = 0; i < SETBACK_CALC.difficulty.length; i++) {
+        arr.push(SETBACK_CALC.difficulty[i](0))
     }
     return arr
 }
@@ -323,13 +313,40 @@ function resetQuarkColors(colors) {
     return arr
 }
 
+function resetQuarkDimAuto() {
+    const arr = []
+    for (let i = 0; i < player.quarkDimsBought.length; i++) {
+        arr.push([])
+    }
+    for (let i = 0; i < player.quarkDimsBought.length; i++) {
+        for (let j = 0; j < player.quarkDimsBought[i].length; j++) {
+            arr[i].push({ enabled: false, spd: D(0) })
+        }
+    }
+    return arr
+}
+
+function resetHinderanceEffs() {
+    const arr = []
+    for (let i = HINDERANCES.length - 1; i >= 0; i--) {
+        arr[i] = {
+            entered: false,
+            trapped: false,
+            effects: {},
+            depth: D(0)
+        }
+    }
+    return arr
+}
+
 function resetGenXPBuyables() {
     const arr = []
     for (let i = 0; i < player.generatorFeatures.buyable.length; i++) {
         arr[i] = {
-            eff: D(1),
+            eff: D(0),
             cost: D(1),
-            target: D(0)
+            target: D(0),
+            canBuy: false
         }
     }
     return arr
@@ -339,9 +356,10 @@ function resetGenEnhBuyables() {
     const arr = []
     for (let i = 0; i < player.generatorFeatures.enhancerBuyables.length; i++) {
         arr[i] = {
-            eff: D(1),
+            eff: D(0),
             cost: D(1),
-            target: D(0)
+            target: D(0),
+            canBuy: false
         }
     }
     return arr
@@ -546,7 +564,7 @@ function loadGame() {
     }
 
     updatePlayer()
-
+    test()
     initHTML()
 
     // cheats start
@@ -752,10 +770,10 @@ function gameLoop() {
         drawing()
 
         gameVars.timeUntilSave -= delta
-        // if (gameVars.timeUntilSave <= 0) {
-        //     gameVars.timeUntilSave += 5
-        //     localStorage.setItem(saveID, LZString.compressToBase64(JSON.stringify(player)));
-        // }
+        if (gameVars.timeUntilSave <= 0) {
+            gameVars.timeUntilSave += 5
+            localStorage.setItem(saveID, LZString.compressToBase64(JSON.stringify(player)));
+        }
     }
 }
 
@@ -850,8 +868,8 @@ function calcTimeSpeed() {
         addStatFactor('tier1Time', `Trans. Upg. "Double the speed?"`, `×`, 2, tmp.timeSpeedTiers[0])
     }
     if (tmp.prestigeChal[11].depth.gt(0)) {
-        tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].div(tmp.prestigeChal[11].depth.pow_base(1e3))
-        addStatFactor('tier1Time', `PC12`, `/`, tmp.prestigeChal[11].depth.pow_base(1e3), tmp.timeSpeedTiers[0])
+        tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].div(tmp.prestigeChal[11].effects.timeSpeed)
+        addStatFactor('tier1Time', `PC12`, `/`, tmp.prestigeChal[11].effects.timeSpeed, tmp.timeSpeedTiers[0])
     }
 }
 

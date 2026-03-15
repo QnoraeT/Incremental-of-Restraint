@@ -13,6 +13,18 @@ function inverseFact(x) {
     return Decimal.div(x, 2.5066282746310002).ln().div(Math.E).lambertw().add(1).exp().sub(0.5);
 };
 
+function smoothPoly(x, poly, start, inverse) {
+    return inverse
+        ? Decimal.add(x, Decimal.div(start, poly)).mul(Decimal.sub(poly, 1).pow_base(start).mul(poly)).root(poly).sub(start)
+        : Decimal.add(x, start).pow(poly).div(Decimal.sub(poly, 1).pow_base(start).mul(poly)).sub(Decimal.div(start, poly))
+}
+
+function smoothExp(x, exp, inv) {
+    return inv
+        ? Decimal.mul(x, Decimal.ln(exp)).add(1).log(exp)
+        : Decimal.pow(exp, x).sub(1).div(Decimal.ln(exp))
+}
+
 class Element {
     constructor(el) {
         this.id = typeof el == "string" ? el : el.id;

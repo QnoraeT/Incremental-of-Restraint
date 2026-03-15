@@ -11,12 +11,12 @@ const GEN_XP_BUYABLES = [
             cost = cost.pow_base(scale.add(1)).sub(1).div(scale).pow_base(3)
             return cost.floor()
         },
-        get target() {
+        target(resource) {
             let scale = D(0.004)
             if (hasSetbackUpgrade('c7')) {
                 scale = scale.div(2)
             }
-            let target = D(player.generatorFeatures.xp).ceil()
+            let target = D(resource).ceil()
             target = target.max(1).log(3).mul(scale).add(1).log(scale.add(1))
             return target
         },
@@ -37,8 +37,8 @@ const GEN_XP_BUYABLES = [
             cost = cost.pow_base(1.007).sub(1).div(0.007).pow_base(20).mul(250)
             return cost.floor()
         },
-        get target() {
-            let target = D(player.generatorFeatures.xp).ceil()
+        target(resource) {
+            let target = D(resource).ceil()
             target = target.div(250).max(1).log(20).mul(0.007).add(1).log(1.007)
             return target
         },
@@ -63,8 +63,8 @@ const GEN_XP_BUYABLES = [
             cost = cost.pow_base(1.02).sub(1).div(0.02).pow_base(1e25).mul(1e100)
             return cost
         },
-        get target() {
-            let target = D(player.generatorFeatures.xp).ceil()
+        target(resource) {
+            let target = D(resource).ceil()
             target = target.div(1e100).max(1).log(1e25).mul(0.02).add(1).log(1.02)
             return target
         },
@@ -89,8 +89,8 @@ const GEN_ENH_BUYABLES = [
             cost = cost.pow_base(1.02).sub(1).div(0.02).pow_base(2)
             return cost.floor()
         },
-        get target() {
-            let target = D(player.generatorFeatures.enhancer).ceil()
+        target(resource) {
+            let target = D(resource).ceil()
             target = target.max(1).log(2).mul(0.02).add(1).log(1.02)
             return target
         },
@@ -115,8 +115,8 @@ const GEN_ENH_BUYABLES = [
             cost = cost.pow_base(1.02).sub(1).div(0.02).pow_base(3).mul(5)
             return cost.floor()
         },
-        get target() {
-            let target = D(player.generatorFeatures.enhancer).ceil()
+        target(resource) {
+            let target = D(resource).ceil()
             target = target.div(5).max(1).log(3).mul(0.02).add(1).log(1.02)
             return target
         },
@@ -145,8 +145,8 @@ const GEN_ENH_BUYABLES = [
             cost = cost.pow_base(2).add(1).pow10()
             return cost.floor()
         },
-        get target() {
-            let target = D(player.generatorFeatures.enhancer).ceil()
+        target(resource) {
+            let target = D(resource).ceil()
             target = target.max(100).log10().sub(1).log(2)
             return target
         },
@@ -174,8 +174,8 @@ const GEN_ENH_BUYABLES = [
             cost = cost.pow_base(1.03).sub(1).div(0.03).pow_base(3).mul(1000)
             return cost.floor()
         },
-        get target() {
-            let target = D(player.generatorFeatures.enhancer).ceil()
+        target(resource) {
+            let target = D(resource).ceil()
             target = target.div(1000).max(1).log(3).mul(0.03).add(1).log(1.03)
             return target
         },
@@ -200,8 +200,8 @@ const GEN_ENH_BUYABLES = [
             cost = cost.pow_base(1.01).sub(1).div(0.01).pow_base(1e25).mul(1e100)
             return cost.floor()
         },
-        get target() {
-            let target = D(player.generatorFeatures.enhancer).ceil()
+        target(resource) {
+            let target = D(resource).ceil()
             target = target.div(1e100).max(1).log(1e25).mul(0.01).add(1).log(1.01)
             return target
         },
@@ -226,8 +226,8 @@ const GEN_ENH_BUYABLES = [
             cost = cost.pow_base(3).pow_base(Number.MAX_VALUE)
             return cost.floor()
         },
-        get target() {
-            let target = D(player.generatorFeatures.enhancer).ceil()
+        target(resource) {
+            let target = D(resource).ceil()
             target = target.max(1).log(Number.MAX_VALUE).max(1).log(3)
             return target
         },
@@ -351,8 +351,11 @@ function initHTML_generatorExtras() {
 }
 
 function updateGame_generatorExtras() {
+    let resource
     if (hasSetbackUpgrade(`r10`)) {
-        tmp.generatorFeatures.advanceGain = Decimal.gte(player.generatorFeatures.totalEnh, Number.MAX_VALUE) && Decimal.gt(player.generatorFeatures.enhancerBuyables[5], 0) ? Decimal.max(player.generatorFeatures.totalEnh, 1).log(Number.MAX_VALUE) : D(0)
+        tmp.generatorFeatures.advanceGain = Decimal.gte(player.generatorFeatures.totalEnh, Number.MAX_VALUE) && Decimal.gt(player.generatorFeatures.enhancerBuyables[5], 0) 
+            ? inverseFact(Decimal.max(player.generatorFeatures.totalEnh, 1)).log(Number.MAX_VALUE)
+            : D(0)
         tmp.generatorFeatures.advanceGain = cheatDilateBoost(tmp.generatorFeatures.advanceGain).floor()
         tmp.generatorFeatures.advanceGain = tmp.generatorFeatures.advanceGain.sub(player.generatorFeatures.totalAdv).max(0)
 
@@ -361,14 +364,20 @@ function updateGame_generatorExtras() {
         } else {
             tmp.generatorFeatures.advanceNext = tmp.generatorFeatures.advanceGain.add(1).add(player.generatorFeatures.totalAdv)
             tmp.generatorFeatures.advanceNext = cheatDilateBoost(tmp.generatorFeatures.advanceNext, true)
-            tmp.generatorFeatures.advanceNext = tmp.generatorFeatures.advanceNext.pow_base(Number.MAX_VALUE)
+            tmp.generatorFeatures.advanceNext = tmp.generatorFeatures.advanceNext.factorial().pow_base(Number.MAX_VALUE)
         }
 
-        tmp.generatorFeatures.advanceEff = Decimal.max(player.generatorFeatures.totalAdv, 0).add(1).log10().mul(Decimal.max(player.generatorFeatures.enhancerBuyables[5], 1)).add(1)
+        tmp.generatorFeatures.advanceEff = Decimal.max(player.generatorFeatures.totalAdv, 0).add(1).mul(Decimal.max(player.generatorFeatures.enhancerBuyables[5], 1)).add(1)
 
         for (let i = 0; i < GEN_ENH_BUYABLES.length; i++) {
             tmp.generatorFeatures.genEnhBuyables[i].cost = GEN_ENH_BUYABLES[i].cost
-            tmp.generatorFeatures.genEnhBuyables[i].target = GEN_ENH_BUYABLES[i].target
+
+            if (tmp.hinderances[4].depth.gt(0) && i != 0) {
+                resource = player.generatorFeatures.enhancerBuyables[i - 1]
+            } else {
+                resource = player.generatorFeatures.enhancer
+            }
+            tmp.generatorFeatures.genEnhBuyables[i].target = GEN_ENH_BUYABLES[i].target(resource)
 
             if (player.genEnhAuto && GEN_ENH_BUYABLES[i].show) {
                 let bought = player.generatorFeatures.enhancerBuyables[i]
@@ -379,6 +388,7 @@ function updateGame_generatorExtras() {
             }
 
             tmp.generatorFeatures.genEnhBuyables[i].eff = GEN_ENH_BUYABLES[i].eff
+            tmp.generatorFeatures.genEnhBuyables[i].canBuy = Decimal.gte(resource, tmp.generatorFeatures.genEnhBuyables[i].cost)
         }
 
         tmp.generatorFeatures.enhancerGain = Decimal.gte(player.generatorFeatures.xp, 1e33) && colorAmountTotal(3).lte(0) ? Decimal.div(player.generatorFeatures.xp, 1e33).pow(0.02) : D(0)
@@ -386,6 +396,9 @@ function updateGame_generatorExtras() {
             tmp.generatorFeatures.enhancerGain = new Decimal(0)
         }
         tmp.generatorFeatures.enhancerGain = tmp.generatorFeatures.enhancerGain.mul(tmp.generatorFeatures.genEnhBuyables[3].eff)
+        if (tmp.hinderances[4].depth.gt(0)) {
+            tmp.generatorFeatures.enhancerGain = tmp.generatorFeatures.enhancerGain.pow(tmp.hinderances[4].effects.resource);
+        }
         tmp.generatorFeatures.enhancerGain = cheatDilateBoost(tmp.generatorFeatures.enhancerGain).floor()
 
         if (colorAmountTotal(3).gt(0) || (player.transcendInSpecialReq === "prest4" && Decimal.gte(player.generatorFeatures.enhanceCount, 1))) {
@@ -393,6 +406,9 @@ function updateGame_generatorExtras() {
         } else {
             tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerGain.add(1)
             tmp.generatorFeatures.enhancerNext = cheatDilateBoost(tmp.generatorFeatures.enhancerNext, true)
+            if (tmp.hinderances[4].depth.gt(0)) {
+                tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.root(tmp.hinderances[4].effects.resource);
+            }
             tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.div(tmp.generatorFeatures.genEnhBuyables[3].eff)
             tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.root(0.02).mul(1e33)
         }
@@ -409,7 +425,13 @@ function updateGame_generatorExtras() {
 
         for (let i = 0; i < GEN_XP_BUYABLES.length; i++) {
             tmp.generatorFeatures.genXPBuyables[i].cost = GEN_XP_BUYABLES[i].cost
-            tmp.generatorFeatures.genXPBuyables[i].target = GEN_XP_BUYABLES[i].target
+
+            if (tmp.hinderances[4].depth.gt(0) && i != 0) {
+                resource = player.generatorFeatures.buyable[i - 1]
+            } else {
+                resource = player.generatorFeatures.xp
+            }
+            tmp.generatorFeatures.genXPBuyables[i].target = GEN_XP_BUYABLES[i].target(resource)
 
             if (player.genXPAuto && GEN_XP_BUYABLES[i].show) {
                 let bought = player.generatorFeatures.buyable[i]
@@ -420,6 +442,7 @@ function updateGame_generatorExtras() {
             }
 
             tmp.generatorFeatures.genXPBuyables[i].eff = GEN_XP_BUYABLES[i].eff
+            tmp.generatorFeatures.genXPBuyables[i].canBuy = Decimal.gte(resource, tmp.generatorFeatures.genXPBuyables[i].cost)
         }
 
         let total = D(0)
@@ -437,12 +460,15 @@ function updateGame_generatorExtras() {
             totalGain = totalGain.div(tmp.setbackEffects[3][0])
         }
         tmp.generatorFeatures.gain = totalGain.mul(totalGain.pow10()).div(1e6)
-        tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.mul(GEN_XP_BUYABLES[0].eff)
+        tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.mul(tmp.generatorFeatures.genXPBuyables[0].eff)
         tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.mul(tmp.generatorFeatures.enhancerEff)
         if (!player.inSetback) {
             tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.mul(tmp.energyEffs[3])
         }
 
+        if (tmp.hinderances[4].depth.gt(0)) {
+            tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.pow(tmp.hinderances[4].effects.resource);
+        }
         tmp.generatorFeatures.gain = cheatDilateBoost(tmp.generatorFeatures.gain)
         tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.mul(tmp.timeSpeedTiers[0])
 
@@ -510,9 +536,14 @@ function updateHTML_generatorExtras() {
         for (let i = 0; i < GEN_XP_BUYABLES.length; i++) {
             html[`genXPBuy${i}`].setDisplay(GEN_XP_BUYABLES[i].show)
             if (GEN_XP_BUYABLES[i].show) {
-                canBuy = Decimal.gte(player.generatorFeatures.xp, GEN_XP_BUYABLES[i].cost)
+                canBuy = Decimal.gte(player.generatorFeatures.xp, tmp.generatorFeatures.genXPBuyables[i].cost)
                 html[`genXPBuy${i}eff`].setTxt(GEN_XP_BUYABLES[i].desc)
-                html[`genXPBuy${i}cost`].setTxt(`Cost: ${format(GEN_XP_BUYABLES[i].cost)} generator experience`)
+                if (tmp.hinderances[4].depth.gt(0) && i != 0) {
+                    html[`genXPBuy${i}cost`].setTxt(`Cost: ${format(tmp.generatorFeatures.genXPBuyables[i].cost)} Gen. XP B. ${i}`)
+                } else {
+                    html[`genXPBuy${i}cost`].setTxt(`Cost: ${format(tmp.generatorFeatures.genXPBuyables[i].cost)} generator experience`)
+                }
+                
                 html[`genXPBuy${i}amount`].setTxt(`Gen. XP Buyable #${i+1}: ×${format(player.generatorFeatures.buyable[i])}`)
 
                 html[`genXPBuy${i}`].changeStyle('background-color', canBuy ? '#C0780080' : '#40280080')
@@ -528,9 +559,13 @@ function updateHTML_generatorExtras() {
             for (let i = 0; i < GEN_ENH_BUYABLES.length; i++) {
                 html[`genEnhBuy${i}`].setDisplay(GEN_ENH_BUYABLES[i].show)
                 if (GEN_ENH_BUYABLES[i].show) {
-                    canBuy = Decimal.gte(player.generatorFeatures.enhancer, GEN_ENH_BUYABLES[i].cost)
+                    canBuy = Decimal.gte(player.generatorFeatures.enhancer, tmp.generatorFeatures.genEnhBuyables[i].cost)
                     html[`genEnhBuy${i}eff`].setTxt(GEN_ENH_BUYABLES[i].desc)
-                    html[`genEnhBuy${i}cost`].setTxt(`Cost: ${format(GEN_ENH_BUYABLES[i].cost)} enhancers`)
+                    if (tmp.hinderances[4].depth.gt(0) && i != 0) {
+                        html[`genEnhBuy${i}cost`].setTxt(`Cost: ${format(tmp.generatorFeatures.genEnhBuyables[i].cost)} Gen. Enh. B. ${i}`)
+                    } else {
+                        html[`genEnhBuy${i}cost`].setTxt(`Cost: ${format(tmp.generatorFeatures.genEnhBuyables[i].cost)} enhancers`)
+                    }
                     html[`genEnhBuy${i}amount`].setTxt(`Gen. Enh. Buyable #${i+1}: ×${format(player.generatorFeatures.enhancerBuyables[i])}`)
 
                     html[`genEnhBuy${i}`].changeStyle('background-color', canBuy ? '#C0C00080' : '#40400080')
@@ -605,7 +640,7 @@ function doGenAdvReset(doAnyway = false) {
 }
 
 function buyGenXPBuy(i) {
-    if (Decimal.lt(player.generatorFeatures.xp, GEN_XP_BUYABLES[i].cost)) {
+    if (!tmp.generatorFeatures.genXPBuyables[i].canBuy) {
         return;
     }
     player.generatorFeatures.xp = Decimal.sub(player.generatorFeatures.xp, GEN_XP_BUYABLES[i].cost)
@@ -617,10 +652,14 @@ function buyGenXPBuy(i) {
 }
 
 function buyGenEnhBuy(i) {
-    if (Decimal.lt(player.generatorFeatures.enhancer, GEN_ENH_BUYABLES[i].cost)) {
+    if (!tmp.generatorFeatures.genEnhBuyables[i].canBuy) {
         return;
     }
-    player.generatorFeatures.enhancer = Decimal.sub(player.generatorFeatures.enhancer, GEN_ENH_BUYABLES[i].cost)
+
+    if (tmp.hinderances[4].depth.lte(0) || i != 0) {
+        player.generatorFeatures.enhancer = Decimal.sub(player.generatorFeatures.enhancer, GEN_ENH_BUYABLES[i].cost)
+    }
+    
     if (shiftDown) {
         player.generatorFeatures.enhancerBuyables[i] = Decimal.max(player.generatorFeatures.enhancerBuyables[i], tmp.generatorFeatures.genEnhBuyables[i].target.ceil())
     } else {
