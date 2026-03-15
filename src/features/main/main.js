@@ -23,6 +23,43 @@ const MAIN_SPECIALS = {
     }
 }
 
+const BASIC_BUY_LOCATIONS = () => { 
+    let resource = player.points;
+    if (tmp.hinderances[4].depth.gt(0) && i != 0) {
+        resource = player.buyables[i - 1];
+    }
+    return {
+        resource: resource,
+        playerBuyableArea: player.testBuyables,
+        tmpBuyableArea: tmp.testBuyables
+    } 
+};
+
+const BASIC_BUYABLES = [
+    new Buyable(0, BASIC_BUY_LOCATIONS, 
+        () => {
+            return tmp.basicBuyableEnabled[0];
+        },
+        (bought) => {
+            return smoothExp(bought, 1.04, false).pow_base(2).mul(100)
+        },
+        (resource) => {
+            if (Decimal.lt(resource, 100)) {
+                return new Decimal(0)
+            }
+            return smoothExp(Decimal.div(resource, 100).log(2), 1.04, true)
+        },
+        (bought) => {
+            let pow = new Decimal(2)
+            pow = pow.mul(tmp.testBuyables[1].effect)
+            return Decimal.add(bought, 1).pow(pow)
+        },
+        (genAmt) => {
+            return inverseFact(genAmt).floor()
+        }
+    ),
+]
+
 function initHTML_main() {
     toHTMLvar('mainTab')
     toHTMLvar('mainTabButton')

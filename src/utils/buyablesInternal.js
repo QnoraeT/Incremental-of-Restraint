@@ -1,14 +1,14 @@
 "use strict";
 
 class Buyable {
-    constructor(id, locations, enabledFunc, costFunc, targetFunc, effectFunc) {
+    constructor(id, locations, enabledFunc, costFunc, targetFunc, effectFunc, specialFunc) {
         // locations
         /* 
-        () => {
-            resource: player.points,
-            playerBuyableArea: player.buyables
-            tmpBuyableArea: tmp.buyables
-        }
+            const TEST_BUY_LOCATIONS = () => { return {
+                resource: player.points,
+                playerBuyableArea: player.testBuyables,
+                tmpBuyableArea: tmp.testBuyables
+            } };
         */
         this.id = id;
         this.location = locations;
@@ -17,16 +17,7 @@ class Buyable {
         this.canBuy = false;
         this.targetFormulae = targetFunc;
         this.effectFormulae = effectFunc;
-
-        this.internalCost = D(Infinity);
-        this.internalTarget = D(-1);
-        this.internalEffect = D(0);
-        this.internalEnabled = false;
-
-        this.costCached = false;
-        this.targetCached = false;
-        this.effectCached = false;
-        this.enabledCached = false;
+        this.specialFormulae = specialFunc;
     }
 
     // returns DecimalSource
@@ -38,59 +29,65 @@ class Buyable {
         return this.location().playerBuyableArea[id];
     }
 
-    invalidateCache() {
-        this.costCached = false;
-        this.targetCached = false;
-        this.effectCached = false;
-        this.enabledCached = false;
-    }
-
     get enabled() {
-        if (!this.enabledCached) {
-            this.internalEnabled = this.enabledFormulae();
-            this.enabledCached = true;
-        }
-        return this.internalEnabled;
+        return this.enabledFormulae();
     }
 
     get cost() {
-        if (!this.costCached) {
-            bought = this.amount;
-            this.internalCost = this.costFormulae(bought);
-            this.canBuy = Decimal.gte(this.location().resource, this.internalCost);
-            this.costCached = true;
-        }
-        return this.internalCost;
+        let bought = this.amount;
+        this.canBuy = Decimal.gte(this.location().resource, this.internalCost);
+        return this.costFormulae(bought);
     }
 
     get target() {
-        if (!this.targetCached) {
-            resource = this.location().resource;
-            this.internalTarget = this.targetCached(resource);
-            this.targetCached = true;
-        }
-        return this.internalTarget;
+        let resource = this.location().resource;
+        return this.targetFormulae(resource);
     }
 
     get effect() {
-        if (!this.effectCached) {
-            bought = this.amount;
-            this.internalEffect = this.effectFormulae(bought);
-            this.effectCached = true;
-        }
-        return this.internalEffect;
+        let bought = this.amount;
+        return this.effectFormulae(bought);
+    }
+
+    special(...arg) {
+        return this.specialFormulae(...arg);
     }
 }
 
+// in gameHandle.js
 function test() {
     player.testResource = new Decimal(5.5981e263);
     player.testBuyables = [new Decimal(0), new Decimal(0), new Decimal(0), new Decimal(0)];
     tmp.testBuyables = [];
+    for (let i = 0; i < player.testBuyables.length; i++) {
+        tmp.testBuyables[i] = {
+            cost: D(Infinity),
+            target: D(0),
+            eff: D(0),
+            canBuy: false,
+            enabled: false,
+            special: {}
+        }
+    }
+}
+
+function updateAllBuyablesIntoTmp(locationFunc) {
+    
 }
 
 
+/*
+tmp.testBuyables[0].enabled = TEST_BUYABLES[0].enabled
+tmp.testBuyables[0].cost = TEST_BUYABLES[0].cost
+tmp.testBuyables[0].canBuy = TEST_BUYABLES[0].canBuy
+tmp.testBuyables[0].target = TEST_BUYABLES[0].target
+tmp.testBuyables[0].effect = TEST_BUYABLES[0].effect
+// example: generators
+tmp.testBuyables[0].special = TEST_BUYABLES[0].special(player.buyablePoints[0])
+*/
+
 const TEST_BUY_LOCATIONS = () => { return {
-    resource: player.testResource,
+    resource: player.points,
     playerBuyableArea: player.testBuyables,
     tmpBuyableArea: tmp.testBuyables
 } };
@@ -110,7 +107,12 @@ const TEST_BUYABLES = [
             return smoothExp(Decimal.div(resource, 100).log(2), 1.04, true)
         },
         (bought) => {
-            return Decimal.add(bought, 1).pow(2)
+            let pow = new Decimal(2)
+            pow = pow.mul(tmp.testBuyables[1].effect)
+            return Decimal.add(bought, 1).pow(pow)
+        },
+        (genAmt) => {
+            return inverseFact(genAmt).floor()
         }
     ),
     new Buyable(1, TEST_BUY_LOCATIONS, 
