@@ -564,7 +564,7 @@ function loadGame() {
     }
 
     updatePlayer()
-    // test()
+    test()
     initHTML()
 
     // cheats start
