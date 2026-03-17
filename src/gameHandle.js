@@ -44,6 +44,7 @@ function initPlayer() {
             D(0), D(0), D(0), 
             D(0), D(0), D(0), 
             D(0), D(0), D(0), 
+            D(0), D(0), D(0),
             D(0), D(0), D(0)
         ],
         prestigeChallenge: null,
@@ -109,9 +110,14 @@ function initPlayer() {
         transcendUpgradesUnlocked: {}, // FILL THIS WITH VALUES
         transcendInSpecialReq: null,
         replicators: D(1),
+        bestReplicators: D(1),
         replirank: D(0),
+        replirankPoints: D(0),
+        replirankBuyables: [D(0), D(0), D(0), D(0)],
         replitier: D(0),
+        replitierPoints: D(0),
         replitetr: D(0),
+        replitetrPoints: D(0),
         replispawns: D(0),
         repliupgrades: [],
         perksUsed: []
@@ -142,6 +148,7 @@ function initTmp() {
         buyables: resetMainBuyables(),
         basicBuyableEnabled: resetBuyableEnable(),
         basicBuyableAutobData: resetBuyableAuto(),
+        tierEffectBase: D(1),
         bybBoostInterval: D(100),
         bybBoostEffect: D(2),
         bybBoostCost: D(2),
@@ -222,7 +229,12 @@ function initTmp() {
         replicatorStrength: D(1),
         replicatorEff: D(1),
         replicatorTrueSpdDisp1: D(1),
-        replicatorTrueSpdDisp2: D(1)
+        replicatorTrueSpdDisp2: D(1),
+        repliRankPointGen: D(0),
+        repliRankReq: D(Infinity),
+        repliRankTarget: D(0),
+        repliRankEffect: D(0),
+        repliRankBuyables: resetRepliRankBuyables()
     }
 }
 
@@ -371,6 +383,19 @@ function resetTransUpgBuyables() {
         arr.push([])
         for (let j = 0; j < TRANSCENSION_UPGRADES[i].length; j++) {
             arr[i].push(D(0))
+        }
+    }
+    return arr
+}
+
+function resetRepliRankBuyables() {
+    const arr = []
+    for (let i = 0; i < player.replirankBuyables.length; i++) {
+        arr[i] = {
+            eff: D(0),
+            cost: D(1),
+            target: D(0),
+            canBuy: false
         }
     }
     return arr
@@ -527,24 +552,47 @@ function updatePlayer() {
         player.version = 22
     }
     if (player.version === 22) {
-
-        // player.version = 23
+        player.replirankBuyables = [D(0), D(0), D(0), D(0)]
+        player.version = 23
     }
     if (player.version === 23) {
-
-        // player.version = 24
+        player.replirankPoints = D(0)
+        player.replitierPoints = D(0)
+        player.replitetrPoints = D(0)
+        
+        player.version = 24
     }
     if (player.version === 24) {
+        player.bestReplicators = D(1)
 
-        // player.version = 25
+        player.version = 25
     }
     if (player.version === 25) {
+        player.prestigeUpgrades[15] = D(0)
+        player.prestigeUpgrades[16] = D(0)
+        player.prestigeUpgrades[17] = D(0)
 
-        // player.version = 26
+        player.version = 26
     }
     if (player.version === 26) {
 
         // player.version = 27
+    }
+    if (player.version === 27) {
+
+        // player.version = 28
+    }
+    if (player.version === 28) {
+
+        // player.version = 29
+    }
+    if (player.version === 29) {
+
+        // player.version = 30
+    }
+    if (player.version === 30) {
+
+        // player.version = 31
     }
 }
 
@@ -564,7 +612,7 @@ function loadGame() {
     }
 
     updatePlayer()
-    test()
+
     initHTML()
 
     // cheats start
@@ -723,6 +771,8 @@ function gameLoop() {
     }
 
     delta = (Date.now() - player.lastTick) / 1000
+    delta = Math.max(delta, 0) // for some reason, delta goes negative, and i'm really not sure why
+    // happened when debugging a NaN error
     gameVars.delta = delta
     if (!tmp.offlineTime.active) {
         player.lastTick = Date.now()
@@ -866,6 +916,10 @@ function calcTimeSpeed() {
     if (player.transcendUpgrades.includes('prest1')) {
         tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].mul(2)
         addStatFactor('tier1Time', `Trans. Upg. "Double the speed?"`, `×`, 2, tmp.timeSpeedTiers[0])
+    }
+    if (Decimal.gte(player.hinderanceScore[4], HINDERANCES[4].start)) {
+        tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].mul(HINDERANCES[4].eff)
+        addStatFactor('tier1Time', `Hinderance 5 PB`, `×`, HINDERANCES[4].eff, tmp.timeSpeedTiers[0])
     }
     if (tmp.prestigeChal[11].depth.gt(0)) {
         tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].div(tmp.prestigeChal[11].effects.timeSpeed)

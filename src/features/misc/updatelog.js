@@ -2,6 +2,7 @@
 
 const UPDATE_LOG = [
     {
+        tooSmall: false,
         version: 22,
         changes: [
             "Hid buyables that didn't have a prior buyable bought.",
@@ -17,6 +18,7 @@ const UPDATE_LOG = [
         ]
     },
     {
+        tooSmall: false,
         version: 23,
         changes: [
             "Simplified reset gain description in buttons past 100 of that resource's gain.",
@@ -36,6 +38,7 @@ const UPDATE_LOG = [
         features: [
             "Made the button to complete a prestige challenge turn cyan when the goal is reached.",
             "Made prestige challenges turn into a lighter shade of cyan when in the challenge and already completed.",
+            "WIP Replicators."
         ],
         bugfixes: [
             "Fixed negative prestige point issues caused by overbuying prestige upgrades with Shift.",
@@ -46,5 +49,57 @@ const UPDATE_LOG = [
             "Fixed Hinderance 3: Multitude's effect on PC4: Stacking Interest, where it actually *enabled* its effect of intervals.",
             "Fixed an exploit when unlocking Ascension Buyable persistence, you can infinitely force transcend reset to gain increasing transcension reset boosts. Now you need 1.000e2,400 points for the reset to count.",
         ]
-    }
+    },
+    {
+        tooSmall: true,
+        version: 24,
+        changes: [
+            "WIP Replicators."
+        ],
+        features: [
+
+        ],
+        bugfixes: [
+
+        ]
+    },
+    {
+        tooSmall: true,
+        version: 25,
+        changes: [
+            "WIP Replicators"
+        ],
+        features: [
+
+        ],
+        bugfixes: [
+
+        ]
+    },
+    {
+        tooSmall: true,
+        version: 26,
+        changes: [
+            "Added 3 new prestige buyables unlockable via transcension upgrade."
+        ],
+        features: [
+
+        ],
+        bugfixes: [
+
+        ]
+    },
+    {
+        tooSmall: false,
+        version: 27,
+        changes: [
+
+        ],
+        features: [
+
+        ],
+        bugfixes: [
+
+        ]
+    },
 ]

@@ -20,6 +20,9 @@ const ASCENSION_UPGRADES = [
             return target
         },
         get eff() {
+            if (player.transcendInSpecialReq === "ascend5") {
+                return D(1)
+            }
             return Decimal.pow(1.258, player.ascendUpgrades[0])
         },
         get desc() {
@@ -46,6 +49,9 @@ const ASCENSION_UPGRADES = [
             return target
         },
         get eff() {
+            if (player.transcendInSpecialReq === "ascend5") {
+                return D(1)
+            }
             return Decimal.pow(Decimal.max(player.ascend, 0).add(1).log10().add(1.095).pow(2), player.ascendUpgrades[1])
         },
         get desc() {
@@ -78,6 +84,9 @@ const ASCENSION_UPGRADES = [
             return target
         },
         get eff() {
+            if (player.transcendInSpecialReq === "ascend5") {
+                return D(1)
+            }
             return D(1.1)
         },
         get desc() {
@@ -108,6 +117,9 @@ const ASCENSION_UPGRADES = [
             return target
         },
         get eff() {
+            if (player.transcendInSpecialReq === "ascend5") {
+                return D(1)
+            }
             let eff = Decimal.max(player.ascend, 1).log10().add(2)
             if (player.transcendUpgrades.includes('ascend4')) {
                 eff = eff.mul(Decimal.max(player.ascendGems, 1).log10().add(1))
@@ -142,6 +154,9 @@ const ASCENSION_UPGRADES = [
                     return target
                 },
                 get eff() {
+                    if (player.transcendInSpecialReq === "ascend5") {
+                        return D(0)
+                    }
                     return Decimal.eq(player.ascendUpgrades[i + 4], 0) ? D(0) : Decimal.add(player.ascendUpgrades[i + 4], 1).pow_base(2)
                 },
                 get desc() {
@@ -189,7 +204,7 @@ const ASCENSION_UPGRADES = [
                     if (!false && Decimal.gt(player.buyables[i], 0)) {
                         return D(0)
                     }
-                    let target1 = D(player.ascendGems)
+                    let target1 = D(resource)
                     target1 = target1.max(1000 * (2 ** i)).log(1000 * (2 ** i)).sub(1)
                     if (player.transcendInSpecialReq === "point4") {
                         target1 = target1.div(1000)
@@ -218,7 +233,13 @@ const ASCENSION_UPGRADES = [
     })(),
     {
         show: true,
-        cap: D(2),
+        get cap() {
+            let cap = D(2)
+            if (player.transcendUpgrades.includes('ascend5')) {
+                cap = cap.add(1)
+            }
+            return cap
+        },
         get req() {
             return player.prestigeChallengeCompleted.length >= 5 && !player.prestigeUpgradesInCurrentAscension
         },
@@ -235,7 +256,7 @@ const ASCENSION_UPGRADES = [
             if (!(player.prestigeChallengeCompleted.length >= 5 && !player.prestigeUpgradesInCurrentAscension)) {
                 return D(0)
             }
-            let target = Decimal.max(player.ascendGems, 1e6).log(1e6).sub(1)
+            let target = Decimal.max(resource, 1e6).log(1e6).sub(1)
             if (player.transcendInSpecialReq === "point4") {
                 target = target.div(1000)
             }
@@ -245,7 +266,7 @@ const ASCENSION_UPGRADES = [
             return player.ascendUpgrades[12]
         },
         get desc() {
-            return `Unlock 1 more row of Prestige Upgrades. Currently: +${format(this.eff)} rows.`
+            return `Unlock 1 more row of Prestige Upgrades. Currently: +${format(this.eff)} row(s).`
         } 
     },
     {
@@ -447,18 +468,19 @@ const HINDERANCES = [
     },
     {
         name: "Supernova",
-        desc: "Every resource pre-transcension (points, prestige points, etc.)' generation is nerfed by ^0.25, and all pre-transcension buyables cost the previous effective buyable, except for the first. This forcefully resets PBs, PCs, and ascension buyables!",
+        desc: "All pre-transcension buyables cost the previous buyable, except for the first. This forcefully does a transcension reset!",
         start: D('6.666e6666'),
         get reward() {
-            return `Tier 1 Timespeed is ×${format(this.eff, 2)} faster, and outside of Hinderances, tier levels' effect is changed from /1.01 -> /1.011.`
+            return `Tier 1 Timespeed is ×${format(this.eff, 2)} faster, and outside of transcension upgrade restrictions, tier levels' effect is changed from /1.01 -> /1.011.`
         },
         get eff() {
             let eff = Decimal.max(player.hinderanceScore[4], '6.666e6666')
-            eff = eff.log('6.666e6666').log2().pow_base(1e10)
+            eff = eff.log('6.666e6666').log2().pow_base(100000)
             return eff
         },
         chalEffects(depth) {
-            const obj = { resource: D(0.25) }
+            // unused because it used to be a power nerf to all resources pre-transcension(points, prestige points, etc.)
+            const obj = { resource: D(1.0) }
             obj.resource = obj.resource.pow(depth)
 
             return obj
@@ -535,130 +557,131 @@ function initHTML_ascend() {
 }
 
 function updateGame_ascend() {
-        for (let i = HINDERANCES.length - 1; i >= 0; i--) {
-        tmp.hinderances[i].entered = false
-        tmp.hinderances[i].trapped = false
-        tmp.hinderances[i].depth = D(0)
+    for (let i = HINDERANCES.length - 1; i >= 0; i--) {
+        tmp.hinderances[i].entered = false;
+        tmp.hinderances[i].trapped = false;
+        tmp.hinderances[i].depth = D(0);
 
         // higher level stuff first
         if (player.transcendInSpecialReq === "hinderance2") {
             if (i === 2 || i === 3) {
-                tmp.hinderances[i].trapped = true
-                tmp.hinderances[i].depth = Decimal.add(tmp.hinderances[i].depth, 1)
+                tmp.hinderances[i].trapped = true;
+                tmp.hinderances[i].depth = Decimal.add(tmp.hinderances[i].depth, 1);
             }
         }
 
         if (player.currentHinderance === i) {
-            tmp.hinderances[i].entered = true
-            tmp.hinderances[i].depth = Decimal.add(tmp.hinderances[i].depth, 1)
+            tmp.hinderances[i].entered = true;
+            tmp.hinderances[i].depth = Decimal.add(tmp.hinderances[i].depth, 1);
         }
 
-        tmp.hinderances[i].effects = HINDERANCES[i].chalEffects(tmp.hinderances[i].depth)
+        tmp.hinderances[i].effects = HINDERANCES[i].chalEffects(tmp.hinderances[i].depth);
     }
 
     if (player.currentHinderance !== null) {
-        player.hinderanceScore[player.currentHinderance] = Decimal.max(player.hinderanceScore[player.currentHinderance], player.bestPointsInAscend)
+        player.hinderanceScore[player.currentHinderance] = Decimal.max(player.hinderanceScore[player.currentHinderance], player.bestPointsInAscend);
     }
     for (let i = 0; i < HINDERANCES.length; i++) {
-        player.bestHinderanceScore[i] = Decimal.max(player.bestHinderanceScore[i], player.hinderanceScore[i])
+        player.bestHinderanceScore[i] = Decimal.max(player.bestHinderanceScore[i], player.hinderanceScore[i]);
     }
 
-    player.timeInAscend = Decimal.add(player.timeInAscend, Decimal.mul(delta, tmp.timeSpeedTiers[0]))
+    player.timeInAscend = Decimal.add(player.timeInAscend, Decimal.mul(delta, tmp.timeSpeedTiers[0]));
 
     for (let i = ASCENSION_UPGRADES.length - 1; i >= 0; i--) {
         if (player.ascendUpgrades[i] === undefined) {
-            player.ascendUpgrades[i] = D(0)
+            player.ascendUpgrades[i] = D(0);
         }
 
-        tmp.ascendBuyables[i].cost = ASCENSION_UPGRADES[i].cost
+        tmp.ascendBuyables[i].cost = ASCENSION_UPGRADES[i].cost;
 
-        let resource
+        let resource;
         if (tmp.hinderances[4].depth.gt(0) && i != 0) {
-            resource = player.ascendUpgrades[i - 1]
+            resource = player.ascendUpgrades[i - 1];
         } else {
-            resource = player.ascendGems
+            resource = player.ascendGems;
         }
-        tmp.ascendBuyables[i].target = ASCENSION_UPGRADES[i].target(resource)
+        tmp.ascendBuyables[i].target = ASCENSION_UPGRADES[i].target(resource);
+        tmp.ascendBuyables[i].canBuy = Decimal.gte(resource, tmp.ascendBuyables[i].cost);
 
         if (player.cheats.autoAscendUpgrades || player.ascendUpgAuto) {
-            let bought = player.ascendUpgrades[i]
-            player.ascendUpgrades[i] = Decimal.min(ASCENSION_UPGRADES[i].target, ASCENSION_UPGRADES[i].cap).add(0.99999999).max(player.ascendUpgrades[i]).floor()
+            let bought = player.ascendUpgrades[i];
+            player.ascendUpgrades[i] = Decimal.min(tmp.ascendBuyables[i].target, ASCENSION_UPGRADES[i].cap).add(0.99999999).max(player.ascendUpgrades[i]).floor();
             if (Decimal.gt(player.ascendUpgrades[i], bought)) {
-                player.ascendUpgrades[i] = Decimal.sub(player.ascendUpgrades[i], 1)
-                player.ascendGems = Decimal.sub(player.ascendGems, ASCENSION_UPGRADES[i].cost).max(0) // idk why this is causing ascendGems to go negative so i put a max 0 here
-                player.ascendUpgrades[i] = Decimal.add(player.ascendUpgrades[i], 1)
+                player.ascendUpgrades[i] = Decimal.sub(player.ascendUpgrades[i], 1);
+                player.ascendGems = Decimal.sub(player.ascendGems, tmp.ascendBuyables[i].cost).max(0); // idk why this is causing ascendGems to go negative so i put a max 0 here
+                player.ascendUpgrades[i] = Decimal.add(player.ascendUpgrades[i], 1);
             }
         }
 
-        tmp.ascendBuyables[i].eff = ASCENSION_UPGRADES[i].eff
+        tmp.ascendBuyables[i].eff = ASCENSION_UPGRADES[i].eff;
     }
 
-    tmp.ascendReq = D(1e21)
+    tmp.ascendReq = D(1e21);
     if (hasSetbackUpgrade(`r9`)) {
-        tmp.ascendReq = tmp.ascendReq.div(SETBACK_UPGRADES[0][8].eff)
+        tmp.ascendReq = tmp.ascendReq.div(SETBACK_UPGRADES[0][8].eff);
     }
     if (colorAmountTotal(2).gt(0)) {
-        tmp.ascendReq = tmp.ascendReq.pow(tmp.setbackEffects[2][0])
+        tmp.ascendReq = tmp.ascendReq.pow(tmp.setbackEffects[2][0]);
     }
     tmp.factors.ascend = []
-    tmp.ascendPointGain = Decimal.max(player.bestPointsInAscend, 1).log(tmp.ascendReq).sub(1).pow_base(1000)
-    addStatFactor('ascend', `Base`, `1,000<sup>log<sub>${format(tmp.ascendReq)}</sub>(${format(player.bestPointsInAscend)})-1</sup>`, null, tmp.ascendPointGain)
+    tmp.ascendPointGain = Decimal.max(player.bestPointsInAscend, 1).log(tmp.ascendReq).sub(1).pow_base(1000);
+    addStatFactor('ascend', `Base`, `1,000<sup>log<sub>${format(tmp.ascendReq)}</sub>(${format(player.bestPointsInAscend)})-1</sup>`, null, tmp.ascendPointGain);
     if (tmp.hinderances[4].depth.gt(0)) {
         tmp.ascendPointGain = tmp.ascendPointGain.pow(tmp.hinderances[4].effects.resource);
         addStatFactor('ascend', `Hinderance 5`, `^`, tmp.hinderances[4].effects.resource, tmp.ascendPointGain);
     }
     if (player.transcendInSpecialReq === "prest4" && Decimal.gte(player.ascendCount, 1)) {
-        tmp.ascendPointGain = new Decimal(0)
-        addStatFactor('ascend', `Advantageous 'Challenge'`, `...`, null, tmp.ascendPointGain)
+        tmp.ascendPointGain = new Decimal(0);
+        addStatFactor('ascend', `Advantageous 'Challenge'`, `...`, null, tmp.ascendPointGain);
     }
     if (player.cheats.dilate) {
-        tmp.ascendPointGain = cheatDilateBoost(tmp.ascendPointGain)
-        addStatFactor('ascend', `Cheats`, `...`, null, tmp.ascendPointGain)
+        tmp.ascendPointGain = cheatDilateBoost(tmp.ascendPointGain);
+        addStatFactor('ascend', `Cheats`, `...`, null, tmp.ascendPointGain);
     }
-    tmp.ascendPointGain = tmp.ascendPointGain.floor()
+    tmp.ascendPointGain = tmp.ascendPointGain.floor();
 
-    tmp.ascendPointNext = tmp.ascendPointGain
-    tmp.ascendPointNext = cheatDilateBoost(tmp.ascendPointNext, true)
+    tmp.ascendPointNext = tmp.ascendPointGain;
+    tmp.ascendPointNext = cheatDilateBoost(tmp.ascendPointNext, true);
     if (player.transcendInSpecialReq === "prest4" && Decimal.gte(player.ascendCount, 1)) {
-        tmp.ascendPointNext = new Decimal(Infinity)
+        tmp.ascendPointNext = new Decimal(Infinity);
     }
     if (tmp.hinderances[4].depth.gt(0)) {
         tmp.ascendPointNext = tmp.ascendPointNext.root(tmp.hinderances[4].effects.resource);
     }
-    tmp.ascendPointNext = tmp.ascendPointNext.add(1).log(1000).add(1).pow_base(tmp.ascendReq)
+    tmp.ascendPointNext = tmp.ascendPointNext.add(1).log(1000).add(1).pow_base(tmp.ascendReq);
 
     tmp.autoAscend = player.cheats.autoAscend || (hasTranscendMilestone(9) && player.transcendInSpecialReq !== "prest4")
     if (tmp.autoAscend) {
-        player.ascend = Decimal.add(player.ascend, tmp.ascendPointGain.mul(0.01).mul(delta).mul(tmp.timeSpeedTiers[0]))
+        player.ascend = Decimal.add(player.ascend, tmp.ascendPointGain.mul(0.01).mul(delta).mul(tmp.timeSpeedTiers[0]));
     }
 
-    tmp.ascendPointEffect = D(player.ascend)
-    tmp.ascendPointEffect = tmp.ascendPointEffect.mul(ASCENSION_UPGRADES[3].eff)
+    tmp.ascendPointEffect = D(player.ascend);
+    tmp.ascendPointEffect = tmp.ascendPointEffect.mul(tmp.ascendBuyables[3].eff);
     if (tmp.hinderances[4].depth.gt(0)) {
         tmp.ascendPointEffect = tmp.ascendPointEffect.pow(tmp.hinderances[4].effects.resource);
     }
-    tmp.ascendPointEffect = cheatDilateBoost(tmp.ascendPointEffect)
-    tmp.ascendPointEffect = tmp.ascendPointEffect.mul(tmp.timeSpeedTiers[0])
+    tmp.ascendPointEffect = cheatDilateBoost(tmp.ascendPointEffect);
+    tmp.ascendPointEffect = tmp.ascendPointEffect.mul(tmp.timeSpeedTiers[0]);
 
-    tmp.ascendPointEffectNext = Decimal.add(player.ascend, tmp.ascendPointGain)
-    tmp.ascendPointEffectNext = tmp.ascendPointEffectNext.mul(ASCENSION_UPGRADES[3].eff)
+    tmp.ascendPointEffectNext = Decimal.add(player.ascend, tmp.ascendPointGain);
+    tmp.ascendPointEffectNext = tmp.ascendPointEffectNext.mul(tmp.ascendBuyables[3].eff);
     if (tmp.hinderances[4].depth.gt(0)) {
         tmp.ascendPointEffectNext = tmp.ascendPointEffectNext.pow(tmp.hinderances[4].effects.resource);
     }
-    tmp.ascendPointEffectNext = cheatDilateBoost(tmp.ascendPointEffectNext)
-    tmp.ascendPointEffectNext = tmp.ascendPointEffectNext.mul(tmp.timeSpeedTiers[0])
+    tmp.ascendPointEffectNext = cheatDilateBoost(tmp.ascendPointEffectNext);
+    tmp.ascendPointEffectNext = tmp.ascendPointEffectNext.mul(tmp.timeSpeedTiers[0]);
 
-    player.ascendGems = Decimal.add(player.ascendGems, tmp.ascendPointEffect.mul(delta))
+    player.ascendGems = Decimal.add(player.ascendGems, tmp.ascendPointEffect.mul(delta));
 }
 
 function updateHTML_ascend() {
-    html['ascendTab'].setDisplay(tmp.tab === 3)
-    html['ascendTabButton'].setDisplay(Decimal.gte(player.bestPointsInAscend, 1e21) || Decimal.gt(player.ascend, 0))
+    html['ascendTab'].setDisplay(tmp.tab === 3);
+    html['ascendTabButton'].setDisplay(Decimal.gte(player.bestPointsInAscend, 1e21) || Decimal.gt(player.ascend, 0));
 
     if (tmp.tab === 0 && tmp.mainTab === 0) {
         html['ascendAmount'].setTxt(`${format(tmp.ascendPointGain)}`);
-        let show = Decimal.lt(tmp.ascendPointGain, 100)
-        html['ascendNext'].setDisplay(show)
+        let show = Decimal.lt(tmp.ascendPointGain, 100);
+        html['ascendNext'].setDisplay(show);
         if (show) {
             html['ascendNext'].setTxt(`Next ascension point at ${format(tmp.ascendPointNext)} points.`);
         }
@@ -667,53 +690,58 @@ function updateHTML_ascend() {
     }
 
     if (tmp.tab === 3) {
-        html['mainAscendTabButton'].setDisplay(hasSetbackUpgrade(`b5`))
-        html['hinderanceAscendTabButton'].setDisplay(hasSetbackUpgrade(`b5`))
-        html['mainAscend'].setDisplay(tmp.ascendTab === 0)
-        html['hinderanceAscend'].setDisplay(tmp.ascendTab === 2)
+        html['mainAscendTabButton'].setDisplay(Decimal.gte(player.ascend, 10));
+        html['hinderanceAscendTabButton'].setDisplay(hasSetbackUpgrade(`b5`));
+        html['mainAscend'].setDisplay(tmp.ascendTab === 0);
+        html['hinderanceAscend'].setDisplay(tmp.ascendTab === 2);
         if (tmp.ascendTab === 0) {
-            html['ascendBuyRespec'].setDisplay(hasTranscendMilestone(11))
+            html['ascendBuyRespec'].setDisplay(hasTranscendMilestone(11));
 
             let notCapped, canBuy
             for (let i = 0; i < ASCENSION_UPGRADES.length; i++) {
-                html[`ascendUpgrade${i}`].setDisplay(ASCENSION_UPGRADES[i].show)
+                html[`ascendUpgrade${i}`].setDisplay(ASCENSION_UPGRADES[i].show);
                 if (ASCENSION_UPGRADES[i].show) {
-                    notCapped = Decimal.lt(player.ascendUpgrades[i], ASCENSION_UPGRADES[i].cap)
-                    canBuy = ASCENSION_UPGRADES[i].req && Decimal.gte(player.ascendGems, ASCENSION_UPGRADES[i].cost)
+                    notCapped = Decimal.lt(player.ascendUpgrades[i], ASCENSION_UPGRADES[i].cap);
+                    canBuy = ASCENSION_UPGRADES[i].req && tmp.ascendBuyables[i].canBuy;
                     html[`ascendUpgrade${i}eff`].setTxt(ASCENSION_UPGRADES[i].desc)
-                    html[`ascendUpgrade${i}cost`].setTxt(`Cost: ${format(ASCENSION_UPGRADES[i].cost)} gems`)
-                    html[`ascendUpgrade${i}req`].setTxt(ASCENSION_UPGRADES[i].reqDesc === undefined ? '' : ASCENSION_UPGRADES[i].reqDesc)
-                    html[`ascendUpgrade${i}amount`].setTxt(`${format(player.ascendUpgrades[i])}${!Decimal.isFinite(ASCENSION_UPGRADES[i].cap) ? '×' : ' / ' + format(ASCENSION_UPGRADES[i].cap)}`)
+                    if (tmp.hinderances[4].depth.gt(0) && i != 0) {
+                        html[`ascendUpgrade${i}cost`].setTxt(`Cost: ${format(tmp.ascendBuyables[i].cost)} A. Buyable ${i}`);
+                    } else {
+                        html[`ascendUpgrade${i}cost`].setTxt(`Cost: ${format(tmp.ascendBuyables[i].cost)} gems`);
+                    }
+                    
+                    html[`ascendUpgrade${i}req`].setTxt(ASCENSION_UPGRADES[i].reqDesc === undefined ? '' : ASCENSION_UPGRADES[i].reqDesc);
+                    html[`ascendUpgrade${i}amount`].setTxt(`${format(player.ascendUpgrades[i])}${!Decimal.isFinite(ASCENSION_UPGRADES[i].cap) ? '×' : ' / ' + format(ASCENSION_UPGRADES[i].cap)}`);
 
-                    html[`ascendUpgrade${i}`].changeStyle('background-color', notCapped ? (canBuy ? '#00C00080' : ASCENSION_UPGRADES[i].req ? '#00800080' : '#80000080') : '#00FF0080')
-                    html[`ascendUpgrade${i}`].changeStyle('border', `3px solid ${notCapped ? (canBuy ? '#00C000' : ASCENSION_UPGRADES[i].req ? '#008000' : '#800000') : '#00ff00'}`)
-                    html[`ascendUpgrade${i}`].changeStyle('cursor', notCapped && canBuy ? 'pointer' : 'not-allowed')
+                    html[`ascendUpgrade${i}`].changeStyle('background-color', notCapped ? (canBuy ? '#00C00080' : ASCENSION_UPGRADES[i].req ? '#00800080' : '#80000080') : '#00FF0080');
+                    html[`ascendUpgrade${i}`].changeStyle('border', `3px solid ${notCapped ? (canBuy ? '#00C000' : ASCENSION_UPGRADES[i].req ? '#008000' : '#800000') : '#00ff00'}`);
+                    html[`ascendUpgrade${i}`].changeStyle('cursor', notCapped && canBuy ? 'pointer' : 'not-allowed');
                 }
             }
 
-            html['ascendPoints'].setTxt(`${format(player.ascend)}`)
-            html['ascendGems'].setTxt(`${format(player.ascendGems)}`)
-            html['ascendPointEffect'].setTxt(`Producing ${format(tmp.ascendPointEffect, 2)} gems per second`)
-            html['ascendPointEffectNext'].setDisplay(!tmp.autoAscend)
+            html['ascendPoints'].setTxt(`${format(player.ascend)}`);
+            html['ascendGems'].setTxt(`${format(player.ascendGems)}`);
+            html['ascendPointEffect'].setTxt(`Producing ${format(tmp.ascendPointEffect, 2)} gems per second`);
+            html['ascendPointEffectNext'].setDisplay(!tmp.autoAscend);
             if (!tmp.autoAscend) {
-                html['ascendPointEffectNext'].setTxt(`×${format(tmp.ascendPointEffect.eq(0) ? 1 : tmp.ascendPointEffectNext.div(tmp.ascendPointEffect), 2)} upon next reset`)
+                html['ascendPointEffectNext'].setTxt(`×${format(tmp.ascendPointEffect.eq(0) ? 1 : tmp.ascendPointEffectNext.div(tmp.ascendPointEffect), 2)} upon next reset`);
             }
 
-            html['ascendUpgAuto'].setDisplay(hasTranscendMilestone(8))
+            html['ascendUpgAuto'].setDisplay(hasTranscendMilestone(8));
             if (hasTranscendMilestone(8)) {
-                html[`ascendUpgAuto`].changeStyle('background-color', player.ascendUpgAuto ? '#00800080' : '#80000080')
-                html[`ascendUpgAuto`].changeStyle('border', `3px solid #${player.ascendUpgAuto ? '00ff00' : 'ff0000'}`)
-                html[`ascendUpgAuto`].setTxt(player.ascendUpgAuto ? 'Auto: Infinity/s' : 'Auto: Off')
+                html[`ascendUpgAuto`].changeStyle('background-color', player.ascendUpgAuto ? '#00800080' : '#80000080');
+                html[`ascendUpgAuto`].changeStyle('border', `3px solid #${player.ascendUpgAuto ? '00ff00' : 'ff0000'}`);
+                html[`ascendUpgAuto`].setTxt(player.ascendUpgAuto ? 'Auto: Infinity/s' : 'Auto: Off');
             }
         }
         if (tmp.ascendTab === 2) {
             for (let i = 0; i < HINDERANCES.length; i++) {
-                html[`hinderance${i}`].setDisplay(HINDERANCES[i].show)
+                html[`hinderance${i}`].setDisplay(HINDERANCES[i].show);
                 if (HINDERANCES[i].show) {
-                    html[`hinderance${i}`].changeStyle('background-color', (player.currentHinderance === i ? '#b0002080' : '#60001080'))
-                    html[`hinderance${i}`].changeStyle('border', `3px solid ${Decimal.gte(player.hinderanceScore[i], HINDERANCES[i].start) ? (player.currentHinderance === i ? '#ff809a' : '#c60078') : (player.currentHinderance === i ? '#ff0030' : '#c00020')}`)
-                    html[`hinderance${i}goal`].setTxt(`${format(player.hinderanceScore[i])} / ${format(HINDERANCES[i].start)}`)
-                    html[`hinderance${i}reward`].setTxt(HINDERANCES[i].reward)
+                    html[`hinderance${i}`].changeStyle('background-color', (player.currentHinderance === i ? '#b0002080' : '#60001080'));
+                    html[`hinderance${i}`].changeStyle('border', `3px solid ${Decimal.gte(player.hinderanceScore[i], HINDERANCES[i].start) ? (player.currentHinderance === i ? '#ff809a' : '#c60078') : (player.currentHinderance === i ? '#ff0030' : '#c00020')}`);
+                    html[`hinderance${i}goal`].setTxt(`${format(player.hinderanceScore[i])} / ${format(HINDERANCES[i].start)}`);
+                    html[`hinderance${i}reward`].setTxt(HINDERANCES[i].reward);
                 }
             }
         }
@@ -726,78 +754,71 @@ function doAscendReset(doAnyway = false) {
             return;
         }
 
-        player.ascend = Decimal.add(player.ascend, tmp.ascendPointGain)
-        player.ascendCount = Decimal.add(player.ascendCount, 1)
+        player.ascend = Decimal.add(player.ascend, tmp.ascendPointGain);
+        player.ascendCount = Decimal.add(player.ascendCount, 1);
     }
 
     if (player.inSetback && tmp.ascendPointGain.gt(0)) {
-        player.inSetback = false
-        player.setbackLoadout.push([...player.setback]) // stupid fucking butt-ugly hack to clone arrays instead of keeping them by reference
+        player.inSetback = false;
+        player.setbackLoadout.push([...player.setback]); // stupid fucking butt-ugly hack to clone arrays instead of keeping them by reference
     }
 
     for (let i = 0; i < player.setback.length; i++) {
-        player.setbackQuarks[i] = D(0)
-        player.setbackEnergy[i] = D(0)
+        player.setbackQuarks[i] = D(0);
+        player.setbackEnergy[i] = D(0);
         for (let j = 0; j < player.quarkDimsAccumulated[i].length; j++) {
-            player.quarkDimsBought[i][j] = D(0)
-            player.quarkDimsAccumulated[i][j] = D(0)
-            player.quarkDimsAutobought[i][j] = D(0)
+            player.quarkDimsBought[i][j] = D(0);
+            player.quarkDimsAccumulated[i][j] = D(0);
+            player.quarkDimsAutobought[i][j] = D(0);
         }
     }
 
-    player.darts = D(0)
-    player.timeInAscend = D(0)
-    player.prestigeUpgradesInCurrentAscension = false
+    player.darts = D(0);
+    player.timeInAscend = D(0);
+    player.prestigeUpgradesInCurrentAscension = false;
     if (!hasTranscendMilestone(0)) {
-        player.prestigeChallengeCompleted = []
+        player.prestigeChallengeCompleted = [];
     }
-    player.prestigeChallenge = null
+    player.prestigeChallenge = null;
     if (!hasTranscendMilestone(1)) {
         for (let i = 0; i < player.prestigeUpgrades.length; i++) {
-            player.prestigeUpgrades[i] = D(0)
+            player.prestigeUpgrades[i] = D(0);
         }
     }
-    player.prestige = D(0)
-    player.prestigeEssence = D(0)
-    player.bestPointsInAscend = D(0)
-    player.prestigeCount = D(0)
-    player.specialBuyables[0] = D(0)
-    player.specialBuyables[1] = D(0)
+    player.prestige = D(0);
+    player.prestigeEssence = D(0);
+    player.bestPointsInAscend = D(0);
+    player.prestigeCount = D(0);
+    player.specialBuyables[0] = D(0);
+    player.specialBuyables[1] = D(0);
 
-    tmp.prestigePointGain = D(0)
-    tmp.peGain = D(0)
-    tmp.prestigePointNext = D(0)
-    tmp.prestigePointsUsed = D(0)
-    tmp.prestigeUpgCap = D(0)
-    tmp.prestigePointEffect = D(1)
-    doPrestigeReset(true)
+    tmp.prestigePointGain = D(0);
+    tmp.peGain = D(0);
+    tmp.prestigePointNext = D(0);
+    tmp.prestigePointsUsed = D(0);
+    tmp.prestigeUpgCap = D(0);
+    tmp.prestigePointEffect = D(1);
+    doPrestigeReset(true);
 
-    displaySetbackCompleted()
+    displaySetbackCompleted();
 }
 
 function toggleHinderance(i) {
     if (!(player.prestigeChallenge === i || player.prestigeChallenge === null)) {
         return;
     }
-    if (i === 4) {
-        player.prestigeChallengeCompleted = []
 
-        for (let i = 0; i < player.prestigeUpgrades.length; i++) {
-            player.prestigeUpgrades[i] = D(0)
-        }
-
-        for (let i = 0; i < player.ascendUpgrades.length; i++) {
-            player.ascendUpgrades[i] = D(0)
-        }
-    }
-    tmp.ascendPointGain = D(0)
+    tmp.ascendPointGain = D(0);
     if (player.currentHinderance === null) {
-        doAscendReset(true)
-        player.currentHinderance = i
+        doAscendReset(true);
+        if (i === 4) {
+            doTranscendReset(true);
+        }
+        player.currentHinderance = i;
         return;
     }
-    doAscendReset(true)
-    player.currentHinderance = null
+    doAscendReset(true);
+    player.currentHinderance = null;
 }
 
 function buyAscendUpgrade(i) {
@@ -807,14 +828,18 @@ function buyAscendUpgrade(i) {
     if (Decimal.gte(player.ascendUpgrades[i], ASCENSION_UPGRADES[i].cap)) {
         return;
     }
-    if (Decimal.lt(player.ascendGems, ASCENSION_UPGRADES[i].cost)) {
+    if (!tmp.ascendBuyables[i].canBuy) {
         return;
     }
-    player.ascendGems = Decimal.sub(player.ascendGems, ASCENSION_UPGRADES[i].cost)
+
+    if (tmp.hinderances[4].depth.lte(0) || i != 0) {
+        player.ascendGems = Decimal.sub(player.ascendGems, tmp.ascendBuyables[i].cost);
+    }
+    
     if (shiftDown) {
-        player.ascendUpgrades[i] = Decimal.max(player.ascendUpgrades[i], ASCENSION_UPGRADES[i].target.ceil()).min(ASCENSION_UPGRADES[i].cap)
+        player.ascendUpgrades[i] = Decimal.max(player.ascendUpgrades[i], tmp.ascendBuyables[i].target.ceil()).min(ASCENSION_UPGRADES[i].cap);
     } else {
-        player.ascendUpgrades[i] = Decimal.add(player.ascendUpgrades[i], 1)
+        player.ascendUpgrades[i] = Decimal.add(player.ascendUpgrades[i], 1);
     }
 }
 

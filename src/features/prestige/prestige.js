@@ -6,6 +6,9 @@ const PRESTIGE_UPGRADES = [
             return `Point gain is boosted. Currently: ×${format(tmp.prestigeUpgEffs[0], 2)}`
         },
         get eff() {
+            if (player.transcendInSpecialReq === "ascend5") {
+                return D(1)
+            }
             let eff = D(2)
             if (hasPrestigeUpgrade(13)) {
                 eff = eff.pow(PRESTIGE_UPGRADES[13].eff);
@@ -20,6 +23,9 @@ const PRESTIGE_UPGRADES = [
             return `Point gain is boosted based off of points. Currently: ×${format(tmp.prestigeUpgEffs[1], 2)}`
         },
         get eff() {
+            if (player.transcendInSpecialReq === "ascend5") {
+                return D(1)
+            }
             let eff = Decimal.max(player.bestPointsInPrestige, 1).log10().div(5).add(1)
             eff = eff.pow(Decimal.max(player.prestigeUpgrades[1], 1))
             return eff
@@ -31,6 +37,9 @@ const PRESTIGE_UPGRADES = [
             return `Point gain is boosted based off of total prestige points. Currently: ×${format(tmp.prestigeUpgEffs[2], 2)}`
         },
         get eff() {
+            if (player.transcendInSpecialReq === "ascend5") {
+                return D(1)
+            }
             let eff = Decimal.max(player.prestige, 0).div(2).add(1)
             let bought
             if (hasSetbackUpgrade('b4')) {
@@ -49,15 +58,22 @@ const PRESTIGE_UPGRADES = [
         cost: D(5),
         get desc() {
             return player.prestigeChallengeCompleted.includes(2)
-                ? Decimal.neq(player.prestigeUpgrades[3], 0) && Decimal.neq(player.prestigeUpgrades[3], 1)
+                ? Decimal.neq(tmp.prestigeUpgEffs[3], 0) && Decimal.neq(tmp.prestigeUpgEffs[3], 1)
                     ? `Basic Buyables give ${format(tmp.prestigeUpgEffs[3], 1)} free levels to all previous basic buyables instead of only the previous basic buyable.`
                     : `Basic Buyables give a free level to all previous basic buyables instead of only the previous basic buyable.`
-                : Decimal.neq(player.prestigeUpgrades[3], 0) && Decimal.neq(player.prestigeUpgrades[3], 1)
+                : Decimal.neq(tmp.prestigeUpgEffs[3], 0) && Decimal.neq(tmp.prestigeUpgEffs[3], 1)
                     ? `Basic Buyables give ${format(tmp.prestigeUpgEffs[3], 1)} free levels to the previous basic buyable.`
                     : `Basic Buyables give a free level to the previous basic buyable.`
         },
         get eff() {
+            if (player.transcendInSpecialReq === "ascend5") {
+                return D(0)
+            }
             let eff = Decimal.max(player.prestigeUpgrades[3], 0)
+            if (hasPrestigeUpgrade(17)) {
+                eff = eff.add(tmp.prestigeUpgEffs[17])
+            }
+            
             return eff
         }
     },
@@ -67,12 +83,15 @@ const PRESTIGE_UPGRADES = [
             return `Total amount of basic buyables gives an extra boost to points. Currently: ×${format(tmp.prestigeUpgEffs[4], 2)}`
         },
         get eff() {
+            if (player.transcendInSpecialReq === "ascend5") {
+                return D(1)
+            }
             let total = D(0)
             for (let i = 0; i < player.buyables.length; i++) {
                 total = total.add(player.buyables[i])
             }
             let eff = total.mul(0.01).add(1)
-            eff = eff.pow(Decimal.max(player.prestigeUpgrades[4], 1))
+            eff = eff.pow(Decimal.max(player.prestigeUpgrades[4], 1).add(hasPrestigeUpgrade(17) ? tmp.prestigeUpgEffs[17] : 0))
             return eff
         }
     },
@@ -82,8 +101,11 @@ const PRESTIGE_UPGRADES = [
             return `Buy. 4's effect base increases by +×0.002 per Buy. 4 bought. Currently: +×${format(tmp.prestigeUpgEffs[5], 3)}`
         },
         get eff() {
+            if (Decimal.gt(player.ascendUpgrades[12], 0) && player.transcendInSpecialReq === "ascend5") {
+                return D(0)
+            }
             let eff = Decimal.mul(player.buyables[3], 0.002)
-            eff = eff.mul(Decimal.max(player.prestigeUpgrades[5], 1))
+            eff = eff.mul(Decimal.max(player.prestigeUpgrades[5], 1).add(hasPrestigeUpgrade(17) ? tmp.prestigeUpgEffs[17] : 0))
             return eff
         }
     },
@@ -92,9 +114,12 @@ const PRESTIGE_UPGRADES = [
         get desc() {
             return `Point gain is increased based off of the amount of prestige ${tmp.prestigeIsUpg ? 'upgrades' : 'buyables'}. Currently: ×${format(tmp.prestigeUpgEffs[6], 2)}`
         },
-            get eff() {
-                let eff = tmp.totalPrestigeUpg.div(10).pow_base(32)
-            eff = eff.pow(Decimal.max(player.prestigeUpgrades[6], 1))
+        get eff() {
+            if (Decimal.gt(player.ascendUpgrades[12], 1) && player.transcendInSpecialReq === "ascend5") {
+                return D(1)
+            }
+            let eff = tmp.totalPrestigeUpg.div(10).pow_base(32)
+            eff = eff.pow(Decimal.max(player.prestigeUpgrades[6], 1).add(hasPrestigeUpgrade(17) ? tmp.prestigeUpgEffs[17] : 0))
             return eff
         }
     },
@@ -103,13 +128,16 @@ const PRESTIGE_UPGRADES = [
         get desc() {
             return `Prestige ${tmp.prestigeIsUpg ? 'upgrades' : 'buyables'} and total basic buyables bought give a boost to points. Currently: ×${format(tmp.prestigeUpgEffs[7], 2)}`
         },
-            get eff() {
-                let total = D(0)
+        get eff() {
+            if (Decimal.gt(player.ascendUpgrades[12], 1) && player.transcendInSpecialReq === "ascend5") {
+                return D(1)
+            }
+            let total = D(0)
             for (let i = 0; i < player.buyables.length; i++) {
                 total = total.add(player.buyables[i])
             }
             let eff = total.mul(tmp.totalPrestigeUpg.div(400)).add(1)
-            eff = eff.pow(Decimal.max(player.prestigeUpgrades[7], 1))
+            eff = eff.pow(Decimal.max(player.prestigeUpgrades[7], 1).add(hasPrestigeUpgrade(17) ? tmp.prestigeUpgEffs[17] : 0))
             return eff
         }
     },
@@ -118,9 +146,12 @@ const PRESTIGE_UPGRADES = [
         get desc() {
             return `Prestige ${tmp.prestigeIsUpg ? 'upgrades' : 'buyables'} increase Buyable 1's effect base. Currently: +${format(tmp.prestigeUpgEffs[8], 2)}`
         },
-            get eff() {
-                let eff = tmp.totalPrestigeUpg.mul(0.5)
-            eff = eff.mul(Decimal.max(player.prestigeUpgrades[8], 1))
+        get eff() {
+            if (Decimal.gt(player.ascendUpgrades[12], 2) && player.transcendInSpecialReq === "ascend5") {
+                return D(0)
+            }
+            let eff = tmp.totalPrestigeUpg.mul(0.5)
+            eff = eff.mul(Decimal.max(player.prestigeUpgrades[8], 1).add(hasPrestigeUpgrade(17) ? tmp.prestigeUpgEffs[17] : 0))
             return eff
         }
     },
@@ -199,6 +230,41 @@ const PRESTIGE_UPGRADES = [
             eff = eff.mul(Decimal.min(x, 1).pow_base(2.5))
             eff = eff.mul(Decimal.max(x, 1).sub(1).pow_base(2))
             return eff
+        }
+    },
+    {
+        cost: D(1e11),
+        get desc() {
+            return `Raise Point gain by ^${format(tmp.prestigeUpgEffs[15], 3)} to exponent. (~^${format(tmp.pointGen.max(10).log10().root(this.eff).pow(this.eff.sub(1)), 2)})`
+        },
+        get eff() {
+            let eff = Decimal.max(player.prestigeUpgrades[15], 1);
+            eff = eff.pow_base(1.001);
+            if (tmp.hinderances[3].entered) {
+                eff = eff.pow(tmp.hinderances[3].effects.pts);
+            }
+            return eff
+        }
+    },
+    {
+        cost: D(1e11),
+        get desc() {
+            return `Raise Generator Speed by ^${format(tmp.prestigeUpgEffs[16], 3)} to exponent. (~^${format(Decimal.max(player.buyablePoints[0], 10).log10().root(this.eff).pow(this.eff.sub(1)), 2)})`;
+        },
+        get eff() {
+            let eff = Decimal.max(player.prestigeUpgrades[16], 1);
+            eff = eff.pow_base(1.001);
+            return eff;
+        }
+    },
+    {
+        cost: D(1e12),
+        get desc() {
+            return `PB4 to PB9 gain ${format(tmp.prestigeUpgEffs[17], 1)} free level(s).`;
+        },
+        get eff() {
+            let eff = Decimal.max(player.prestigeUpgrades[17], 1);
+            return eff;
         }
     },
 ]
@@ -535,6 +601,20 @@ function updateGame_prestige() {
             togglePrestigeChallenge(i)
         }
 
+        if (player.transcendInSpecialReq === "prest5") {
+            if (i >= 0 && i <= 12) {
+                tmp.prestigeChal[i].trapped = true
+                tmp.prestigeChal[i].depth = Decimal.add(tmp.prestigeChal[i].depth, 1)
+            }
+        }
+
+        if (player.transcendInSpecialReq === "gen4") {
+            if (i === 12) {
+                tmp.prestigeChal[i].trapped = true
+                tmp.prestigeChal[i].depth = Decimal.add(tmp.prestigeChal[i].depth, 1)
+            }
+        }
+
         if (tmp.hinderances[2].depth.gt(0)) {
             if (i === 0) {
                 tmp.prestigeChal[i].trapped = true
@@ -685,7 +765,7 @@ function updateGame_prestige() {
             if (tmp.hinderances[4].depth.gt(0) && i != 0) {
                 continue
             } 
-            tmp.prestigePointsUsed = tmp.prestigePointsUsed.add(PRESTIGE_UPGRADES[i].cost.mul(prestigeUpgradeCostScaling(i, true)))
+            tmp.prestigePointsUsed = tmp.prestigePointsUsed.add(PRESTIGE_UPGRADES[i].cost.mul(prestigeUpgradeCostScaling(Decimal.add(player.prestigeUpgrades[i], 1), false)))
         }
     }
     tmp.totalPrestigeUpg = player.prestigeUpgrades.reduce((accu, bought) => Decimal.add(accu, bought))
@@ -850,6 +930,9 @@ function updateHTML_prestige() {
                 if (i >= 12 && i <= 14) {
                     show = Decimal.gt(player.ascendUpgrades[12], 1)
                 }
+                if (i >= 15 && i <= 17) {
+                    show = Decimal.gt(player.ascendUpgrades[12], 2)
+                }
                 html[`prestigeUpgrade${i}`].setDisplay(show)
                 if (show) {
                     html[`prestigeUpgrade${i}eff`].setTxt(tmp.prestigeUpgDescs[i])
@@ -857,8 +940,8 @@ function updateHTML_prestige() {
                         hasPrestigeUpgrade(i) && !hasSetbackUpgrade(`b2`) 
                             ? `Bought!` 
                             : (tmp.hinderances[4].depth.gt(0) && i != 0)
-                                ? `Cost: ${format(PRESTIGE_UPGRADES[i].cost.mul(prestigeUpgradeCostScaling(i)))} PB${i}`
-                                : `Cost: ${format(PRESTIGE_UPGRADES[i].cost.mul(prestigeUpgradeCostScaling(i)))} prestige points`
+                                ? `Cost: ${format(PRESTIGE_UPGRADES[i].cost.mul(prestigeUpgradeCostScaling(player.prestigeUpgrades[i], false)))} PB${i}`
+                                : `Cost: ${format(PRESTIGE_UPGRADES[i].cost.mul(prestigeUpgradeCostScaling(player.prestigeUpgrades[i], false)))} prestige points`
                             )
                     if (hasSetbackUpgrade('b2')) {
                         if (player.transcendUpgrades.includes('prest4')) {
@@ -998,7 +1081,7 @@ function canBuyPrestigeUpgrade(i) {
     } else {
         resource = player.prestige
     }
-    if (Decimal.sub(resource, tmp.prestigePointsUsed).lt(PRESTIGE_UPGRADES[i].cost.mul(prestigeUpgradeCostScaling(i)))) {
+    if (Decimal.sub(resource, tmp.prestigePointsUsed).lt(PRESTIGE_UPGRADES[i].cost.mul(prestigeUpgradeCostScaling(player.prestigeUpgrades[i], false)))) {
         return false;
     }
     if (hasPrestigeUpgrade(i) && !hasSetbackUpgrade(`b2`)) {
@@ -1018,18 +1101,11 @@ function buyPrestigeUpgrade(i) {
         resource = player.prestige
     }
     if (shiftDown) {
+        player.prestigeUpgrades[i] = prestigeUpgradeCostScaling(Decimal.sub(resource, tmp.prestigePointsUsed).div(PRESTIGE_UPGRADES[i].cost), true)
         if (player.transcendUpgrades.includes('prest4')) {
-            if (Decimal.sub(resource, tmp.prestigePointsUsed).div(PRESTIGE_UPGRADES[i].cost).gte(10)) {
-                player.prestigeUpgrades[i] = Decimal.sub(resource, tmp.prestigePointsUsed).div(PRESTIGE_UPGRADES[i].cost).log10().log2().add(1).mul(2).ceil().div(2)
-            } else {
-                player.prestigeUpgrades[i] = Decimal.sub(resource, tmp.prestigePointsUsed).div(PRESTIGE_UPGRADES[i].cost).log10().mul(2).ceil().div(2)
-            }
+            player.prestigeUpgrades[i] = player.prestigeUpgrades[i].mul(2).ceil().div(2)
         } else {
-            if (Decimal.sub(resource, tmp.prestigePointsUsed).div(PRESTIGE_UPGRADES[i].cost).gte(10)) {
-                player.prestigeUpgrades[i] = Decimal.sub(resource, tmp.prestigePointsUsed).div(PRESTIGE_UPGRADES[i].cost).log10().log2().add(1).ceil()
-            } else {
-                player.prestigeUpgrades[i] = Decimal.sub(resource, tmp.prestigePointsUsed).div(PRESTIGE_UPGRADES[i].cost).log10().ceil()
-            }
+            player.prestigeUpgrades[i] = player.prestigeUpgrades[i].ceil()
         }
     } else {
         if (player.transcendUpgrades.includes('prest4')) {
@@ -1041,6 +1117,7 @@ function buyPrestigeUpgrade(i) {
     if (!hasSetbackUpgrade(`b2`)) {
         player.prestigeUpgrades[i] = Decimal.min(player.prestigeUpgrades[i], 1)
     }
+    // accomodate for if buying this would bring this over the prestige buyable cap
     if (player.prestigeUpgrades.reduce((accu, bought) => Decimal.add(accu, bought)).gt(tmp.prestigeUpgCap)) {
         player.prestigeUpgrades[i] = Decimal.sub(player.prestigeUpgrades[i], player.prestigeUpgrades.reduce((accu, bought) => Decimal.add(accu, bought)).sub(tmp.prestigeUpgCap))
     }
@@ -1052,20 +1129,32 @@ function hasPrestigeUpgrade(i) {
     if (tmp.hinderances[2].depth.lte(0) && (tmp.prestigeChal[5].depth.gt(0) || tmp.prestigeChal[6].depth.gt(0) || tmp.prestigeChal[7].depth.gt(0) || tmp.prestigeChal[8].depth.gt(0) || tmp.prestigeChal[9].depth.gt(0))) {
         return false
     }
+    if (i >= 3 && i <= 8) {
+        if (hasPrestigeUpgrade(17)) {
+            return true
+        }
+    }
+
     return Decimal.gt(player.prestigeUpgrades[i], 0)
 }
 
-function prestigeUpgradeCostScaling(i, oneBefore = false) {
-    let bought = player.prestigeUpgrades[i]
-    if (bought === null) {
-        bought = D(0)
+function prestigeUpgradeCostScaling(amt, inverse) {
+    if (Decimal.eq(amt, 0)) {
+        return new Decimal(1)
     }
-    if (oneBefore) {
-        bought = Decimal.sub(bought, 1)
+    let costScaling = new Decimal(2)
+    if (player.transcendUpgrades.includes('prest5')) {
+        costScaling = new Decimal(1.9)
     }
-    return Decimal.lt(bought, 1)
-        ? Decimal.pow10(bought) // for when like maybe idk fractional prestige upgrade amount
-        : Decimal.sub(bought, 1).pow_base(2).pow10()
+
+    // i have to accomodate the scaling somehow, using the normal scaling screws it up so i have to put an edge case for mults < 10
+    return inverse
+        ? Decimal.lt(amt, 10)
+            ? Decimal.log10(amt)
+            : Decimal.log10(amt).log(costScaling).add(1)
+        : Decimal.lt(amt, 1)
+            ? Decimal.pow10(amt)
+            : Decimal.sub(amt, 1).pow_base(costScaling).pow10()
 }
 
 function togglePrestigeChallenge(i) {

@@ -9,7 +9,6 @@
         <script src="src/utils/break_eternity.js"></script>
         <script src="src/utils/lz-string.js"></script>
         <script src="src/utils/util.js"></script>
-        <script src="src/utils/buyablesInternal.js"></script>
 
         <script type="module" src="src/utils/i18n.js"></script>
 
@@ -177,6 +176,7 @@
                                     <div class="flex-vertical">
                                         <span class="font" style="font-size: 24px; color: #ffff00" id="genEnhance"></span><span class="font" style="font-size: 12px; color: #ffff00">enhancers</span>
                                         <span class="font" style="font-size: 11px; color: #ffffff">Enhancers are increasing generator XP by &times;<b><span id="genEnhXPEff"></span></b>.</span>
+                                        <span class="font" style="font-size: 11px; color: #ffffff" id="genEnhDispEff2">Enhancers are also increasing points by ^<b><span id="genEnhXPEff2"></span></b> via Trans. Upgrade <b>exp2</b>.</span>
                                         <div class="flex-horizontal" style="width: 525px; flex-wrap: wrap" id="genEnhUpgList"></div><br>
                                     </div>
                                 </div>
@@ -185,7 +185,7 @@
                                         <span class="font" style="font-size: 24px; color: #00ffff" id="genAdvance"></span><span class="font" style="font-size: 12px; color: #00ffff">advances</span>
                                         <span class="font" style="font-size: 11px; color: #ffffff">Total advances are increasing prestige point gain by &times;<b><span id="genAdvEff"></span></b>.</span>
                                         <span class="font" style="font-size: 11px; color: #ffffff">Disabling/enabling an advancement automatically does a transcension reset!</span>
-                                        <span class="font" style="font-size: 11px; color: #ffff00">If an advancement is disabled, its underlying changes get reset! (You get no boosts from it when it's disabled!)</span>
+                                        <span class="font" style="font-size: 11px; color: #ffff00">If an advancement is disabled, you will get no boosts from it!</span>
                                         <div class="flex-horizontal" style="width: 525px; flex-wrap: wrap" id="genAdvUpgList"></div><br>
                                     </div>
                                 </div>
@@ -202,9 +202,34 @@
                     </div>
                     <div id="replicatorMain">
                         <div class="flex-vertical whiteText font">
-                            <span style="font-size: 12px;">You have <b><span id="replicatorAmount"></span></b> replicators, boosting your points by <b><span id="replicatorEffect"></span></b>&times;.</span>
+                            <div class="flex-horizontal">
+                                <div style="margin: 4px" class="flex-vertical">
+                                    <span class="font" style="font-size: 24px; color: #ff80c0" id="replicatorDisp"></span><span class="font" style="font-size: 12px; color: #ff80c0">replicators</span>
+                                    <span class="font" style="font-size: 12px; color: #ff80c0" id="replicatorBestDisp"></span>
+                                    <span class="font" style="font-size: 12px; color: #ff80c0" id="replicatorEffectDisp"></span>
+                                </div>
+                                <div style="margin: 4px" class="flex-vertical" id="rankPointShow">
+                                    <span class="font" style="font-size: 24px; color: #ff80e0" id="rankPointDisp"></span><span class="font" style="font-size: 12px; color: #ff80e0">rank points</span>
+                                    <span class="font" style="font-size: 12px; color: #ff80e0" id="rankPointGenDisp"></span>
+                                </div>
+                            </div>
+                            <span style="font-size: 12px;">Your replicator strength is <b><span id="replicatorStrengthDisp1"></span></b>, meaning that every <span id="replicatorStrengthDisp2"></span> OoMs of replicators slow down replicator speed by 10×.</span>
+                            <span style="font-size: 12px;">Your replicators have slowed down by <b><span id="replicatorStrengthEffect"></span></b>&times; due to overcrowding.</span>
                             <span style="font-size: 12px;">Your replicators will double in <b><span id="replicatorTrueSpeed"></span></b>. (<span id="replicatorTrueSpeed2"></span>&times;/s.)</span>
                             <span style="font-size: 12px; color: #ffff00">Replicators use Tier 2 Time Speed!</span>
+                            <div class="flex-vertical">
+                                <div style="border: 2px solid #ff0080; background-color: #88004080; margin: 2px;" class="flex-horizontal">
+                                    <div id="repliRankAll" style="width: 200px; margin: 2px">
+                                        <button onclick="repliRankReset()" id="repliRank" class="whiteText font" style="height: 100px; width: 200px; font-size: 10px; margin: 2px">
+                                            <span style="font-size: 12px;"><b>Replirank <span id="repliRankAmount"></span></b></span><br>
+                                            <br>
+                                            Reset prior progress to increase rank point gain from <span id="repliRankEff"></span> and increase replicator effect by +^0.05.<br>
+                                            Requires: <span id="repliRankCost"></span>
+                                        </button>
+                                    </div>
+                                    <div id="rankPointBuyList" style="align-items: center; margin: 2px; margin-right: 4px;" class="flex-horizontal"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

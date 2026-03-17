@@ -296,7 +296,7 @@ const SETBACK_CALC = {
             return [Decimal.div(x, 10).pow_base(0.2)]
         },
         (x) => {
-            return [Decimal.pow(x, 2).pow_base(1.06214316).sub(1).div(0.06214316).mul(1.5).add(1)]
+            return [Decimal.pow(x, 2).pow_base(1.0621431631970534).sub(1).div(0.0621431631970534).mul(1.5).add(1)]
         },
         (x) => {
             return [Decimal.div(x, 10).pow_base(16)]
@@ -544,6 +544,10 @@ function updateGame_setback() {
         tmp.setbackTotalStacks.push([D(5), D(0), D(5)])
         tmp.setbackProjectedStacks.push([D(5), D(0), D(5)])
     }
+    if (player.transcendInSpecialReq === "setback1") {
+        tmp.setbackTotalStacks.push([D(1), D(1), D(1), D(1)])
+        tmp.setbackProjectedStacks.push([D(1), D(1), D(1), D(1)])
+    }
 
     const projected = processSetbackEffects(tmp.setbackProjectedStacks, tmp.projectedEffects)
     tmp.setbackProjectedStacks = projected.stacks
@@ -556,7 +560,7 @@ function updateGame_setback() {
     for (let i = 0; i < player.quarkDimsBought.length; i++) {
         for (let j = 0; j < player.quarkDimsBought[i].length; j++) {
             tmp.quarkDimAutoData[i][j] = D(0)
-            if (i !== 3) {
+            if (i !== 3 && player.transcendInSpecialReq !== "setback1") {
                 if (hasTranscendMilestone(3) && (j === 0 || (i === 0 && j >= 1 && j <= 3))) {
                     tmp.quarkDimAutoData[i][j] = D(4)
                 }
@@ -719,6 +723,8 @@ function updateGame_setback() {
                     tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(SETBACK_UPGRADES[3][5].eff)
                 }
             }
+            tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.pow(tmp.repliRankBuyables[2].eff)
+
             checkNaN(tmp.quarkDim[i][j].mult, `NaN detected while attempting to calculate mul of ${tmp.quarkNamesC[i]} Quark Dimension #${j + 1}`)
 
             let gen = tmp.quarkDim[i][j].mult.mul(Decimal.add(player.quarkDimsAccumulated[i][j], player.quarkDimsBought[i][j]))
