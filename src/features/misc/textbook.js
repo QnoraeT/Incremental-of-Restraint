@@ -214,7 +214,7 @@ const TEXTBOOK = [
         },
         enabled: false
     },
-        {
+    {
         get show() {
             return Decimal.gte(player.bestPointsInTranscend, 'e1500') || Decimal.gt(player.transcendResetCount, 0)
         },
@@ -232,6 +232,26 @@ const TEXTBOOK = [
         },
         enabled: false
     },
+    {
+        get show() {
+            return Decimal.gte(player.generatorFeatures.advance, 1)
+        },
+        title: `Replicators`,
+        get stage() {
+            return `Unlocked via Generator Advance Upgrade #2`
+        },
+        colors: ['#FF0080', '#80004080'],
+        get info() {
+            return `
+                Replicators are weird things that replicate. Go figure. You gain a bonus point multiplier from them. These replicators, however, have a constraint: there can only be so many before they can no longer replicate as quickly. This is called their Strength.<br>
+                Your best Replicators passively boost points.<br>
+                <br>
+                RepliRanks can be first acquired by getting at least 2 Replicators. These reset your replicators, but increase replicators' effects and generate RepliRank points which can be used for buyables and upgrades.<br>
+            `
+        },
+        enabled: false
+    },
+
 ]
 
 /*

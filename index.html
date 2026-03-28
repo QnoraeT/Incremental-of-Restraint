@@ -12,12 +12,18 @@
 
         <script type="module" src="src/utils/i18n.js"></script>
 
-        <script src="src/features/replicators.js"></script>
         <script src="src/features/transcend/transcend.js"></script>
+        <script src="src/features/main/replicators.js"></script>
+        <script src="src/features/main/genAdvances.js"></script>
+        <script src="src/features/main/genEnhancers.js"></script>
+        <script src="src/features/main/genExp.js"></script>
+        <script src="src/features/ascend/hinderances.js"></script>
         <script src="src/features/ascend/setback.js"></script>
         <script src="src/features/ascend/ascend.js"></script>
+        <script src="src/features/prestige/prestigeRepeatChal.js"></script>
+        <script src="src/features/prestige/prestigeChal.js"></script>
+        <script src="src/features/prestige/prestigeFluid.js"></script>
         <script src="src/features/prestige/prestige.js"></script>
-        <script src="src/features/main/generatorExtras.js"></script>
         <script src="src/features/main/main.js"></script>
         <script src="src/features/misc/stat.js"></script>
         <script src="src/features/misc/textbook.js"></script>
@@ -85,6 +91,9 @@
                                 <div class="flex-vertical whiteText font" style="width: 400px; background-color: #00804080; border: 3px solid #00ff80; margin: 4px; font-size: 12px; padding: 2px" id="generatorFactors"></div>
                                 <div class="flex-vertical whiteText font" style="width: 400px; background-color: #00800080; border: 3px solid #00ff00; margin: 4px; font-size: 12px; padding: 2px" id="ascendFactors"></div>
                                 <div class="flex-vertical whiteText font" style="width: 400px; background-color: #00408080; border: 3px solid #0080ff; margin: 4px; font-size: 12px; padding: 2px" id="prestigeEssenceFactors"></div>
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80400080; border: 3px solid #ff8000; margin: 4px; font-size: 12px; padding: 2px" id="genXPFactors"></div>
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80400080; border: 3px solid #ffff00; margin: 4px; font-size: 12px; padding: 2px" id="genEnhFactors"></div>
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80400080; border: 3px solid #ffa000; margin: 4px; font-size: 12px; padding: 2px" id="tierFactors"></div>
                                 <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80808080; border: 3px solid #ffffff; margin: 4px; font-size: 12px; padding: 2px" id="tier1timeFactors"></div>
                                 <div class="flex-vertical whiteText font" style="width: 400px; background-color: #40008080; border: 3px solid #8000ff; margin: 4px; font-size: 12px; padding: 2px" id="transcendFactors"></div>
                             </div>
@@ -119,9 +128,10 @@
                             <span class="whiteText font" style="font-size: 12px" id="upgradeInSetback"></span>
                             <div class="flex-horizontal" style="flex-wrap: wrap; width: 100vw" id="upgradeList"></div><br>
                             <button onclick="doPrestigeReset()" id="prestige" class="whiteText font" style="cursor: pointer; background-color: #00408080; border: 3px solid #0080ff; height: 70px; width: 325px; font-size: 12px; margin: 2px">
-                                Prestige for <b><span id="prestigeAmount"></span></b> prestige points<span id="prestigeEssenceAmount"></span>.<br>
+                                Prestige for <b><span id="prestigeAmount"></span></b> prestige points<span id="prestigeEssenceAmount"></span><span id="prestigeFluidAmount"></span>.<br>
                                 <span id="prestigeNext"></span>
                                 <span id="prestigeEssenceNext"></span>
+                                <span id="prestigeFluidNext"></span>
                             </button>
                             <button onclick="toggleCurrentPrestigeChallenge()" id="prestigeChallengeButton" class="whiteText font" style="cursor: pointer; background-color: #00408080; border: 3px solid #0080ff; height: 70px; width: 325px; font-size: 12px; margin: 2px">
                                 You are in <b><span id="prestigeChallengeName"></span></b>.<br>
@@ -238,36 +248,50 @@
                         <button onclick="tmp.prestigeTab = 0" id="mainPrestigeTabButton" class="whiteText font" style="background-color: #00408080; border: 3px solid #0080ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Main
                         </button>
-                        <button onclick="tmp.prestigeTab = 2" id="prestigeChallengeTabButton" class="whiteText font" style="background-color: #00408080; border: 3px solid #0080ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                        <button onclick="tmp.prestigeTab = 2" id="prestigeFluidTabButton" class="whiteText font" style="background-color: #10208080; border: 3px solid #2040ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            Fluid
+                        </button>
+                        <button onclick="tmp.prestigeTab = 1" id="prestigeChallengeTabButton" class="whiteText font" style="background-color: #00408080; border: 3px solid #0080ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             P. Challenges
                         </button>
+                        <button onclick="tmp.prestigeTab = 3" id="prestigeChallengeRepeatTabButton" class="whiteText font" style="background-color: #00408080; border: 3px solid #0080ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            Repeat. "P." Chals.
+                        </button>
+                    </div>
+                    <div class="flex-vertical">
+                        <div class="flex-horizontal">
+                            <div style="margin: 4px" class="flex-vertical">
+                                <span class="font" style="font-size: 24px; color: #0080ff" id="prestigePoints"></span><span class="font" style="font-size: 12px; color: #0080ff">prestige points</span>
+                                <span class="font" style="font-size: 12px; color: #0080ff" id="prestigePointEffect"></span>
+                                <span class="font" style="font-size: 12px; color: #0080ff" id="prestigePointEffectNext"></span>
+                            </div>
+                            <div id="prestigeEssenceDisp" style="margin: 4px" class="flex-vertical">
+                                <span class="font" style="font-size: 24px; color: #0080ff" id="prestigeEssence"></span><span class="font" style="font-size: 12px; color: #0080ff">prestige essence</span>
+                                <span class="font" style="font-size: 12px; color: #0080ff" id="prestigeEssenceEffect"></span>
+                                <span class="font" style="font-size: 12px; color: #0080ff" id="prestigeEssenceEffectNext"></span>
+                            </div>
+                            <div id="prestigeFluidDisp" style="margin: 4px" class="flex-vertical">
+                                <!-- i have to make the colors lighter cuz then u can't see shit :c -->
+                                <span class="font" style="font-size: 24px; color: #6040ff" id="prestigeFluid"></span><span class="font" style="font-size: 12px; color: #6040ff">prestige fluid</span>
+                                <span class="font" style="font-size: 12px; color: #6040ff" id="prestigeFluidEffect"></span>
+                                <span class="font" style="font-size: 12px; color: #6040ff" id="prestigeFluidEffectNext"></span>
+                            </div>
+                        </div>
                     </div>
                     <div id="mainPrestigeTab">
                         <div class="flex-vertical">
-                            <div class="flex-horizontal">
-                                <div style="margin: 4px" class="flex-vertical">
-                                    <span class="font" style="font-size: 24px; color: #0080ff" id="prestigePoints"></span><span class="font" style="font-size: 12px; color: #0080ff">prestige points</span>
-                                    <span class="font" style="font-size: 12px; color: #0080ff" id="prestigePointEffect"></span>
-                                    <span class="font" style="font-size: 12px; color: #0080ff" id="prestigePointEffectNext"></span>
-                                </div>
-                                <div id="prestigeEssenceDisp" style="margin: 4px" class="flex-vertical">
-                                    <span class="font" style="font-size: 24px; color: #0080ff" id="prestigeEssence"></span><span class="font" style="font-size: 12px; color: #0080ff">prestige essence</span>
-                                    <span class="font" style="font-size: 12px; color: #0080ff" id="prestigeEssenceEffect"></span>
-                                    <span class="font" style="font-size: 12px; color: #0080ff" id="prestigeEssenceEffectNext"></span>
-                                </div>
-                            </div>
                             <div style="display: flex; flex-direction: row; align-items: center">
-                                <button onclick="respecPrestigeUpgrades()" id="prestigeRespec" class="whiteText font" style="height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
+                                <button onclick="respecPrestigeUpgrades()" id="prestigeRespec" class="whiteText font" style="cursor: pointer; height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
                                     Respec all prestige buyables and do a prestige reset.
                                 </button>
-                                <button onclick="alert('unimplemented.')" id="puExport" class="whiteText font" style="height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
-                                    Export prestige upgrade loadout.
+                                <button onclick="alert('This is currently unimplemented, check back later.')" id="puExport" class="whiteText font" style="cursor: pointer; height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
+                                    Export prestige buyable loadout.
                                 </button>
-                                <button onclick="alert('unimplemented.')" id="puImport" class="whiteText font" style="height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
-                                    Import prestige upgrade loadout.
+                                <button onclick="alert('This is currently unimplemented, check back later.')" id="puImport" class="whiteText font" style="cursor: pointer; height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
+                                    Import prestige buyable loadout.
                                 </button>
-                                <button onclick="alert('unimplemented.')" id="puPreset" class="whiteText font" style="height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
-                                    See prestige upgrade presets.
+                                <button onclick="alert('This is currently unimplemented, check back later.')" id="puPreset" class="whiteText font" style="cursor: pointer; height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
+                                    See prestige buyable presets.
                                 </button>
                             </div>
                             <span class="font" style="font-size: 16px; color: #0080ff">You can only have <b><span id="prestigeUpgradeCap"></span></b> prestige upgrades bought!</span>
@@ -280,8 +304,32 @@
                             <button onclick="respecPrestigeChallenge()" id="prestigeChalRespec" class="whiteText font" style="height: 50px; width: 200px; font-size: 10px; margin: 2px; background-color: #00408080; border: 3px solid #0080ff">
                                 Respec all prestige challenge completions and do an ascension reset.
                             </button>
-                            <!-- <span class="whiteText font" style="font-size: 12px">You cannot buy Prestige Upgrades in a Prestige Challenge.</span> -->
                             <div class="flex-horizontal" style="width: 1080px; flex-wrap: wrap" id="prestigeChallengeList"></div><br>
+                        </div>
+                    </div>
+                    <div id="prestigeFluidTab">
+                        <div class="flex-vertical">
+                            <div style="display: flex; flex-direction: row; align-items: center">
+                                <button onclick="respecPrestigeFluidUpgs()" id="prestigeRespec" class="whiteText font" style="cursor: pointer; height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #10208080; border: 3px solid #2040ff">
+                                    Respec all prestige fluid buyables and do a prestige reset.
+                                </button>
+                                <button onclick="alert('This is currently unimplemented, check back later.')" id="puExport" class="whiteText font" style="cursor: pointer; height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #10208080; border: 3px solid #2040ff">
+                                    Export prestige fluid buyable loadout.
+                                </button>
+                                <button onclick="alert('This is currently unimplemented, check back later.')" id="puImport" class="whiteText font" style="cursor: pointer; height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #10208080; border: 3px solid #2040ff">
+                                    Import prestige fluid buyable loadout.
+                                </button>
+                                <button onclick="alert('This is currently unimplemented, check back later.')" id="puPreset" class="whiteText font" style="cursor: pointer; height: 50px; width: 175px; font-size: 10px; margin: 2px; background-color: #10208080; border: 3px solid #2040ff">
+                                    See prestige fluid buyable presets.
+                                </button>
+                            </div>
+                            <div class="flex-horizontal" style="width: 600px; flex-wrap: wrap" id="prestigeFluidUpgList"></div><br>
+                        </div>
+                    </div>
+                    <div id="prestigeChallengeRepeatTab">
+                        <div class="flex-vertical">
+                            <span class="font" style="color: #ffff00; font-size: 12px">Points gained here will not count toward the next prestige layer!<br>You will not gain any prestige resources (e.g. prestige points, prestige reset count) from entering or exiting a prestige challenge!<br>You will only exit a classic prestige challenge via prestiging. Prestiging will not exit you from a repeatable prestige challenge.<b>Entering/exiting these challenges will cause a TRANSCENSION reset!</b></span>
+                            <div class="flex-horizontal" style="width: 1080px; flex-wrap: wrap" id="prestigeChallengeRepeatList"></div><br>
                         </div>
                     </div>
                 </div>
@@ -339,6 +387,9 @@
                                     <button onclick="tmp.setbackTab = 3" id="upgSBTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                                         Upgrades
                                     </button>
+                                    <button onclick="tmp.setbackTab = 4" id="prioSBTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                                        Priority
+                                    </button>
                                 </div>
                                 <div id="setbackTabSettings">
                                     <div class="flex-vertical">
@@ -380,6 +431,21 @@
                                             <b><span id="upgSBDesc" class="font" style="font-size: 12px; color: #ffffff"></span></b>
                                             <b><span id="upgSBCost" class="font" style="font-size: 12px; color: #ffffff"></span></b>
                                         </div>
+                                    </div>
+                                </div>
+                                <div id="setbackTabPrio">
+                                    <div class="flex-vertical">
+                                        <span class="whiteText font" style="font-size: 12px;">Priority can be assigned to any color in specific to <span style="color: #80ff80">boost</span> it, but <span style="color: #ff8080">nerfing</span> the other colors. Changing or respeccing priority causes a transcension reset.</span>
+                                        <span class="whiteText font" style="font-size: 12px;">All priority increases are free until reaching your best base priority. (Example: If you had 4 BP on red and respecced, all BP up to 4 in red are free.)</span>
+                                        <span class="whiteText font" style="font-size: 12px;">Gaining priority also boosts their respective color slightly, regardless if their priority is negative.</span>
+                                        <br>
+                                        <span class="whiteText font" style="font-size: 12px;">A setback upgrade is unlocked by reaching +1, +2, +3, +5, and +8 in the color. (+1 red = A new red setback upgrade)</span>
+                                        <span class="whiteText font" style="font-size: 12px;">Upgrades from setback priorities do not reset, even if respecced!</span>
+                                        <br>
+                                        <button onclick="respecSetbackPriority()" id="priorityRespec" class="whiteText font" style="cursor: pointer; height: 40px; width: 200px; font-size: 12px; margin: 2px; background-color: #80808080; border: 3px solid #ffffff">
+                                            Respec all setback priorities.
+                                        </button>
+                                        <div id="setbackPrioList" class="flex-horizontal"></div>
                                     </div>
                                 </div>
                             </div>

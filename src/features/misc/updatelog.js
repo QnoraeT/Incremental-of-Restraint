@@ -54,10 +54,10 @@ const UPDATE_LOG = [
         tooSmall: true,
         version: 24,
         changes: [
-            "WIP Replicators."
+            
         ],
         features: [
-
+            "WIP Replicators."
         ],
         bugfixes: [
 
@@ -67,10 +67,10 @@ const UPDATE_LOG = [
         tooSmall: true,
         version: 25,
         changes: [
-            "WIP Replicators"
+
         ],
         features: [
-
+            "WIP Replicators."
         ],
         bugfixes: [
 
@@ -90,13 +90,70 @@ const UPDATE_LOG = [
         ]
     },
     {
-        tooSmall: false,
+        tooSmall: true,
         version: 27,
         changes: [
 
         ],
         features: [
+            "WIP Setback Priorities"
+        ],
+        bugfixes: [
 
+        ]
+    },
+    {
+        tooSmall: true,
+        version: 28,
+        changes: [
+
+        ],
+        features: [
+            "WIP Setback Priorities."
+        ],
+        bugfixes: [
+
+        ]
+    },
+    {
+        tooSmall: true,
+        version: 29,
+        changes: [
+            "I was bored, so I added semi-colons in much of the code-base. It does nothing, I just felt like doing it."
+        ],
+        features: [
+            "Added factors in stats for Generator XP, Generator Enhancer, and Tier gain.",
+            "WIP Setback Priority Upgrades (Implemented R11-13, G11-12, B7)"
+        ],
+        bugfixes: [
+            "Fixed Cyan Energy potentially having an effect even in setbacks due to it not accounting for being trapped in a setback.",
+            "Fixed Hinderance 4's effect potentially not working properly on Generator XP's point boost.",
+            "Fixed Hinderance 4's effect potentially not working properly on Trans. Upg. \"Point Enhancers\".",
+        ]
+    },
+    {
+        tooSmall: true,
+        version: 30,
+        changes: [
+
+        ],
+        features: [
+            "WIP Prestige Fluid",
+            "Implemented G13, implementing B6"
+        ],
+        bugfixes: [
+
+        ]
+    },
+    {
+        tooSmall: true,
+        version: 31,
+        changes: [
+
+        ],
+        features: [
+            "WIP Repeatable Prestige Challenges",
+            "Implemented B6, implementing B8"
         ],
         bugfixes: [
 

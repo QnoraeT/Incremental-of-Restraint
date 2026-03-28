@@ -1,6 +1,11 @@
 "use strict";
 // ! Ultimate Goal:
 // ! Make inflation hard to do -- To test all currencies, try raising the third exponent by 2 (dilate true, dilateStage 2, dilateValue 2) to see what happens, it should stay stable
+/*
+player.cheats.dilate = true;
+player.cheats.dilateStage = 2;
+player.cheats.dilateValue = D(2);
+*/
 
 // START GAME LOGIC
 const saveID = "restraint_inc_tearonq";
@@ -21,6 +26,7 @@ function initPlayer() {
         version: 0,
         timeInPrestige: D(0),
         timeInAscend: D(0),
+        time2ndInAscend: D(0),
         timeInTranscension: D(0),
         points: D(0),
         bestPointsInPrestige: D(0),
@@ -47,8 +53,19 @@ function initPlayer() {
             D(0), D(0), D(0),
             D(0), D(0), D(0)
         ],
+        prestigeFluid: D(0),
+        prestigeFluidUpgs: [
+            D(0), D(0), D(0), 
+            D(0), D(0), D(0), 
+            D(0), D(0), D(0), 
+            D(0), D(0), D(0), 
+            D(0), D(0), D(0),
+            D(0), D(0), D(0)
+        ],
         prestigeChallenge: null,
         prestigeChallengeCompleted: [],
+        prestigeChallengeRepeat: null,
+        prestigeChallengeRepCompleted: [],
         prestigeUpgradesInCurrentAscension: false,
         darts: D(0),
         hinderanceScore: [D(0), D(0), D(0), D(0)],
@@ -91,6 +108,8 @@ function initPlayer() {
         ],
         setbackUpgradeSelected: null,
         setbackUpgrades: [],
+        setbackPriority: [D(0), D(0), D(0), D(0)],
+        bestSetbackPriority: [D(0), D(0), D(0), D(0)],
         genXPAuto: false,
         generatorFeatures: {
             xp: D(0),
@@ -121,7 +140,7 @@ function initPlayer() {
         replispawns: D(0),
         repliupgrades: [],
         perksUsed: []
-    }
+    };
 }
 function initTmp() {
     return {
@@ -143,7 +162,7 @@ function initTmp() {
         setbackDimTab: 0,
         transTab: 0,
         factors: {},
-        timeSpeedTiers: [D(1)],
+        timeSpeedTiers: [D(1), D(1)],
         pointGen: D(1),
         buyables: resetMainBuyables(),
         basicBuyableEnabled: resetBuyableEnable(),
@@ -152,7 +171,6 @@ function initTmp() {
         bybBoostInterval: D(100),
         bybBoostEffect: D(2),
         bybBoostCost: D(2),
-        pc11Eff: D(1),
         autoPrestige: false,
         prestigePointGain: D(0),
         prestigePointNext: D(0),
@@ -163,6 +181,7 @@ function initTmp() {
         prestigeUpgEffs: [],
         prestigeUpgDescs: [],
         prestigeChal: resetPrestigeChalEffs(),
+        prestigeRepeatChal: resetPrestigeChalRepeatEffs(),
         prestigeIsUpg: true,
         prevPrestigeIsUpg: false,
         totalPrestigeUpg: D(0),
@@ -170,6 +189,12 @@ function initTmp() {
         peNext: D(0),
         peEffect: D(1),
         peEffectNext: D(1),
+        pfUsed: D(0),
+        pfGain: D(0),
+        pfNext: D(0),
+        pfEffect: D(1),
+        pfEffectNext: D(1),
+        pfUpgData: resetPFUpgData(),
         generatorSpeed: D(1),
         autoAscend: false,
         ascendBuyables: resetAscendBuyables(),
@@ -195,6 +220,7 @@ function initTmp() {
         energyEffs: [],
         dimBoughtBM: [],
         quarkDimAutoData: resetQuarkDimAuto(),
+        setbackPriorityData: resetSetbackPrioOnChange(),
         quarkNames: ['red', 'green', 'blue', 'cyan', 'magenta', 'yellow'],
         quarkNamesC: ['Red', 'Green', 'Blue', 'Cyan', 'Magenta', 'Yellow'],
         quarkColors: ['FF0000', '00FF00', '0000FF', '00FFFF', 'FF00FF', 'FFFF00'],
@@ -225,7 +251,7 @@ function initTmp() {
         transcendResetEffectMilestone: D(1),
         transEffs: resetTransUpgBuyables(),
         transSelectedUpg: [],
-        replicatorSpd: D(1.01),
+        replicatorSpd: D(1),
         replicatorStrength: D(1),
         replicatorEff: D(1),
         replicatorTrueSpdDisp1: D(1),
@@ -235,11 +261,11 @@ function initTmp() {
         repliRankTarget: D(0),
         repliRankEffect: D(0),
         repliRankBuyables: resetRepliRankBuyables()
-    }
+    };
 }
 
 function resetMainBuyables() {
-    const arr = []
+    const arr = [];
     for (let i = 0; i < player.buyables.length; i++) {
         arr[i] = {
             effective: D(0),
@@ -253,63 +279,108 @@ function resetMainBuyables() {
             tierLevels: D(0),
             tierEffect: D(1),
             canBuy: false,
-        }
+        };
     }
-    return arr
+    return arr;
 }
 
 function resetBuyableEnable() {
-    const arr = []
+    const arr = [];
     for (let i = 0; i < player.buyables.length; i++) {
-        arr[i] = false
+        arr[i] = false;
     }
-    return arr
+    return arr;
 }
 
 function resetBuyableAuto() {
-    const arr = []
+    const arr = [];
     for (let i = 0; i < player.buyables.length; i++) {
-        arr[i] = D(0)
+        arr[i] = D(0);
     }
-    return arr
+    return arr;
 }
 
 function resetPrestigeChalEffs() {
-    const arr = []
+    const arr = [];
     for (let i = PRESTIGE_CHALLENGES.length - 1; i >= 0; i--) {
         arr[i] = {
             entered: false,
             trapped: false,
             effects: {},
             depth: D(0)
-        }
+        };
     }
-    return arr
+    return arr;
+}
+
+function resetPrestigeChalRepeatEffs() {
+    const arr = [];
+    for (let i = PRESTIGE_CHALLENGES_REPEAT.length - 1; i >= 0; i--) {
+        arr[i] = {
+            entered: false,
+            trapped: false,
+            effects: {},
+            depth: D(0),
+            goal: D(Infinity),
+            target: D(0)
+        };
+    }
+    return arr;
+}
+
+function resetPFUpgData() {
+    const arr = [];
+    for (let i = 0; i < player.prestigeUpgrades.length; i++) {
+        arr[i] = {
+            effect: D(1),
+            effectNext: D(1),
+            cost: D(1),
+            priorCost: D(0),
+            target: D(0),
+            canBuy: false,
+        };
+    }
+    return arr;
 }
 
 function resetAscendBuyables() {
-    const arr = []
+    const arr = [];
     for (let i = ASCENSION_UPGRADES.length - 1; i >= 0; i--) {
         arr[i] = {
             eff: D(0),
             cost: D(1),
             target: D(0),
             canBuy: false
-        }
+        };
     }
-    return arr
+    return arr;
 }
 
 function resetSetbackEffects() {
-    const arr = []
+    const arr = [];
     for (let i = 0; i < SETBACK_CALC.difficulty.length; i++) {
-        arr.push(SETBACK_CALC.difficulty[i](0))
+        arr.push(SETBACK_CALC.difficulty[i](0));
     }
-    return arr
+    return arr;
+}
+
+function resetSetbackPrioOnChange() {
+    const arr = [];
+    for (let i = 0; i < SETBACK_CALC.energy.length; i++) {
+        arr.push({
+            effPrio: D(0),
+            cost: D(Infinity),
+            nextCost: D(Infinity),
+            target: D(0),
+            plus1: SETBACK_CALC.energy[i](0),
+            minus1: SETBACK_CALC.energy[i](0)
+        });
+    }
+    return arr;
 }
 
 function resetQuarkColors(colors) {
-    const arr = []
+    const arr = [];
     for (let i = 0; i < player.quarkDimsBought.length; i++) {
         arr.push({
             yes: {
@@ -320,85 +391,85 @@ function resetQuarkColors(colors) {
                 border: `${colorChange(colors[i], 0.5, 1.0)}`,
                 bg: `${colorChange(colors[i], 0.25, 1.0)}80`,
             }
-        })
+        });
     }
-    return arr
+    return arr;
 }
 
 function resetQuarkDimAuto() {
-    const arr = []
+    const arr = [];
     for (let i = 0; i < player.quarkDimsBought.length; i++) {
-        arr.push([])
+        arr.push([]);
     }
     for (let i = 0; i < player.quarkDimsBought.length; i++) {
         for (let j = 0; j < player.quarkDimsBought[i].length; j++) {
-            arr[i].push({ enabled: false, spd: D(0) })
+            arr[i].push({ enabled: false, spd: D(0) });
         }
     }
-    return arr
+    return arr;
 }
 
 function resetHinderanceEffs() {
-    const arr = []
+    const arr = [];
     for (let i = HINDERANCES.length - 1; i >= 0; i--) {
         arr[i] = {
             entered: false,
             trapped: false,
             effects: {},
             depth: D(0)
-        }
+        };
     }
-    return arr
+    return arr;
 }
 
 function resetGenXPBuyables() {
-    const arr = []
+    const arr = [];
     for (let i = 0; i < player.generatorFeatures.buyable.length; i++) {
         arr[i] = {
             eff: D(0),
             cost: D(1),
             target: D(0),
             canBuy: false
-        }
+        };
     }
-    return arr
+    return arr;
 }
 
 function resetGenEnhBuyables() {
-    const arr = []
+    const arr = [];
     for (let i = 0; i < player.generatorFeatures.enhancerBuyables.length; i++) {
         arr[i] = {
             eff: D(0),
             cost: D(1),
             target: D(0),
             canBuy: false
-        }
+        };
     }
-    return arr
+    return arr;
 }
 
 function resetTransUpgBuyables() {
-    const arr = []
+    const arr = [];
     for (let i = 0; i < TRANSCENSION_UPGRADES.length; i++) {
-        arr.push([])
+        arr.push([]);
         for (let j = 0; j < TRANSCENSION_UPGRADES[i].length; j++) {
-            arr[i].push(D(0))
+            arr[i].push(D(0));
         }
     }
-    return arr
+    return arr;
 }
 
 function resetRepliRankBuyables() {
-    const arr = []
+    const arr = [];
     for (let i = 0; i < player.replirankBuyables.length; i++) {
         arr[i] = {
             eff: D(0),
             cost: D(1),
             target: D(0),
             canBuy: false
-        }
+        };
     }
-    return arr
+    return arr;
 }
 
 function resetTheWholeGame(prompt) {
@@ -414,13 +485,13 @@ function resetTheWholeGame(prompt) {
     localStorage.removeItem(saveID);
 };
 
-const html = []
-const dots = []
-let player = initPlayer()
-let tmp = initTmp()
-let draw
-let pen
-let gameTick
+const html = [];
+const dots = [];
+let player = initPlayer();
+let tmp = initTmp();
+let draw;
+let pen;
+let gameTick;
 const gameVars = {
     timeUntilSave: 5,
     delta: 0,
@@ -430,175 +501,205 @@ const gameVars = {
 
 function updatePlayer() {
     if (player.version === 0) {
-        delete player.tab
-        delete player.statTab
-        delete player.mainTab
-        delete player.prestigeTab
-        delete player.ascendTab
-        delete player.setbackTab
-        delete player.setbackDimTab
-        player.version = 1
+        delete player.tab;
+        delete player.statTab;
+        delete player.mainTab;
+        delete player.prestigeTab;
+        delete player.ascendTab;
+        delete player.setbackTab;
+        delete player.setbackDimTab;
+        player.version = 1;
     }
     if (player.version === 1) {
-        player.bestTotalGenLvs = D(0)
-        player.version = 2
+        player.bestTotalGenLvs = D(0);
+        player.version = 2;
     }
     if (player.version === 2) {
-        player.generatorFeatures.totalEnh = D(0)
-        player.version = 3
+        player.generatorFeatures.totalEnh = D(0);
+        player.version = 3;
     }
     if (player.version === 3) {
-        player.transcendPoints = D(0)
-        player.transcendPointTotal = D(0)
-        player.transcendResetCount = D(0)
-        player.transcendUpgrades = []
-        player.bestPointsInTranscend = D(0)
-        player.version = 4
+        player.transcendPoints = D(0);
+        player.transcendPointTotal = D(0);
+        player.transcendResetCount = D(0);
+        player.transcendUpgrades = [];
+        player.bestPointsInTranscend = D(0);
+        player.version = 4;
     }
     if (player.version === 4) {
-        player.timeInTranscension = D(0)
-        player.version = 5
+        player.timeInTranscension = D(0);
+        player.version = 5;
     }
     if (player.version === 5) {
-        player.buyableInTranscension = [false, false, false, false, false, false]
-        player.version = 6
+        player.buyableInTranscension = [false, false, false, false, false, false];
+        player.version = 6;
     }
     if (player.version === 6) {
-        player.prestigeCount = D(0)
-        player.ascendCount = D(0)
-        player.enhanceCount = D(0)
-        player.prestigeCountInTrans = D(0)
-        player.version = 7
+        player.prestigeCount = D(0);
+        player.ascendCount = D(0);
+        player.enhanceCount = D(0);
+        player.prestigeCountInTrans = D(0);
+        player.version = 7;
     }
     if (player.version === 7) {
-        player.transcendUpgradesUnlocked = {}
-        player.version = 8
+        player.transcendUpgradesUnlocked = {};
+        player.version = 8;
     }
     if (player.version === 8) {
-        player.transcendInSpecialReq = null
-        player.version = 9
+        player.transcendInSpecialReq = null;
+        player.version = 9;
     }
     if (player.version === 9) {
-        player.perksUsed = []
-        player.version = 10
+        player.perksUsed = [];
+        player.version = 10;
     }
     if (player.version === 10) {
-        player.ascendUpgAuto = false
-        player.version = 11
+        player.ascendUpgAuto = false;
+        player.version = 11;
     }
     if (player.version === 11) {
-        player.setback[3] = D(0)
-        player.quarkDimsBought[3] = [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)]
-        player.quarkDimsAutobought[3] = [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)]
-        player.quarkDimsAccumulated[3] = [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)]
-        player.quarkDimsAuto[3] = [false, false, false, false, false, false, false, false]
-        player.version = 12
+        player.setback[3] = D(0);
+        player.quarkDimsBought[3] = [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)];
+        player.quarkDimsAutobought[3] = [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)];
+        player.quarkDimsAccumulated[3] = [D(0), D(0), D(0), D(0), D(0), D(0), D(0), D(0)];
+        player.quarkDimsAuto[3] = [false, false, false, false, false, false, false, false];
+        player.version = 12;
     }
     if (player.version === 12) {
-        player.genXPAuto = false
-        player.bestHinderanceScore = [D(0), D(0), D(0)]
-        player.genEnhGenerate = false
-        player.version = 13
+        player.genXPAuto = false;
+        player.bestHinderanceScore = [D(0), D(0), D(0)];
+        player.genEnhGenerate = false;
+        player.version = 13;
     }
     if (player.version === 13) {
-        player.specialBuyables = [D(0)]
-        player.version = 14
+        player.specialBuyables = [D(0)];
+        player.version = 14;
     }
     if (player.version === 14) {
-        player.hinderanceScore[3] = D(0)
-        player.bestHinderanceScore[3] = D(0)
-        player.version = 15
+        player.hinderanceScore[3] = D(0);
+        player.bestHinderanceScore[3] = D(0);
+        player.version = 15;
     }
     if (player.version === 15) {
-        player.generatorFeatures.buyable[2] = D(0)
-        player.generatorFeatures.enhancerBuyables[3] = D(0)
-        player.generatorFeatures.enhancerBuyables[4] = D(0)
-        player.generatorFeatures.enhancerBuyables[5] = D(0)
-        player.version = 16
+        player.generatorFeatures.buyable[2] = D(0);
+        player.generatorFeatures.enhancerBuyables[3] = D(0);
+        player.generatorFeatures.enhancerBuyables[4] = D(0);
+        player.generatorFeatures.enhancerBuyables[5] = D(0);
+        player.version = 16;
     }
     if (player.version === 16) {
-        player.generatorFeatures.advance = D(0)
-        player.generatorFeatures.totalAdv = D(0)
-        player.generatorFeatures.advanceUpgsChosen = []
-        player.version = 17
+        player.generatorFeatures.advance = D(0);
+        player.generatorFeatures.totalAdv = D(0);
+        player.generatorFeatures.advanceUpgsChosen = [];
+        player.version = 17;
     }
     if (player.version === 17) {
-        player.hinderanceScore[4] = D(0)
-        player.bestHinderanceScore[4] = D(0)
+        player.hinderanceScore[4] = D(0);
+        player.bestHinderanceScore[4] = D(0);
         player.version = 18
     }
     if (player.version === 18) {
-        player.specialBuyables[1] = D(0)
-        player.version = 19
+        player.specialBuyables[1] = D(0);
+        player.version = 19;
     }
     if (player.version === 19) {
         if (player.prestigeChallenge >= 13) {
-            togglePrestigeChallenge(player.prestigeChallenge)
+            togglePrestigeChallenge(player.prestigeChallenge);
         }
-        player.prestigeChallengeCompleted = player.prestigeChallengeCompleted.filter((val) => val <= 12)
-        player.version = 20
+        player.prestigeChallengeCompleted = player.prestigeChallengeCompleted.filter((val) => val <= 12);
+        player.version = 20;
     }
     if (player.version === 20) {
-        delete player.specialBuyables[1]
-        player.version = 21
+        delete player.specialBuyables[1];
+        player.version = 21;
     }
     if (player.version === 21) {
-        player.replicators = D(1)
-        player.replirank = D(0)
-        player.replitier = D(0)
-        player.replitetr = D(0)
-        player.replispawns = D(0)
-        player.repliupgrades = []
-        player.version = 22
+        player.replicators = D(1);
+        player.replirank = D(0);
+        player.replitier = D(0);
+        player.replitetr = D(0);
+        player.replispawns = D(0);
+        player.repliupgrades = [];
+        player.version = 22;
     }
     if (player.version === 22) {
-        player.replirankBuyables = [D(0), D(0), D(0), D(0)]
-        player.version = 23
+        player.replirankBuyables = [D(0), D(0), D(0), D(0)];
+        player.version = 23;
     }
     if (player.version === 23) {
-        player.replirankPoints = D(0)
-        player.replitierPoints = D(0)
-        player.replitetrPoints = D(0)
+        player.replirankPoints = D(0);
+        player.replitierPoints = D(0);
+        player.replitetrPoints = D(0);
         
-        player.version = 24
+        player.version = 24;
     }
     if (player.version === 24) {
-        player.bestReplicators = D(1)
+        player.bestReplicators = D(1);
 
-        player.version = 25
+        player.version = 25;
     }
     if (player.version === 25) {
-        player.prestigeUpgrades[15] = D(0)
-        player.prestigeUpgrades[16] = D(0)
-        player.prestigeUpgrades[17] = D(0)
+        player.prestigeUpgrades[15] = D(0);
+        player.prestigeUpgrades[16] = D(0);
+        player.prestigeUpgrades[17] = D(0);
 
-        player.version = 26
+        player.version = 26;
     }
     if (player.version === 26) {
+        player.setbackPriority = [D(0), D(0), D(0), D(0)];
 
-        // player.version = 27
+        player.version = 27;
     }
     if (player.version === 27) {
+        player.bestSetbackPriority = [D(0), D(0), D(0), D(0)];
 
-        // player.version = 28
+        player.version = 28;
     }
     if (player.version === 28) {
+        player.time2ndInAscend = D(0);
 
-        // player.version = 29
+        player.version = 29;
     }
     if (player.version === 29) {
+        player.prestigeFluid = D(0);
+        player.prestigeFluidUpgs = [
+            D(0), D(0), D(0), 
+            D(0), D(0), D(0), 
+            D(0), D(0), D(0), 
+            D(0), D(0), D(0), 
+            D(0), D(0), D(0),
+            D(0), D(0), D(0)
+        ];
 
-        // player.version = 30
+        player.version = 30;
     }
     if (player.version === 30) {
+        player.prestigeChallengeRepeat = null;
+        player.prestigeChallengeRepCompleted = [];
 
-        // player.version = 31
+        player.version = 31;
+    }
+    if (player.version === 31) {
+
+        // player.version = 32;
+    }
+    if (player.version === 32) {
+
+        // player.version = 33;
+    }
+    if (player.version === 33) {
+
+        // player.version = 34;
+    }
+    if (player.version === 34) {
+
+        // player.version = 35;
     }
 }
 
 function loadGame() {
-    player = initPlayer()
-    tmp = initTmp()
+    player = initPlayer();
+    tmp = initTmp();
 
     if (localStorage.getItem(saveID) !== null && localStorage.getItem(saveID) !== "null") {
         try {
@@ -611,9 +712,9 @@ function loadGame() {
         }
     }
 
-    updatePlayer()
+    updatePlayer();
 
-    initHTML()
+    initHTML();
 
     // cheats start
 
@@ -638,42 +739,48 @@ function loadGame() {
     // player.currentSetback = 0
     // displaySetbackCompleted()
 
-    doGameLoopTicksLol()
+    doGameLoopTicksLol();
 }
 
 function initHTML() {
-    document.body.style.backgroundColor = "#000000"
-    document.body.style.margin = "0px"
-    document.body.style.padding = "0px"
+    document.body.style.backgroundColor = "#000000";
+    document.body.style.margin = "0px";
+    document.body.style.padding = "0px";
     try {
-        toHTMLvar('offlineTime')
-        toHTMLvar('inGame')
-        toHTMLvar('offlineTimeProgress')
-        toHTMLvar('offlineTimeProgressBar')
-        toHTMLvar('offlineTimeProgressBarBase')
-        toHTMLvar('offlineTimeDisplay')
-        toHTMLvar('popup-container')
+        toHTMLvar('offlineTime');
+        toHTMLvar('inGame');
+        toHTMLvar('offlineTimeProgress');
+        toHTMLvar('offlineTimeProgressBar');
+        toHTMLvar('offlineTimeProgressBarBase');
+        toHTMLvar('offlineTimeDisplay');
+        toHTMLvar('popup-container');
 
-        html['inGame'].setDisplay(false)
-        html['offlineTime'].setDisplay(false)
+        html['inGame'].setDisplay(false);
+        html['offlineTime'].setDisplay(false);
 
-        toHTMLvar('points')
-        toHTMLvar('pointsPerSecond')
-        toHTMLvar('chalList')
+        toHTMLvar('points');
+        toHTMLvar('pointsPerSecond');
+        toHTMLvar('chalList');
 
-        initHTML_replicators()
-        initHTML_transcend()
-        initHTML_generatorExtras()
-        initHTML_setback()
-        initHTML_ascend()
-        initHTML_prestige()
-        initHTML_main()
-        initHTML_stats()
-        initHTML_textbook()
+        initHTML_replicators();
+        initHTML_transcend();
+        initHTML_genAdvances();
+        initHTML_genEnhancers();
+        initHTML_genXP();
+        initHTML_hinderance();
+        initHTML_setback();
+        initHTML_ascend();
+        initHTML_prestigeRepChal();
+        initHTML_prestigeChallenges();
+        initHTML_prestigeFluid();
+        initHTML_prestige();
+        initHTML_main();
+        initHTML_stats();
+        initHTML_textbook();
 
         draw = document.getElementById('draw');
         pen = draw.getContext("2d");
-        initDots()
+        initDots();
     } catch(e) {
         document.body.innerHTML = `
             <span style="font-size: 12px; text-align: center" class="whiteText font flex-vertical">
@@ -681,16 +788,16 @@ function initHTML() {
                 ${e}<br><br>
                 Check the console by right click → Inspect, or by pressing Ctrl + Shift + I (Windows).
             </span>
-        `
-        console.error(e)
-        throw new Error('stopped.')
+        `;
+        console.error(e);
+        throw new Error('stopped.');
     }
 }
 
-let gameStopped = false
+let gameStopped = false;
 
-let sessionTime = 0
-let delta = 0
+let sessionTime = 0;
+let delta = 0;
 
 function initDots() {
     for (let i = 0; i < 32; i++) {
@@ -731,7 +838,7 @@ const drawing = () => {
 }
 
 function doGameLoopTicksLol() {
-    gameTick = setInterval(gameLoop, 20)
+    gameTick = setInterval(gameLoop, 20);
 }
 
 function doOfflineTime() {
@@ -740,28 +847,27 @@ function doOfflineTime() {
     }
     for (let i = 0; i < Math.min(tmp.offlineTime.tickRemaining, 100); i++) {
         try {
-            gameLoop()
-            tmp.offlineTime.tickRemaining -= 1
+            gameLoop();
+            tmp.offlineTime.tickRemaining -= 1;
         } catch(e) {
-            console.error(`Offline time couldn't be done!`)
-            console.error(e)
-            gameVars.offlineTimeFailed = true
+            console.error(`Offline time couldn't be done!`);
+            console.error(e);
+            gameVars.offlineTimeFailed = true;
             return;
         }
     }
 
-    html['inGame'].setDisplay(false)
-    html['offlineTime'].setDisplay(true)
+    html['inGame'].setDisplay(false);
+    html['offlineTime'].setDisplay(true);
 
-    html['offlineTimeDisplay'].setTxt(`Ticks: ${format(tmp.offlineTime.tickRemaining)} / ${format(tmp.offlineTime.tickMax)} (${formatTime(tmp.offlineTime.tickRemaining * tmp.offlineTime.tickLength)} / ${formatTime(tmp.offlineTime.tickMax * tmp.offlineTime.tickLength)})`)
-    html['offlineTimeProgressBar'].changeStyle('width', `${100 * (1 - (tmp.offlineTime.tickRemaining / tmp.offlineTime.tickMax))}%`)
+    html['offlineTimeDisplay'].setTxt(`Ticks: ${format(tmp.offlineTime.tickRemaining)} / ${format(tmp.offlineTime.tickMax)} (${formatTime(tmp.offlineTime.tickRemaining * tmp.offlineTime.tickLength)} / ${formatTime(tmp.offlineTime.tickMax * tmp.offlineTime.tickLength)})`);
+    html['offlineTimeProgressBar'].changeStyle('width', `${100 * (1 - (tmp.offlineTime.tickRemaining / tmp.offlineTime.tickMax))}%`);
 
     if (tmp.offlineTime.tickRemaining > 0) {
-        window.setTimeout(doOfflineTime, 0)
+        window.setTimeout(doOfflineTime, 0);
     } else {
-        tmp.offlineTime.active = false
-        doGameLoopTicksLol()
-        console.log('offline time deactivated!')
+        tmp.offlineTime.active = false;
+        doGameLoopTicksLol();
     }
 } 
 
@@ -770,58 +876,65 @@ function gameLoop() {
         return;
     }
 
-    delta = (Date.now() - player.lastTick) / 1000
-    delta = Math.max(delta, 0) // for some reason, delta goes negative, and i'm really not sure why
+    delta = (Date.now() - player.lastTick) / 1000;
+    delta = Math.max(delta, 0); // for some reason, delta goes negative, and i'm really not sure why
     // happened when debugging a NaN error
-    gameVars.delta = delta
+    gameVars.delta = delta;
     if (!tmp.offlineTime.active) {
-        player.lastTick = Date.now()
+        player.lastTick = Date.now();
         if (delta >= 10) {
-            console.log('offline time activated!')
-            tmp.offlineTime.active = true
-            tmp.offlineTime.tickMax = Math.floor(delta / tmp.offlineTime.tickLength)
+            tmp.offlineTime.active = true;
+            tmp.offlineTime.tickMax = Math.floor(delta / tmp.offlineTime.tickLength);
             if (tmp.offlineTime.tickMax > 1000) {
-                tmp.offlineTime.tickLength = tmp.offlineTime.tickLength * (tmp.offlineTime.tickMax / 1000)
-                tmp.offlineTime.tickMax = tmp.offlineTime.tickMax / (tmp.offlineTime.tickMax / 1000)
+                tmp.offlineTime.tickLength = tmp.offlineTime.tickLength * (tmp.offlineTime.tickMax / 1000);
+                tmp.offlineTime.tickMax = tmp.offlineTime.tickMax / (tmp.offlineTime.tickMax / 1000);
             }
-            tmp.offlineTime.tickRemaining = tmp.offlineTime.tickMax
-            tmp.offlineTime.returnTime = sessionTime + (tmp.offlineTime.tickLength * 10)
-            doOfflineTime()
-            clearInterval(gameTick)
+            tmp.offlineTime.tickRemaining = tmp.offlineTime.tickMax;
+            tmp.offlineTime.returnTime = sessionTime + (tmp.offlineTime.tickLength * 10);
+            doOfflineTime();
+            clearInterval(gameTick);
             return;
         }
     } else {
-        delta = tmp.offlineTime.tickLength
+        delta = tmp.offlineTime.tickLength;
     }
-    sessionTime += delta
+    sessionTime += delta;
 
     // tick game
     try {
-        calcTimeSpeed()
-        updateGame_replicators()
-        updateGame_transcend()
-        updateGame_setback()
-        updateGame_ascend()
-        updateGame_prestige()
-        updateGame_generatorExtras()
-        updateGame_main()
-        updateGame_stats()
+        // put challenge effects at the top because before they were closer to the middle and upon reloading you could exploit them
+        updateGame_prestigeRepChal();
+        updateGame_hinderance();
+        updateGame_setback();
+        updateGame_prestigeChallenges();
+
+        calcTimeSpeed();
+        updateGame_replicators();
+        updateGame_transcend();
+        updateGame_genAdvances();
+        updateGame_genEnhancers();
+        updateGame_genXP();
+        updateGame_ascend();
+        updateGame_prestigeFluid();
+        updateGame_prestige();
+        updateGame_main();
+        updateGame_stats();
     } catch(e) {
-        console.error(e)
-        clearInterval(gameTick)
+        console.error(e);
+        clearInterval(gameTick);
     }
 
     if (!tmp.offlineTime.active) {
-        html['inGame'].setDisplay(true)
-        html['offlineTime'].setDisplay(false)
+        html['inGame'].setDisplay(true);
+        html['offlineTime'].setDisplay(false);
 
-        updateHTML()
-        diePopupsDie()
-        drawing()
+        updateHTML();
+        diePopupsDie();
+        drawing();
 
-        gameVars.timeUntilSave -= delta
+        gameVars.timeUntilSave -= delta;
         if (gameVars.timeUntilSave <= 0) {
-            gameVars.timeUntilSave += 5
+            gameVars.timeUntilSave += 5;
             localStorage.setItem(saveID, LZString.compressToBase64(JSON.stringify(player)));
         }
     }
@@ -829,101 +942,136 @@ function gameLoop() {
 
 function updateHTML() {
     for (let i = 0; i < popupList.length; i++) {
-        html[`popupID${i}`].style.opacity = `${popupList[i].opacity}`
+        html[`popupID${i}`].style.opacity = `${popupList[i].opacity}`;
     }
 
-    let txt = ``
-    updateHTML_replicators()
-    updateHTML_transcend()
-    updateHTML_generatorExtras()      
-    updateHTML_setback()
-    updateHTML_ascend()
-    updateHTML_prestige()
-    updateHTML_main()
-    updateHTML_stats()
-    updateHTML_textbook()
+    let txt = ``;
+    updateHTML_replicators();
+    updateHTML_transcend();
+    updateHTML_genAdvances();
+    updateHTML_genEnhancers();
+    updateHTML_genXP();
+    updateHTML_hinderance();
+    updateHTML_setback();
+    updateHTML_ascend();
+    updateHTML_prestigeRepChal();
+    updateHTML_prestigeChallenges();
+    updateHTML_prestigeFluid();
+    updateHTML_prestige();
+    updateHTML_main();
+    updateHTML_stats();
+    updateHTML_textbook();
 
-    html["points"].setTxt(`${format(player.points, 2)}`)
-    html["pointsPerSecond"].setTxt(`${format(tmp.pointGen, 2)}/s`)
+    html["points"].setTxt(`${format(player.points, 2)}`);
+    html["pointsPerSecond"].setTxt(`${format(tmp.pointGen, 2)}/s`);
 
-    const trappedArr = []
+    const trappedArr = [];
     for (let i = 0; i < PRESTIGE_CHALLENGES.length; i++) {
         if (tmp.prestigeChal[i].trapped) {
-            trappedArr.push(`<span style="color: #0080ff"><b>PC${i + 1}</b>: ${PRESTIGE_CHALLENGES[i].name}${tmp.prestigeChal[i].depth.neq(1) ? ' <b>×' + format(tmp.prestigeChal[i].depth) + '</b>' : ''}</span>`)
+            trappedArr.push(`<span style="color: #0080ff"><b>PC${i + 1}</b>: ${PRESTIGE_CHALLENGES[i].name}${tmp.prestigeChal[i].depth.neq(1) ? ' <b>×' + format(tmp.prestigeChal[i].depth) + '</b>' : ''}</span>`);
         }
     }
     for (let i = 0; i < HINDERANCES.length; i++) {
         if (tmp.hinderances[i].trapped) {
-            trappedArr.push(`<span style="color: #ff0020"><b>H${i + 1}</b>: ${HINDERANCES[i].name}${tmp.hinderances[i].depth.neq(1) ? ' <b>×' + format(tmp.hinderances[i].depth) + '</b>' : ''}</span>`)
+            trappedArr.push(`<span style="color: #ff0020"><b>H${i + 1}</b>: ${HINDERANCES[i].name}${tmp.hinderances[i].depth.neq(1) ? ' <b>×' + format(tmp.hinderances[i].depth) + '</b>' : ''}</span>`);
         }
     }
     if (tmp.setbackTotalStacks.length >= 1) {
-        for (let i = 0; i < tmp.setbackTotalStacks.length; i++) {
-            trappedArr.push(displaySetbackUI(tmp.setbackTotalStacks[i]))
+        // this works for now but it might not work later, idk
+        // this hack
+        for (let i = player.inSetback ? 1 : 0; i < tmp.setbackTotalStacks.length; i++) {
+            trappedArr.push(displaySetbackUI(tmp.setbackTotalStacks[i]));
         }
     }
-    const enteredArr = []
-    txt = ``
-    if (player.prestigeChallenge !== null) {
-        enteredArr.push(`<span style="color: #0080ff"><b>PC${player.prestigeChallenge + 1}</b>: ${PRESTIGE_CHALLENGES[player.prestigeChallenge].name}</span>`)
-    }
-    if (player.inSetback) {
-        enteredArr.push(displaySetbackUI(player.setback))
-    }
-    if (player.currentHinderance !== null) {
-        enteredArr.push(`<span style="color: #ff0020"><b>H${player.currentHinderance + 1}</b>: ${HINDERANCES[player.currentHinderance].name}</span>`)
-    }
-    if (player.transcendInSpecialReq !== null) {
-        enteredArr.push(`<span style="color: #8000ff"><b>${player.transcendInSpecialReq}</b></span>`)
-    }
-    if (enteredArr.length === 0) {
-        txt = `You currently have no obstructions.`
-    } else if (enteredArr.length === 1) {
-        txt = `You have entered ${enteredArr[0]}.`
-    } else if (enteredArr.length === 2) {
-        txt = `You have entered ${enteredArr[0]} and ${enteredArr[1]}.`
-    } else {
-        txt = `You have entered `
-        for (let i = 0; i < enteredArr.length - 1; i++) {
-            txt += `${enteredArr[i]}, `
-        }
-        txt += `and ${enteredArr[enteredArr.length - 1]}.`
-    }
-    if (trappedArr.length > 0) {
-        txt += `<br>You are trapped in `
-        if (trappedArr.length === 1) {
-            txt += `${trappedArr[0]}.`
-        } else if (trappedArr.length === 2) {
-            txt += `${trappedArr[0]} and ${trappedArr[1]}`
-        } else {
-            txt += ``
-            for (let i = 0; i < trappedArr.length - 1; i++) {
-                txt += `${trappedArr[i]}, `
-            }
-            txt += `and ${trappedArr[trappedArr.length - 1]}`
+    for (let i = 0; i < PRESTIGE_CHALLENGES_REPEAT.length; i++) {
+        if (tmp.prestigeRepeatChal[i].trapped) {
+            trappedArr.push(`<span style="color: #0080ff"><b>PRC${i + 1}</b>: ${PRESTIGE_CHALLENGES_REPEAT[i].name}${tmp.prestigeRepeatChal[i].depth.neq(1) ? ' <b>×' + format(tmp.prestigeRepeatChal[i].depth) + '</b>' : ''}</span>`);
         }
     }
 
-    html['chalList'].setHTML(txt)
+    const enteredArr = [];
+    txt = ``;
+    if (player.prestigeChallenge !== null) {
+        enteredArr.push(`<span style="color: #0080ff"><b>PC${player.prestigeChallenge + 1}</b>: ${PRESTIGE_CHALLENGES[player.prestigeChallenge].name}</span>`);
+    }
+    if (player.inSetback) {
+        enteredArr.push(displaySetbackUI(player.setback));
+    }
+    if (player.currentHinderance !== null) {
+        enteredArr.push(`<span style="color: #ff0020"><b>H${player.currentHinderance + 1}</b>: ${HINDERANCES[player.currentHinderance].name}</span>`);
+    }
+    if (player.transcendInSpecialReq !== null) {
+        enteredArr.push(`<span style="color: #8000ff"><b>${player.transcendInSpecialReq}</b></span>`);
+    }
+    if (player.prestigeChallengeRepeat !== null) {
+        enteredArr.push(`<span style="color: #0080ff"><b>PRC${player.prestigeChallengeRepeat + 1}</b>: ${PRESTIGE_CHALLENGES_REPEAT[player.prestigeChallengeRepeat].name}</span>`);
+    }
+    if (enteredArr.length === 0) {
+        txt = `You currently have no obstructions.`;
+    } else if (enteredArr.length === 1) {
+        txt = `You have entered ${enteredArr[0]}.`;
+    } else if (enteredArr.length === 2) {
+        txt = `You have entered ${enteredArr[0]} and ${enteredArr[1]}.`;
+    } else {
+        txt = `You have entered `;
+        for (let i = 0; i < enteredArr.length - 1; i++) {
+            txt += `${enteredArr[i]}, `;
+        }
+        txt += `and ${enteredArr[enteredArr.length - 1]}.`;
+    }
+    if (trappedArr.length > 0) {
+        txt += `<br>You are trapped in `;
+        if (trappedArr.length === 1) {
+            txt += `${trappedArr[0]}.`;
+        } else if (trappedArr.length === 2) {
+            txt += `${trappedArr[0]} and ${trappedArr[1]}`;
+        } else {
+            txt += ``;
+            for (let i = 0; i < trappedArr.length - 1; i++) {
+                txt += `${trappedArr[i]}, `;
+            }
+            txt += `and ${trappedArr[trappedArr.length - 1]}`;
+        }
+    }
+
+    html['chalList'].setHTML(txt);
 }
 
 function calcTimeSpeed() {
     // tier 2 timespeed multiplies tier 1 timespeed
 
-    tmp.factors.tier1Time = []
-    tmp.timeSpeedTiers[0] = D(1)
-    addStatFactor('tier1Time', `Base`, `×`, 1, tmp.timeSpeedTiers[0])
+    tmp.factors.tier2Time = [];
+    tmp.timeSpeedTiers[1] = D(1);
+    if (player.cheats.dilate) {
+        tmp.timeSpeedTiers[1] = cheatDilateBoost(tmp.timeSpeedTiers[1]);
+        addStatFactor('tier2Time', `Cheats`, `...`, null, tmp.timeSpeedTiers[1]);
+    }
+
+    tmp.factors.tier1Time = [];
+    tmp.timeSpeedTiers[0] = D(1);
+    addStatFactor('tier1Time', `Base`, `×`, 1, tmp.timeSpeedTiers[0]);
+
     if (player.transcendUpgrades.includes('prest1')) {
-        tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].mul(2)
-        addStatFactor('tier1Time', `Trans. Upg. "Double the speed?"`, `×`, 2, tmp.timeSpeedTiers[0])
+        tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].mul(2);
+        addStatFactor('tier1Time', `Trans. Upg. "Double the speed?"`, `×`, 2, tmp.timeSpeedTiers[0]);
     }
     if (Decimal.gte(player.hinderanceScore[4], HINDERANCES[4].start)) {
-        tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].mul(HINDERANCES[4].eff)
-        addStatFactor('tier1Time', `Hinderance 5 PB`, `×`, HINDERANCES[4].eff, tmp.timeSpeedTiers[0])
+        tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].mul(HINDERANCES[4].eff);
+        addStatFactor('tier1Time', `Hinderance 5 PB`, `×`, HINDERANCES[4].eff, tmp.timeSpeedTiers[0]);
     }
     if (tmp.prestigeChal[11].depth.gt(0)) {
-        tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].div(tmp.prestigeChal[11].effects.timeSpeed)
-        addStatFactor('tier1Time', `PC12`, `/`, tmp.prestigeChal[11].effects.timeSpeed, tmp.timeSpeedTiers[0])
+        tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].div(tmp.prestigeChal[11].effects.timeSpeed);
+        addStatFactor('tier1Time', `PC12`, `/`, tmp.prestigeChal[11].effects.timeSpeed, tmp.timeSpeedTiers[0]);
+    }
+
+    if (player.cheats.dilate) {
+        tmp.timeSpeedTiers[0] = cheatDilateBoost(tmp.timeSpeedTiers[0]);
+        addStatFactor('tier1Time', `Cheats`, `...`, null, tmp.timeSpeedTiers[0]);
+    }
+
+    if (tmp.timeSpeedTiers[1].neq(1)) {
+        tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].mul(tmp.timeSpeedTiers[1]);
+        addStatFactor('tier1Time', `Tier 2 Time Speed`, `×`, tmp.timeSpeedTiers[1], tmp.timeSpeedTiers[0]);
     }
 }
 
@@ -934,9 +1082,9 @@ function addStatFactor(type, name, desc, eff, result) {
         }
     }
     if (tmp.factors[type] === undefined) {
-        tmp.factors[type] = []
+        tmp.factors[type] = [];
     }
-    tmp.factors[type].push(`${name}: ${desc}${eff !== null ? format(eff, 3) : ''} → ${format(result, 2)}`)
+    tmp.factors[type].push(`${name}: ${desc}${eff !== null ? format(eff, 3) : ''} → ${format(result, 2)}`);
 }
 
 let shiftDown = false;

@@ -25,6 +25,16 @@ function smoothExp(x, exp, inv) {
         : Decimal.pow(exp, x).sub(1).div(Decimal.ln(exp))
 }
 
+// takes formulae of the form a(x-1)(x)/2 + bx + c
+// inverse taken from wolfram alpha using prompt "inverse of (a/2)x^2 + (b-a/2)x + c"
+function quadFormula(x, a, b, c, inv) {
+    if (inv) {
+        return Decimal.mul(x, a).mul(8).add(Decimal.pow(b, 2).mul(4)).add(Decimal.pow(a, 2)).sub(Decimal.mul(a, b).mul(4)).sub(Decimal.mul(a, c).mul(8)).sqrt().div(a).div(2).add(Decimal.sub(a, Decimal.mul(2, b)).div(Decimal.mul(2, a)));
+    } else {
+        return Decimal.sub(x, 1).mul(x).div(2).mul(a).add(Decimal.mul(b, x)).add(c);
+    }
+}
+
 class Element {
     constructor(el) {
         this.id = typeof el == "string" ? el : el.id;

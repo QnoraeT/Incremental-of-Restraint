@@ -475,7 +475,7 @@ const TRANSCENSION_UPGRADES = [
             },
             get eff() {
                 let eff = Decimal.max(player.generatorFeatures.enhancer, 0).add(1).log10().add(1).log10().div(20).add(1)
-                if (player.currentHinderance === 3) {
+                if (tmp.hinderances[3].depth.gt(0)) {
                     eff = eff.pow(tmp.hinderances[3].effects.pts)
                 }
                 return eff
@@ -910,119 +910,119 @@ function updateHTML_transcend() {
     }
 
     if (tmp.tab === 4) {
-        html['transcendPoints'].setTxt(`${format(player.transcendPoints)}`)
-        html['transcendPointEffect'].setTxt(`Multiplying point gain by ${format(tmp.transcendEffect, 2)}`)
-        html['transcendPointEffectNext'].setTxt(`×${format(tmp.transcendEffectNext.div(tmp.transcendEffect), 2)} upon next reset`)
-        html['transcendResets'].setTxt(`${format(player.transcendResetCount)}`)
-        html['transcendResetEffect'].setTxt(`Multiplying point gain by ${format(tmp.transcendResetEffect, 2)}`)
+        html['transcendPoints'].setTxt(`${format(player.transcendPoints)}`);
+        html['transcendPointEffect'].setTxt(`Multiplying point gain by ${format(tmp.transcendEffect, 2)}`);
+        html['transcendPointEffectNext'].setTxt(`×${format(tmp.transcendEffectNext.div(tmp.transcendEffect), 2)} upon next reset`);
+        html['transcendResets'].setTxt(`${format(player.transcendResetCount)}`);
+        html['transcendResetEffect'].setTxt(`Multiplying point gain by ${format(tmp.transcendResetEffect, 2)}`);
 
-        html['MilestoneTransTab'].setDisplay(tmp.transTab === 0)
-        html['UpgradeTransTab'].setDisplay(tmp.transTab === 1)
-        html['PerkTransTab'].setDisplay(tmp.transTab === 2)
+        html['MilestoneTransTab'].setDisplay(tmp.transTab === 0);
+        html['UpgradeTransTab'].setDisplay(tmp.transTab === 1);
+        html['PerkTransTab'].setDisplay(tmp.transTab === 2);
         if (tmp.transTab === 0) {
             for (let i = 0; i < TRANSCENSION_MILESTONES.length; i++) {
                 if (i > 0) {
-                    html[`transcendMilestone${i}`].setDisplay(willGetTM(i - 1))
+                    html[`transcendMilestone${i}`].setDisplay(willGetTM(i - 1));
                 }
-                html[`transcendMilestone${i}`].changeStyle('background-color', hasTranscendMilestone(i) ? '#8000FF80' : '#40008080')
-                html[`transcendMilestone${i}`].changeStyle('border', hasTranscendMilestone(i) ? '3px solid #8000FF' : '3px solid #400080')
-                html[`transcendMilestone${i}req`].setHTML(`Requirement: ${willGetTM(i) && !hasTranscendMilestone(i) ? '<b>' : ''}${format(player.transcendPointTotal)} (+${format(tmp.transcendAmount)}) / ${format(TRANSCENSION_MILESTONES[i].baseReq.div(Decimal.pow(2, player.transcendResetCount)))}${willGetTM(i) && !hasTranscendMilestone(i) ? '</b>' : ''} Total Transcension Points`)
+                html[`transcendMilestone${i}`].changeStyle('background-color', hasTranscendMilestone(i) ? '#8000FF80' : '#40008080');
+                html[`transcendMilestone${i}`].changeStyle('border', hasTranscendMilestone(i) ? '3px solid #8000FF' : '3px solid #400080');
+                html[`transcendMilestone${i}req`].setHTML(`Requirement: ${willGetTM(i) && !hasTranscendMilestone(i) ? '<b>' : ''}${format(player.transcendPointTotal)} (+${format(tmp.transcendAmount)}) / ${format(TRANSCENSION_MILESTONES[i].baseReq.div(Decimal.pow(2, player.transcendResetCount)))}${willGetTM(i) && !hasTranscendMilestone(i) ? '</b>' : ''} Total Transcension Points`);
             }
         }
         if (tmp.transTab === 1) {
             if (tmp.transSelectedUpg[0] !== undefined && tmp.transSelectedUpg[1] !== undefined) {
-                const transUpg = TRANSCENSION_UPGRADES[tmp.transSelectedUpg[0]][tmp.transSelectedUpg[1]]
-                let unlocked = (player.transcendUpgradesUnlocked[transUpg.id] !== undefined || transUpg.unlock.req) && !player.transcendUpgrades.includes(transUpg.id)
-                let preReqLimited = false
-                let preReqArray = []
-                let preReqText = ``
+                const transUpg = TRANSCENSION_UPGRADES[tmp.transSelectedUpg[0]][tmp.transSelectedUpg[1]];
+                let unlocked = (player.transcendUpgradesUnlocked[transUpg.id] !== undefined || transUpg.unlock.req) && !player.transcendUpgrades.includes(transUpg.id);
+                let preReqLimited = false;
+                let preReqArray = [];
+                let preReqText = ``;
                 if (transUpg.prereq !== null) {
                     for (let i = 0; i < transUpg.prereq.length; i++) {
-                        preReqLimited ||= !player.transcendUpgrades.includes(transUpg.prereq[i])
+                        preReqLimited ||= !player.transcendUpgrades.includes(transUpg.prereq[i]);
                         if (!player.transcendUpgrades.includes(transUpg.prereq[i])) {
-                            preReqArray.push(transUpg.prereq[i])
+                            preReqArray.push(transUpg.prereq[i]);
                         }
                     }
                     if (preReqLimited) {
-                        unlocked = false
+                        unlocked = false;
                     }
                     if (preReqArray.length === 1) {
-                        preReqText = preReqArray[0]
+                        preReqText = preReqArray[0];
                     } else if (preReqArray.length === 2) {
-                        preReqText = `${preReqArray[0]} and ${preReqArray[1]}`
+                        preReqText = `${preReqArray[0]} and ${preReqArray[1]}`;
                     } else {
-                        preReqText = ``
+                        preReqText = ``;
                         for (let i = 0; i < preReqArray.length - 1; i++) {
-                            preReqText += `${preReqArray[i]}, `
+                            preReqText += `${preReqArray[i]}, `;
                         }
-                        preReqText += `and ${preReqArray[preReqArray.length - 1]}`
+                        preReqText += `and ${preReqArray[preReqArray.length - 1]}`;
                     }
                 }
-                html['transUpgName'].setTxt(transUpg.name)
-                html['transUpgDesc'].setHTML(transUpg.desc)
-                html['transUpgReq'].setHTML(transUpg.unlock.desc === '' ? 'This upgrade has no special conditions.' : transUpg.unlock.desc)
-                html['transUpgName2'].setTxt(transUpg.name)
-                html['transUpgCost'].setTxt(player.transcendUpgrades.includes(transUpg.id) ? 'This upgrade is already bought.' : (preReqLimited ? `You need to buy ${preReqText} in order to buy ${transUpg.name}.` : (unlocked ? `Cost: ${format(transUpg.cost)} Transcension Points` : `You need to meet the upgrade's requirements before buying ${transUpg.name}!`)))
+                html['transUpgName'].setTxt(transUpg.name);
+                html['transUpgDesc'].setHTML(transUpg.desc);
+                html['transUpgReq'].setHTML(transUpg.unlock.desc === '' ? 'This upgrade has no special conditions.' : transUpg.unlock.desc);
+                html['transUpgName2'].setTxt(transUpg.name);
+                html['transUpgCost'].setTxt(player.transcendUpgrades.includes(transUpg.id) ? 'This upgrade is already bought.' : (preReqLimited ? `You need to buy ${preReqText} in order to buy ${transUpg.name}.` : (unlocked ? `Cost: ${format(transUpg.cost)} Transcension Points` : `You need to meet the upgrade's requirements before buying ${transUpg.name}!`)));
 
                 html['buyTransUpgrade'].changeStyle('background-color', unlocked 
                     ? (Decimal.gte(player.transcendPoints, transUpg.cost) 
                         ? '#40008080' 
                         : '#20004080') 
-                    : '#20202080')
+                    : '#20202080');
                 html['buyTransUpgrade'].changeStyle('border', '3px solid ' + (
                     unlocked 
                         ? (Decimal.gte(player.transcendPoints, transUpg.cost) 
                             ? '#8000ff' 
                             : '#400080') 
-                        : '#404040'))
+                        : '#404040'));
                 html['buyTransUpgrade'].changeStyle('cursor', 
                     unlocked && Decimal.gte(player.transcendPoints, transUpg.cost) 
                         ? 'pointer' 
-                        : 'not-allowed')
+                        : 'not-allowed');
 
                 html['enterTransRestriction'].setTxt(
                     !transUpg.unlock.restriction 
                         ? 'This upgrade does not have a custom restriction.' 
                         : preReqLimited
                             ? `You need to buy ${preReqText} in order to enter ${transUpg.name}.`
-                            : `Press this button to do a transcension reset and enter ${transUpg.name}.`)
+                            : `Press this button to do a transcension reset and enter ${transUpg.name}.`);
                 html['enterTransRestriction'].changeStyle('background-color', 
                     transUpg.unlock.restriction && !preReqLimited 
                         ? (player.transcendInSpecialReq === TRANSCENSION_UPGRADES[tmp.transSelectedUpg[0]][tmp.transSelectedUpg[1]].id 
                             ? '#40008080' 
                             : '#20004080') 
-                        : '#20202080')
+                        : '#20202080');
                 html['enterTransRestriction'].changeStyle('border', '3px solid ' + (
                     transUpg.unlock.restriction && !preReqLimited 
                         ? (player.transcendInSpecialReq === TRANSCENSION_UPGRADES[tmp.transSelectedUpg[0]][tmp.transSelectedUpg[1]].id 
                             ? '#8000ff' 
                             : '#400080')
-                        : '#404040'))
+                        : '#404040'));
                 html['enterTransRestriction'].changeStyle('cursor', 
                     transUpg.unlock.restriction && !preReqLimited 
                         ? 'pointer' 
-                        : 'not-allowed')
+                        : 'not-allowed');
             }
 
             for (let i = 0; i < TRANSCENSION_UPGRADES.length; i++) {
-                let displayed = false
+                let displayed = false;
                 for (let j = 0; j < TRANSCENSION_UPGRADES[i].length; j++) {
-                    html[`transcendUpg${i},${j}`].setDisplay(TRANSCENSION_UPGRADES[i][j].shown)
-                    displayed ||= TRANSCENSION_UPGRADES[i][j].shown
+                    html[`transcendUpg${i},${j}`].setDisplay(TRANSCENSION_UPGRADES[i][j].shown);
+                    displayed ||= TRANSCENSION_UPGRADES[i][j].shown;
                     if (TRANSCENSION_UPGRADES[i][j].shown) {
                         html[`transcendUpg${i},${j}`].changeStyle('background-color', `${colorChange(
                             TU_ColorIDs[TRANSCENSION_UPGRADES[i][j].color], 
                             0.25 * (player.transcendUpgrades.includes(TRANSCENSION_UPGRADES[i][j].id) ? 2 : 1),
                             1.0 / (player.transcendUpgradesUnlocked[TRANSCENSION_UPGRADES[i][j].id] !== undefined || TRANSCENSION_UPGRADES[i][j].req ? 1 : 2)
-                        )}`)
+                        )}`);
                         html[`transcendUpg${i},${j}`].changeStyle('border', `3px solid ${colorChange(
                             TU_ColorIDs[TRANSCENSION_UPGRADES[i][j].color], 
                             0.333 * (player.transcendUpgrades.includes(TRANSCENSION_UPGRADES[i][j].id) ? 2 : 1) * (tmp.transSelectedUpg[0] === i && tmp.transSelectedUpg[1] === j ? 1.5 : 1),
                             1.0 / (player.transcendUpgradesUnlocked[TRANSCENSION_UPGRADES[i][j].id] !== undefined || TRANSCENSION_UPGRADES[i][j].req ? 1 : 2)
-                        )}`)
+                        )}`);
                     }
                 }
-                html[`transcendUpgCate${i}`].setDisplay(displayed)
+                html[`transcendUpgCate${i}`].setDisplay(displayed);
             }
         }
         if (tmp.transTab === 2) {
@@ -1050,11 +1050,17 @@ function getTranscendMilestoneReq(id) {
     return TRANSCENSION_MILESTONES[id].baseReq.div(tmp.transcendResetEffectMilestone);
 }
 
-// ! note, Gen XP may not reset correctly!
+function transcendResetWOGainPrompt() {
+    if (Decimal.gte(tmp.transcendAmount, player.transcendPoints) && Decimal.lt(player.transcendPoints, 'ee4')) {
+        return confirm("Are you sure? You will NOT gain any transcension points by doing this transcension reset!");
+    }
+    return true;
+}
+
 function doTranscendReset(doAnyway = false) {
     if (!doAnyway) {
         if (tmp.transcendAmount.lte(0)) {
-            return
+            return;
         }
 
         player.transcendPoints = Decimal.add(player.transcendPoints, tmp.transcendAmount);
@@ -1062,91 +1068,107 @@ function doTranscendReset(doAnyway = false) {
         player.transcendResetCount = Decimal.add(player.transcendResetCount, 1);
     }
 
-    player.bestPointsInTranscend = D(0)
-    player.timeInTranscension = D(0)
-    player.bestTotalGenLvs = D(0)
+    player.bestPointsInTranscend = D(0);
+    player.timeInTranscension = D(0);
+    player.bestTotalGenLvs = D(0);
     for (let i = 0; i < player.buyables.length; i++) {
-        player.buyableTierPoints[i] = D(0)
+        player.buyableTierPoints[i] = D(0);
     }
-    player.prestigeCountInTrans = D(0)
-    player.currentHinderance = null
+    player.prestigeCountInTrans = D(0);
+    player.currentHinderance = null;
     for (let i = 0; i < HINDERANCES.length; i++) {
         if (hasTranscendMilestone(12)) {
-            player.hinderanceScore[i] = Decimal.pow(player.bestHinderanceScore[i], 0.5)
+            player.hinderanceScore[i] = Decimal.pow(player.bestHinderanceScore[i], 0.5);
         } else {
-            player.hinderanceScore[i] = D(0)
+            player.hinderanceScore[i] = D(0);
         }
     }
     if (hasTranscendMilestone(5)) {
-        player.hinderanceScore[2] = Decimal.max(player.hinderanceScore[2], HINDERANCES[2].start)
+        player.hinderanceScore[2] = Decimal.max(player.hinderanceScore[2], HINDERANCES[2].start);
     }
     if (hasTranscendMilestone(6)) {
-        player.hinderanceScore[0] = Decimal.max(player.hinderanceScore[0], HINDERANCES[0].start)
+        player.hinderanceScore[0] = Decimal.max(player.hinderanceScore[0], HINDERANCES[0].start);
     }
     if (hasTranscendMilestone(7)) {
-        player.hinderanceScore[1] = Decimal.max(player.hinderanceScore[1], HINDERANCES[1].start)
+        player.hinderanceScore[1] = Decimal.max(player.hinderanceScore[1], HINDERANCES[1].start);
     }
-    player.ascend = D(0)
-    player.ascendCount = D(0)
-    player.ascendGems = D(0)
+    player.ascend = D(0);
+    player.ascendCount = D(0);
+    player.ascendGems = D(0);
     for (let i = 0; i < player.ascendUpgrades.length; i++) {
         if (hasTranscendMilestone(11) && i >= 8 && i <= 15 && player.transcendInSpecialReq != "point4") {
             continue;
         }
-        player.ascendUpgrades[i] = D(0)
+        player.ascendUpgrades[i] = D(0);
     }
-    player.currentSetback = null
-    player.inSetback = false
-    player.setbackLoadout = []
+    player.currentSetback = null;
+    player.inSetback = false;
+    player.setbackLoadout = [];
     if (hasTranscendMilestone(14) && player.transcendInSpecialReq != "setback1") {
-        player.setbackLoadout.push([D(10), D(10), D(10)])
-        player.currentSetback = 0
+        player.setbackLoadout.push([D(10), D(10), D(10)]);
+        player.currentSetback = 0;
     }
     if (player.transcendInSpecialReq === "setback1") {
-        player.setbackLoadout.push([D(1), D(1), D(1), D(1)])
-        player.currentSetback = 0
+        player.setbackLoadout.push([D(1), D(1), D(1), D(1)]);
+        player.currentSetback = 0;
     }
-    player.setbackUpgrades = []
+
+    const PROTECTED_UPGRADES = [];
+    for (let i = 0; i < 5; i++) {
+        PROTECTED_UPGRADES.push(`r${i+11}`);
+        PROTECTED_UPGRADES.push(`g${i+11}`);
+        PROTECTED_UPGRADES.push(`b${i+6}`);
+        PROTECTED_UPGRADES.push(`c${i+11}`);
+    }
+
     if (hasTranscendMilestone(4) && player.transcendInSpecialReq != "setback1") {
         for (let i = 0; i < 5; i++) {
-            player.setbackUpgrades.push(`r${i+1}`)
-            player.setbackUpgrades.push(`g${i+1}`)
+            PROTECTED_UPGRADES.push(`r${i+1}`);
+            PROTECTED_UPGRADES.push(`g${i+1}`);
         }
     }
     if (hasTranscendMilestone(10) && player.transcendInSpecialReq != "setback1") {
         for (let i = 0; i < 5; i++) {
-            player.setbackUpgrades.push(`r${i+6}`)
-            player.setbackUpgrades.push(`g${i+6}`)
-            player.setbackUpgrades.push(`b${i+1}`)
+            PROTECTED_UPGRADES.push(`r${i+6}`);
+            PROTECTED_UPGRADES.push(`g${i+6}`);
+            PROTECTED_UPGRADES.push(`b${i+1}`);
         }
     }
-    player.generatorFeatures.xp = D(0)
-    for (let i = 0; i < player.generatorFeatures.buyable.length; i++) {
-        player.generatorFeatures.buyable[i] = D(0)
-    }
-    player.generatorFeatures.enhancer = D(0)
-    player.generatorFeatures.totalEnh = D(0)
-    for (let i = 0; i < player.generatorFeatures.enhancerBuyables.length; i++) {
-        player.generatorFeatures.enhancerBuyables[i] = D(0)
-    }
-    player.generatorFeatures.enhanceCount = D(0)
 
-    player.prestigeChallengeCompleted = []
-    for (let i = 0; i < player.prestigeUpgrades.length; i++) {
-        player.prestigeUpgrades[i] = D(0)
+    player.setbackUpgrades = player.setbackUpgrades.filter((value) => { return PROTECTED_UPGRADES.includes(value) });
+
+    player.generatorFeatures.xp = D(0);
+    for (let i = 0; i < player.generatorFeatures.buyable.length; i++) {
+        player.generatorFeatures.buyable[i] = D(0);
     }
+    player.generatorFeatures.enhancer = D(0);
+    player.generatorFeatures.totalEnh = D(0);
+    for (let i = 0; i < player.generatorFeatures.enhancerBuyables.length; i++) {
+        player.generatorFeatures.enhancerBuyables[i] = D(0);
+    }
+    player.generatorFeatures.enhanceCount = D(0);
+
+    player.prestigeChallengeCompleted = [];
+    for (let i = 0; i < player.prestigeUpgrades.length; i++) {
+        player.prestigeUpgrades[i] = D(0);
+        player.prestigeFluidUpgs[i] = D(0);
+    }
+    player.prestigeFluid = D(0);
 
     for (let i = 0; i < player.buyables.length; i++) {
-        player.buyableInTranscension[i] = false
+        player.buyableInTranscension[i] = false;
     }
 
-    tmp.generatorFeatures.genXPBuyables = resetGenXPBuyables()
-    tmp.generatorFeatures.genEnhBuyables = resetGenEnhBuyables()
-    tmp.ascendPointGain = D(0)
-    tmp.setbackTab = 0
-    tmp.ascendTab = 0
+    tmp.generatorFeatures.genXPBuyables = resetGenXPBuyables();
+    tmp.generatorFeatures.genEnhBuyables = resetGenEnhBuyables();
+    tmp.ascendPointGain = D(0);
+    
+    if (tmp.tab != 3) {
+        tmp.setbackTab = 0;
+        tmp.ascendTab = 0;
+    }
 
-    doAscendReset(true)
+    doAscendReset(true);
 }
 
 function canBuyTransUpg(i, j) {
@@ -1159,18 +1181,18 @@ function buyTransUpg(i, j) {
     if (!canBuyTransUpg(i, j)) {
         return;
     }
-    player.transcendPoints = Decimal.sub(player.transcendPoints, TRANSCENSION_UPGRADES[i][j].cost)
-    player.transcendUpgrades.push(TRANSCENSION_UPGRADES[i][j].id)
+    player.transcendPoints = Decimal.sub(player.transcendPoints, TRANSCENSION_UPGRADES[i][j].cost);
+    player.transcendUpgrades.push(TRANSCENSION_UPGRADES[i][j].id);
 }
 
 function toggleTransRest() {
-    const transUpg = TRANSCENSION_UPGRADES[tmp.transSelectedUpg[0]][tmp.transSelectedUpg[1]]
+    const transUpg = TRANSCENSION_UPGRADES[tmp.transSelectedUpg[0]][tmp.transSelectedUpg[1]];
     if (!transUpg.unlock.restriction) {
-        return
+        return;
     }
     if (tmp.transSelectedUpg[0] === undefined || tmp.transSelectedUpg[1] === undefined) {
-        spawnPopup(0, "I don't think you can go into a non-existant upgrade's restriction...", "Huh?", 5, "#808080")
-        return
+        spawnPopup(0, "I don't think you can go into a non-existant upgrade's restriction...", "Huh?", 5, "#808080");
+        return;
     }
     if (transUpg.prereq !== null) {
         for (let i = 0; i < transUpg.prereq.length; i++) {
