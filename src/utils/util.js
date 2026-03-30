@@ -3,37 +3,45 @@ function rand(min, max) {
     return Math.random() * (max - min) + min;
 }
 
-function inverseFact(x) {
-    if (Decimal.gte(x, "eee18")) {
-        return Decimal.log10(x);
+function inverseFact(num) {
+    if (Decimal.gte(num, "eee18")) {
+        return Decimal.log10(num);
     }
-    if (Decimal.gte(x, "eee4")) {
-        return Decimal.log10(x).div(Decimal.log10(x).log10());
+    if (Decimal.gte(num, "eee4")) {
+        return Decimal.log10(num).div(Decimal.log10(num).log10());
     }
-    return Decimal.div(x, 2.5066282746310002).ln().div(Math.E).lambertw().add(1).exp().sub(0.5);
+    return Decimal.div(num, 2.5066282746310002).ln().div(Math.E).lambertw().add(1).exp().sub(0.5);
 };
 
-function smoothPoly(x, poly, start, inverse) {
+function smoothPoly(num, poly, start, inverse) {
     return inverse
-        ? Decimal.add(x, Decimal.div(start, poly)).mul(Decimal.sub(poly, 1).pow_base(start).mul(poly)).root(poly).sub(start)
-        : Decimal.add(x, start).pow(poly).div(Decimal.sub(poly, 1).pow_base(start).mul(poly)).sub(Decimal.div(start, poly))
+        ? Decimal.add(num, Decimal.div(start, poly)).mul(Decimal.sub(poly, 1).pow_base(start).mul(poly)).root(poly).sub(start)
+        : Decimal.add(num, start).pow(poly).div(Decimal.sub(poly, 1).pow_base(start).mul(poly)).sub(Decimal.div(start, poly));
 }
 
-function smoothExp(x, exp, inv) {
-    return inv
-        ? Decimal.mul(x, Decimal.ln(exp)).add(1).log(exp)
-        : Decimal.pow(exp, x).sub(1).div(Decimal.ln(exp))
+function smoothExp(num, exp, inverse) {
+    return inverse
+        ? Decimal.mul(num, Decimal.ln(exp)).add(1).log(exp)
+        : Decimal.pow(exp, num).sub(1).div(Decimal.ln(exp));
 }
 
-// takes formulae of the form a(x-1)(x)/2 + bx + c
-// inverse taken from wolfram alpha using prompt "inverse of (a/2)x^2 + (b-a/2)x + c"
-function quadFormula(x, a, b, c, inv) {
-    if (inv) {
-        return Decimal.mul(x, a).mul(8).add(Decimal.pow(b, 2).mul(4)).add(Decimal.pow(a, 2)).sub(Decimal.mul(a, b).mul(4)).sub(Decimal.mul(a, c).mul(8)).sqrt().div(a).div(2).add(Decimal.sub(a, Decimal.mul(2, b)).div(Decimal.mul(2, a)));
-    } else {
-        return Decimal.sub(x, 1).mul(x).div(2).mul(a).add(Decimal.mul(b, x)).add(c);
+function linearAdd(num, base, growth, inverse) {
+    if (Decimal.eq(base, growth)) {
+        return inverse
+            ? Decimal.mul(num, 8).add(base).sqrt().div(Decimal.sqrt(base).mul(2)).sub(0.5)
+            : Decimal.add(num, 1).mul(num).div(2).mul(base);
     }
-}
+
+    return inverse
+        ? Decimal.sub(growth, Decimal.mul(base, 2))
+                .pow(2)
+                .add(Decimal.mul(num, growth).mul(8))
+                .sqrt()
+                .add(growth)
+                .sub(Decimal.mul(base, 2))
+                .div(Decimal.mul(growth, 2))
+        : Decimal.sub(num, 1).mul(growth).add(Decimal.mul(base, 2)).mul(num).div(2);
+};
 
 class Element {
     constructor(el) {
@@ -150,9 +158,9 @@ class Element {
 }
 
 let el = x => document.getElementById(x);
-const toHTMLvar = x => html[x] = new Element(x)
+const toHTMLvar = x => html[x] = new Element(x);
 
-function D(x) { return new Decimal(x) }
+function D(x) { return new Decimal(x); }
 
 function lerp(t, s, e, type, p) {
     if (isNaN(t)) {
@@ -375,28 +383,28 @@ function formatTime(number, dec = 0, expdec = 3, limit = 2) {
 
 function checkNaN(x, err) {
     if (Decimal.isNaN(x)) {
-        throw new Error(`Error: ${err}`)
+        throw new Error(`Error: ${err}`);
     }
 }
 
 function cheatDilateBoost(x, inv) {
-    checkNaN(x, `cheatDilateBoost detected a NaN outside of itself!`)
+    checkNaN(x, `cheatDilateBoost detected a NaN outside of itself!`);
     if (!player.cheats.dilate) {
-        return x
+        return x;
     }
-    let result = Decimal.add(x, 1)
+    let result = Decimal.add(x, 1);
     for (let i = 0; i < player.cheats.dilateStage; i++) {
-        result = result.log10().add(1)
+        result = result.log10().add(1);
     }
     result = inv
         ? result.root(player.cheats.dilateValue)
-        : result.pow(player.cheats.dilateValue)
+        : result.pow(player.cheats.dilateValue);
     for (let i = 0; i < player.cheats.dilateStage; i++) {
-        result = result.sub(1).pow10()
+        result = result.sub(1).pow10();
     }
-    result = result.sub(1)
-    checkNaN(x, `cheatDilateBoost detected a NaN inside of itself!`)
-    return result
+    result = result.sub(1);
+    checkNaN(x, `cheatDilateBoost detected a NaN inside of itself!`);
+    return result;
 }
 
 function colorChange(color, val, sat) {

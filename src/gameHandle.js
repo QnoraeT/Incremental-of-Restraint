@@ -1,6 +1,7 @@
 "use strict";
 // ! Ultimate Goal:
 // ! Make inflation hard to do -- To test all currencies, try raising the third exponent by 2 (dilate true, dilateStage 2, dilateValue 2) to see what happens, it should stay stable
+// ! Challenge: try to not use any softcaps/scalings!
 /*
 player.cheats.dilate = true;
 player.cheats.dilateStage = 2;
@@ -62,10 +63,23 @@ function initPlayer() {
             D(0), D(0), D(0),
             D(0), D(0), D(0)
         ],
+        prestigeBuyablePoints: [
+            D(0), D(0), D(0), 
+            D(0), D(0), D(0), 
+            D(0), D(0), D(0), 
+            D(0), D(0), D(0), 
+            D(0), D(0), D(0),
+            D(0), D(0), D(0)
+        ],
         prestigeChallenge: null,
         prestigeChallengeCompleted: [],
         prestigeChallengeRepeat: null,
         prestigeChallengeRepCompleted: [],
+        prestigeChalRepeatSave: {
+            transcendPoints: D(0),
+            transcendResetCount: D(0),
+            transcendUpgrades: [],
+        },
         prestigeUpgradesInCurrentAscension: false,
         darts: D(0),
         hinderanceScore: [D(0), D(0), D(0), D(0)],
@@ -179,6 +193,7 @@ function initTmp() {
         prestigePointsUsed: D(0),
         prestigeUpgCap: D(0),
         prestigeUpgEffs: [],
+        prestigeUpgLevels: [],
         prestigeUpgDescs: [],
         prestigeChal: resetPrestigeChalEffs(),
         prestigeRepeatChal: resetPrestigeChalRepeatEffs(),
@@ -322,7 +337,9 @@ function resetPrestigeChalRepeatEffs() {
             effects: {},
             depth: D(0),
             goal: D(Infinity),
-            target: D(0)
+            target: D(0),
+            shown: false,
+            rewardEffs: {}
         };
     }
     return arr;
@@ -675,17 +692,30 @@ function updatePlayer() {
     }
     if (player.version === 30) {
         player.prestigeChallengeRepeat = null;
-        player.prestigeChallengeRepCompleted = [];
+        player.prestigeChallengeRepCompleted = [D(0), D(0), D(0), D(0)];
 
         player.version = 31;
     }
     if (player.version === 31) {
+        player.prestigeChalRepeatSave = {
+            transcendPoints: D(0),
+            transcendResetCount: D(0),
+            transcendUpgrades: [],
+        }
 
-        // player.version = 32;
+        player.version = 32;
     }
     if (player.version === 32) {
+        player.prestigeBuyablePoints = [
+            D(0), D(0), D(0), 
+            D(0), D(0), D(0), 
+            D(0), D(0), D(0), 
+            D(0), D(0), D(0), 
+            D(0), D(0), D(0),
+            D(0), D(0), D(0)
+        ];
 
-        // player.version = 33;
+        player.version = 33;
     }
     if (player.version === 33) {
 
@@ -782,13 +812,14 @@ function initHTML() {
         pen = draw.getContext("2d");
         initDots();
     } catch(e) {
-        document.body.innerHTML = `
+        document.getElementById("error").innerHTML = `
             <span style="font-size: 12px; text-align: center" class="whiteText font flex-vertical">
                 <b>Frick.</b>&nbsp;An error has occurred during start up of the game!<br><br>
                 ${e}<br><br>
                 Check the console by right click → Inspect, or by pressing Ctrl + Shift + I (Windows).
             </span>
         `;
+        document.getElementById("inGame")
         console.error(e);
         throw new Error('stopped.');
     }
@@ -1054,6 +1085,10 @@ function calcTimeSpeed() {
     if (player.transcendUpgrades.includes('prest1')) {
         tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].mul(2);
         addStatFactor('tier1Time', `Trans. Upg. "Double the speed?"`, `×`, 2, tmp.timeSpeedTiers[0]);
+    }
+    if (Decimal.gte(player.prestigeChallengeRepCompleted[1], 1)) {
+        tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].mul(tmp.prestigeRepeatChal[1].rewardEffs.timeSpeed);
+        addStatFactor('tier1Time', `PRC2 Reward`, `×`, tmp.prestigeRepeatChal[1].rewardEffs.timeSpeed, tmp.timeSpeedTiers[0]);
     }
     if (Decimal.gte(player.hinderanceScore[4], HINDERANCES[4].start)) {
         tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].mul(HINDERANCES[4].eff);

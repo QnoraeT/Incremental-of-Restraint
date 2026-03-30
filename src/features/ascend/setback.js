@@ -246,7 +246,7 @@ const SETBACK_UPGRADES = [
         {
             id: "b8",
             cost: D('e400'),
-            desc: `[UNIMPLEMENTED] Unlock repeatable ""prestige"" challenges. (They're actually transcension challenges, but shhh.) Kept on transcension resets.`
+            desc: `Unlock repeatable ""prestige"" challenges. (They're actually transcension challenges, but shhh.) Kept on transcension resets.`
         },
         {
             id: "b9",
@@ -915,12 +915,18 @@ function updateGame_setback() {
         if (tmp.hinderances[4].depth.gt(0)) {
             tmp.trueQuarkGain[i] = tmp.trueQuarkGain[i].pow(tmp.hinderances[4].effects.resource);
         }
+        if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
+            tmp.trueQuarkGain[i] = tmp.trueQuarkGain[i].add(1).log10().add(1).pow(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
+        }
         tmp.trueQuarkGain[i] = cheatDilateBoost(tmp.trueQuarkGain[i]);
         tmp.trueQuarkGain[i] = tmp.trueQuarkGain[i].mul(tmp.timeSpeedTiers[0]);
 
         tmp.predictedQuarkGain[i] = Decimal.pow(tmp.predictedQuarkGain[i], 2).mul(tmp.predictedQuarkTotal);
         if (tmp.hinderances[4].depth.gt(0)) {
             tmp.predictedQuarkGain[i] = tmp.predictedQuarkGain[i].pow(tmp.hinderances[4].effects.resource);
+        }
+        if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
+            tmp.predictedQuarkGain[i] = tmp.predictedQuarkGain[i].add(1).log10().add(1).pow(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
         }
         tmp.predictedQuarkGain[i] = cheatDilateBoost(tmp.predictedQuarkGain[i]);
         tmp.predictedQuarkGain[i] = tmp.predictedQuarkGain[i].mul(tmp.timeSpeedTiers[0]);
@@ -1024,6 +1030,9 @@ function updateGame_setback() {
                 gen = gen.mul(tmp.quarkEffs[i])
                 if (tmp.hinderances[4].depth.gt(0)) {
                     gen = gen.pow(tmp.hinderances[4].effects.resource);
+                }
+                if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
+                    gen = gen.add(1).log10().add(1).pow(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
                 }
                 gen = cheatDilateBoost(gen);
             } 

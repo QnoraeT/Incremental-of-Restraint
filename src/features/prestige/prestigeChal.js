@@ -4,6 +4,9 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e8);
+            if (tmp.prestigeRepeatChal[0].depth.gt(0) && tmp.prestigeRepeatChal[0].effects.higherPCs) {
+                goal = D('e7500');
+            }
             if (colorAmountTotal(2).gt(0)) {
                 goal = goal.pow(tmp.setbackEffects[2][0]);
             }
@@ -24,6 +27,9 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(2.5e8);
+            if (tmp.prestigeRepeatChal[0].depth.gt(0) && tmp.prestigeRepeatChal[0].effects.higherPCs) {
+                goal = D('e50000');
+            }
             if (colorAmountTotal(2).gt(0)) {
                 goal = goal.pow(tmp.setbackEffects[2][0]);
             }
@@ -43,6 +49,9 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e6);
+            if (tmp.prestigeRepeatChal[0].depth.gt(0) && tmp.prestigeRepeatChal[0].effects.higherPCs) {
+                goal = D('e2000');
+            }
             if (colorAmountTotal(2).gt(0)) {
                 goal = goal.pow(tmp.setbackEffects[2][0]);
             }
@@ -61,6 +70,9 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e16);
+            if (tmp.prestigeRepeatChal[0].depth.gt(0) && tmp.prestigeRepeatChal[0].effects.higherPCs) {
+                goal = D('e3000');
+            }
             if (colorAmountTotal(2).gt(0)) {
                 goal = goal.pow(tmp.setbackEffects[2][0]);
             }
@@ -81,6 +93,9 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e10);
+            if (tmp.prestigeRepeatChal[0].depth.gt(0) && tmp.prestigeRepeatChal[0].effects.higherPCs) {
+                goal = D('e4000');
+            }
             if (colorAmountTotal(2).gt(0)) {
                 goal = goal.pow(tmp.setbackEffects[2][0]);
             }
@@ -101,6 +116,9 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e12);
+            if (tmp.prestigeRepeatChal[0].depth.gt(0) && tmp.prestigeRepeatChal[0].effects.higherPCs) {
+                goal = D('e4000');
+            }
             if (colorAmountTotal(2).gt(0)) {
                 goal = goal.pow(tmp.setbackEffects[2][0]);
             }
@@ -119,6 +137,9 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e15);
+            if (tmp.prestigeRepeatChal[0].depth.gt(0) && tmp.prestigeRepeatChal[0].effects.higherPCs) {
+                goal = D('e4000');
+            }
             if (colorAmountTotal(2).gt(0)) {
                 goal = goal.pow(tmp.setbackEffects[2][0]);
             }
@@ -137,6 +158,9 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e20);
+            if (tmp.prestigeRepeatChal[0].depth.gt(0) && tmp.prestigeRepeatChal[0].effects.higherPCs) {
+                goal = D('e4000');
+            }
             if (colorAmountTotal(2).gt(0)) {
                 goal = goal.pow(tmp.setbackEffects[2][0]);
             }
@@ -155,6 +179,9 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e33);
+            if (tmp.prestigeRepeatChal[0].depth.gt(0) && tmp.prestigeRepeatChal[0].effects.higherPCs) {
+                goal = D('e4000');
+            }
             if (colorAmountTotal(2).gt(0)) {
                 goal = goal.pow(tmp.setbackEffects[2][0]);
             }
@@ -173,6 +200,9 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e45);
+            if (tmp.prestigeRepeatChal[0].depth.gt(0) && tmp.prestigeRepeatChal[0].effects.higherPCs) {
+                goal = D('e4000');
+            }
             if (colorAmountTotal(2).gt(0)) {
                 goal = goal.pow(tmp.setbackEffects[2][0]);
             }
@@ -191,6 +221,9 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e90);
+            if (tmp.prestigeRepeatChal[0].depth.gt(0) && tmp.prestigeRepeatChal[0].effects.higherPCs) {
+                goal = D('e120000');
+            }
             if (colorAmountTotal(2).gt(0)) {
                 goal = goal.pow(tmp.setbackEffects[2][0]);
             }
@@ -209,6 +242,9 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D(1e135);
+            if (tmp.prestigeRepeatChal[0].depth.gt(0) && tmp.prestigeRepeatChal[0].effects.higherPCs) {
+                goal = D('e175000');
+            }
             if (colorAmountTotal(2).gt(0)) {
                 goal = goal.pow(tmp.setbackEffects[2][0]);
             }
@@ -231,6 +267,9 @@ const PRESTIGE_CHALLENGES = [
     {
         get goal() {
             let goal = D('1e600');
+            if (tmp.prestigeRepeatChal[0].depth.gt(0) && tmp.prestigeRepeatChal[0].effects.higherPCs) {
+                goal = D('e200000');
+            }
             if (colorAmountTotal(2).gt(0)) {
                 goal = goal.pow(tmp.setbackEffects[2][0]);
             }
@@ -344,21 +383,21 @@ function updateGame_prestigeChallenges() {
 
 function updateHTML_prestigeChallenges() {
     if (tmp.tab === 1) {
-        html['prestigeChallengeTab'].setDisplay(tmp.prestigeTab === 1)
-        html['prestigeChallengeTabButton'].setDisplay(Decimal.gte(player.prestige, 3) || Decimal.gt(player.ascend, 0))
+        html['prestigeChallengeTab'].setDisplay(tmp.prestigeTab === 1);
+        html['prestigeChallengeTabButton'].setDisplay(Decimal.gte(player.prestige, 3) || Decimal.gt(player.ascend, 0));
 
         if (tmp.prestigeTab === 1) {
-            html['prestigeChalRespec'].setDisplay(hasTranscendMilestone(0))
+            html['prestigeChalRespec'].setDisplay(hasTranscendMilestone(0));
             for (let i = 0; i < PRESTIGE_CHALLENGES.length; i++) {
-                html[`prestigeChallenge${i}goal`].setTxt(format(PRESTIGE_CHALLENGES[i].goal))
+                html[`prestigeChallenge${i}goal`].setTxt(format(PRESTIGE_CHALLENGES[i].goal));
                 if (tmp.prevPrestigeIsUpg !== tmp.prestigeIsUpg) {
-                    html[`prestigeChallenge${i}reward`].setTxt(PRESTIGE_CHALLENGES[i].eff)
-                    tmp.prevPrestigeIsUpg = tmp.prestigeIsUpg // only update if its changed otherwise lose performance ig
+                    html[`prestigeChallenge${i}reward`].setTxt(PRESTIGE_CHALLENGES[i].eff);
+                    tmp.prevPrestigeIsUpg = tmp.prestigeIsUpg; // only update if its changed otherwise lose performance ig
                 }
 
-                let shown = prestigeChallengeEnabled(i)
+                let shown = prestigeChallengeEnabled(i);
 
-                html[`prestigeChallenge${i}`].setDisplay(shown)
+                html[`prestigeChallenge${i}`].setDisplay(shown);
                 if (shown) {
                     html[`prestigeChallenge${i}`].changeStyle('background-color', 
                         !player.prestigeChallengeCompleted.includes(i)
@@ -367,7 +406,7 @@ function updateHTML_prestigeChallenges() {
                                 : '#00008080')
                             : (player.prestigeChallenge === i
                                 ? '#60808080'
-                                : '#00808080'))
+                                : '#00808080'));
                     html[`prestigeChallenge${i}`].changeStyle('border', `3px solid ${
                         !player.prestigeChallengeCompleted.includes(i)
                             ? (player.prestigeChallenge === i
@@ -375,9 +414,9 @@ function updateHTML_prestigeChallenges() {
                                 : '#0000ff')
                             : (player.prestigeChallenge === i
                                 ? '#c0ffff'
-                                : '#00ffff')}`)
+                                : '#00ffff')}`);
                     if (PRESTIGE_CHALLENGES[i].effChange !== undefined) {
-                        html[`prestigeChallenge${i}reward`].setTxt(PRESTIGE_CHALLENGES[i].eff)
+                        html[`prestigeChallenge${i}reward`].setTxt(PRESTIGE_CHALLENGES[i].eff);
                     }
                 }
             }
@@ -421,11 +460,6 @@ function togglePrestigeChallenge(i) {
     if (player.prestigeChallenge === null) {
         doPrestigeReset(true);
         player.prestigeChallenge = i;
-        if (i === 14) {
-            for (let i = 0; i < player.prestigeUpgrades.length; i++) {
-                player.prestigeUpgrades[i] = D(0);
-            }
-        }
         updateGame_prestige();
         return;
     }

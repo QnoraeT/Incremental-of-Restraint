@@ -220,6 +220,11 @@ function updateGame_genXP() {
             addStatFactor('genXP', `Hinderance 5`, `^`, tmp.hinderances[4].effects.resource, tmp.generatorFeatures.gain);
         }
 
+        if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
+            tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.add(1).log10().add(1).pow(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
+            addStatFactor('genXP', `PRC2`, `(to exp.) ^`, tmp.prestigeRepeatChal[1].effects.exponent, tmp.generatorFeatures.gain);
+        }
+
         if (player.cheats.dilate) {
             tmp.generatorFeatures.gain = cheatDilateBoost(tmp.generatorFeatures.gain);
             addStatFactor('genXP', `Cheats`, `...`, null, tmp.generatorFeatures.gain);
@@ -237,7 +242,7 @@ function updateGame_genXP() {
         tmp.generatorFeatures.xpEffGenerators = player.generatorFeatures.xp.add(1).log10().mul(tmp.generatorFeatures.xpEffGenerators).add(1).ln().add(1);
 
         // outside of any challenge
-        if (hasSetbackUpgrade('c8') && player.prestigeChallenge === null && !player.inSetback && player.currentHinderance === null && player.transcendInSpecialReq === null) {
+        if (hasSetbackUpgrade('c8') && player.prestigeChallenge === null && !player.inSetback && player.currentHinderance === null && player.transcendInSpecialReq === null && player.prestigeChallengeRepeat === null) {
             tmp.generatorFeatures.xpEffPoints = D(0.055);
         } else {
             tmp.generatorFeatures.xpEffPoints = D(0.05);

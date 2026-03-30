@@ -476,6 +476,10 @@ function updateGame_ascend() {
         tmp.ascendPointGain = tmp.ascendPointGain.pow(tmp.hinderances[4].effects.resource);
         addStatFactor('ascend', `Hinderance 5`, `^`, tmp.hinderances[4].effects.resource, tmp.ascendPointGain);
     }
+    if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
+        tmp.ascendPointGain = tmp.ascendPointGain.add(1).log10().add(1).pow(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
+        addStatFactor('ascend', `PRC2`, `(to exp.) ^`, tmp.prestigeRepeatChal[1].effects.exponent, tmp.ascendPointGain);
+    }
     if (player.transcendInSpecialReq === "prest4" && Decimal.gte(player.ascendCount, 1)) {
         tmp.ascendPointGain = new Decimal(0);
         addStatFactor('ascend', `Advantageous 'Challenge'`, `...`, null, tmp.ascendPointGain);
@@ -490,6 +494,9 @@ function updateGame_ascend() {
     tmp.ascendPointNext = cheatDilateBoost(tmp.ascendPointNext, true);
     if (player.transcendInSpecialReq === "prest4" && Decimal.gte(player.ascendCount, 1)) {
         tmp.ascendPointNext = new Decimal(Infinity);
+    }
+    if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
+        tmp.ascendPointNext = tmp.ascendPointNext.add(1).log10().add(1).root(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
     }
     if (tmp.hinderances[4].depth.gt(0)) {
         tmp.ascendPointNext = tmp.ascendPointNext.root(tmp.hinderances[4].effects.resource);
@@ -513,6 +520,10 @@ function getAscendEff(ascend) {
     if (tmp.hinderances[4].depth.gt(0)) {
         eff = eff.pow(tmp.hinderances[4].effects.resource);
     }
+    if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
+        eff = eff.add(1).log10().add(1).pow(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
+    }
+
     eff = cheatDilateBoost(eff);
     eff = eff.mul(tmp.timeSpeedTiers[0]);
     return eff;

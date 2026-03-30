@@ -202,9 +202,9 @@ const TRANSCENSION_UPGRADES = [
             get eff() {
                 let total = D(0)
                 for (let i = 0; i < player.buyables.length; i++) {
-                    total = total.add(tmp.buyables[i].tierLevels.sub(1))
+                    total = total.add(tmp.buyables[i].tierLevels.sub(1));
                 }
-                return total.pow_base(0.9999)
+                return total.pow_base(0.9999);
             }
         },
         {
@@ -325,12 +325,12 @@ const TRANSCENSION_UPGRADES = [
                 },
                 restriction: false,
                 get desc() {
-                    return `Enter setback ${conditionMet(player.inSetback && Decimal.eq(player.setback[0], 4) && Decimal.eq(player.setback[1], 4))} (4, 4, Any) and ${conditionMet(player.currentHinderance === 1)} Hinderance 2, then reach a highest generator level of ${conditionMet(tmp.buyables.reduce((accumulator, current) => Decimal.max(accumulator, current.genLevels)).gte(40), format(tmp.buyables.reduce((accumulator, current) => Decimal.max(accumulator, current.genLevels))) + ' / 40')} without Gen. Enh. Buyable #2.`
+                    return `Enter setback ${conditionMet(player.inSetback && Decimal.eq(player.setback[0], 4) && Decimal.eq(player.setback[1], 4))} (4, 4, Any) and ${conditionMet(player.currentHinderance === 1)} Hinderance 2, then reach a highest generator level of ${conditionMet(tmp.buyables.reduce((accumulator, current) => Decimal.max(accumulator, current.genLevels)).gte(40), format(tmp.buyables.reduce((accumulator, current) => Decimal.max(accumulator, current.genLevels))) + ' / 40')} without Gen. Enh. Buyable #2. ${conditionMet(Decimal.lte(player.generatorFeatures.enhancerBuyables[1], 0))}`
                 }
             },
             name: "Truly a Hinderance",
             get desc() {
-                return `Unlock Hinderance 4, and Red Energy's milestone-like boosts are squared.`
+                return `Unlock Hinderance 4, and Red Energy's boosts per OoM^2 are squared.`
             },
             eff: null
         }
@@ -614,7 +614,7 @@ const TRANSCENSION_UPGRADES = [
             },
             unlock: {
                 get req() {
-                    return Decimal.gte(player.bestPointsInTranscend, 'e9000') && player.transcendInSpecialReq === "setback1"
+                    return Decimal.gte(player.bestPointsInTranscend, 'e9000') && player.transcendInSpecialReq === "setback1";
                 },
                 restriction: true,
                 get desc() {
@@ -633,7 +633,7 @@ const TRANSCENSION_UPGRADES = [
             cost: D(1e39),
             prereq: ["hinderance2"],
             get shown() {
-                return player.transcendUpgrades.includes('hinderance2')
+                return player.transcendUpgrades.includes('hinderance2');
             },
             unlock: {
                 get req() {
@@ -641,12 +641,12 @@ const TRANSCENSION_UPGRADES = [
                 },
                 restriction: true,
                 get desc() {
-                    return `Your generator speed is replaced by generator XP. ${conditionMet(player.transcendInSpecialReq === "enhancer1")} Boosts to generator speed prior to this slightly boosts the final value. (Every OoM^2 of gen. speed increases final speed by +^1.) Reach Generator Level 2,000 on any basic buyable. ${conditionMet(tmp.buyables.filter((item) => { return item.genLevels.gte(400) }).length > 0)}`
+                    return `Your generator speed is replaced by generator XP. ${conditionMet(player.transcendInSpecialReq === "enhancer1")} Boosts to generator speed prior to this slightly boosts the final value. (Every OoM^2 of gen. speed increases final speed by +^1.) Reach Generator Level ${conditionMet(tmp.buyables.filter((item) => { return item.genLevels.gte(2000) }).length > 0, format(tmp.buyables.reduce((accumulator, current) => { return Decimal.max(accumulator, current.genLevels) }, tmp.buyables[0].genLevels)) + ' / 2,000')} on any basic buyable.`
                 }
             },
             name: "Enhancer Efficiency",
             get desc() {
-                return `Generator Enhancer gain is raised to the ^1.25.`
+                return `Generator Enhancer gain is raised to the ^1.25.`;
             },
             eff: D(1.25)
         }
@@ -658,15 +658,15 @@ const TRANSCENSION_UPGRADES = [
             cost: D(1e45),
             prereq: ["hinderance2", "exp3", "point3"],
             get shown() {
-                return player.transcendUpgrades.includes('hinderance2')
+                return player.transcendUpgrades.includes('hinderance2');
             },
             unlock: {
                 get req() {
-                    return player.transcendInSpecialReq === "ascend5" && Decimal.gte(player.ascend, 'ee3')
+                    return player.transcendInSpecialReq === "ascend5" && Decimal.gte(player.ascend, 'ee3');
                 },
                 restriction: true,
                 get desc() {
-                    return `Half (rounded up) of all pre-transcension buyables from each category are disabled. ${conditionMet(player.transcendInSpecialReq === "ascend5")} (ex. 6 Basic Buyables = the first 3 are disabled) Reach ${format('ee3')} ascension points. ${conditionMet(Decimal.gte(player.ascend, 'e400'))}`
+                    return `Half (rounded up) of all pre-transcension buyables from each category are disabled. ${conditionMet(player.transcendInSpecialReq === "ascend5")} (ex. 6 Basic Buyables = the first 3 are disabled) Reach ${conditionMet(Decimal.gte(player.ascend, 'ee3'), format(player.ascend) + ' / 1.000e1,000')} ascension points.`
                 }
             },
             name: "Thanos's Payback",
@@ -681,7 +681,7 @@ const TRANSCENSION_UPGRADES = [
             cost: D(1e52),
             prereq: ["hinderance2"],
             get shown() {
-                return player.transcendUpgrades.includes('hinderance2')
+                return player.transcendUpgrades.includes('hinderance2');
             },
             unlock: {
                 get req() {
@@ -689,7 +689,7 @@ const TRANSCENSION_UPGRADES = [
                 },
                 restriction: true,
                 get desc() {
-                    return `You are stuck in PC 1-13. ${conditionMet(player.transcendInSpecialReq === "prest5")} You must reach ${format(1e6)} prestige points ${conditionMet(Decimal.gte(player.prestige, 1e6))} and find a way to reduce T1 Time Speed by /${format(1e6)}. ${conditionMet(tmp.prestigeChal[11].effects.timeSpeed.gte(1e6))} (What reduces your timespeed?)`
+                    return `You are stuck in PC 1-13. ${conditionMet(player.transcendInSpecialReq === "prest5")} You must reach ${conditionMet(Decimal.gte(player.prestige, 1e6), format(player.prestige) + ' / 1,000,000')} prestige points and find a way to reduce T1 Time Speed by /${format(1e6)}. ${conditionMet(tmp.prestigeChal[11].effects.timeSpeed.gte(1e6))} (What reduces your timespeed?)`
                 }
             },
             name: "Prestigeful Mayhem",
@@ -708,11 +708,11 @@ const TRANSCENSION_UPGRADES = [
             },
             unlock: {
                 get req() {
-                    return player.transcendInSpecialReq === "point5" && Decimal.gte(player.bestPointsInTranscend, '7.777e777')
+                    return player.transcendInSpecialReq === "point5" && Decimal.gte(player.bestPointsInTranscend, '7.777e777');
                 },
                 restriction: true,
                 get desc() {
-                    return `Point gain is decreased by ^0.25 to the exponent. ${conditionMet(player.transcendInSpecialReq === "point5")} Every OoM of generator levels and tier levels combined decrease this nerf by 10%. Reach ${format('7.777e777')} points. ${conditionMet(Decimal.gte(player.bestPointsInTranscend, '7.777e777'))}`
+                    return `Point gain is decreased by ^0.25 to the exponent. ${conditionMet(player.transcendInSpecialReq === "point5")} Every OoM of generator levels and tier levels combined decrease this nerf by 10%. Reach ${conditionMet(Decimal.gte(player.bestPointsInTranscend, '7.777e777'), format(player.bestPointsInTranscend) + ' / 7.777e777')} points.`
                 }
             },
             name: "Running Out of Names",
@@ -720,16 +720,16 @@ const TRANSCENSION_UPGRADES = [
                 return `Every OoM of generator levels and tier levels combined increase point gain by +^0.01. Currently: <b>^${format(this.eff, 3)}</b>`
             },
             get eff() {
-                let boost = new Decimal(0)
+                let boost = new Decimal(0);
 
-                boost = boost.add(tmp.buyables.reduce((accumulator, current) => Decimal.add(accumulator, current.genLevels), tmp.buyables[0]).max(1).log10())
-                boost = boost.add(tmp.buyables.reduce((accumulator, current) => Decimal.add(accumulator, current.tierLevels), tmp.buyables[0]).max(1).log10())
-                
-                let eff = boost.div(100).add(1)
+                boost = boost.add(tmp.buyables.reduce((accumulator, current) => Decimal.add(accumulator, current.genLevels), tmp.buyables[0]).max(1).log10());
+                boost = boost.add(tmp.buyables.reduce((accumulator, current) => Decimal.add(accumulator, current.tierLevels), tmp.buyables[0]).max(1).log10());
+
+                let eff = boost.div(100).add(1);
                 if (tmp.hinderances[3].depth.gt(0)) {
                     eff = eff.pow(tmp.hinderances[3].effects.pts);
                 }
-                return eff
+                return eff;
             }
         },
         {
@@ -742,11 +742,11 @@ const TRANSCENSION_UPGRADES = [
             },
             unlock: {
                 get req() {
-                    return player.transcendInSpecialReq === "gen4" && Decimal.gte(player.generatorFeatures.xp, 'e2000')
+                    return player.transcendInSpecialReq === "gen4" && Decimal.gte(player.generatorFeatures.xp, 'e2000');
                 },
                 restriction: true,
                 get desc() {
-                    return `You are stuck in PC13. ${conditionMet(player.transcendInSpecialReq === "gen4")} Reach ${format('e2000')} generator experience. ${conditionMet(Decimal.gte(player.generatorFeatures.xp, 'e2000'))}`
+                    return `You are stuck in PC13. ${conditionMet(player.transcendInSpecialReq === "gen4")} Reach ${conditionMet(Decimal.gte(player.generatorFeatures.xp, 'e2000'), format(player.generatorFeatures.xp) + ' / 1.000e2,000')} generator experience.`
                 }
             },
             name: "Full Brakes",
@@ -895,7 +895,7 @@ function updateGame_transcend() {
 
 function updateHTML_transcend() {
     html['transcendTab'].setDisplay(tmp.tab === 4)
-    html['transcendTabButton'].setDisplay(Decimal.gt(player.transcendResetCount, 0))
+    html['transcendTabButton'].setDisplay(Decimal.gt(player.transcendPointTotal, 0))
 
     if (tmp.tab === 0 && tmp.mainTab === 0) {
         html['transcendAmount'].setTxt(`${format(tmp.transcendAmount)}`);
@@ -962,7 +962,7 @@ function updateHTML_transcend() {
                 html['transUpgDesc'].setHTML(transUpg.desc);
                 html['transUpgReq'].setHTML(transUpg.unlock.desc === '' ? 'This upgrade has no special conditions.' : transUpg.unlock.desc);
                 html['transUpgName2'].setTxt(transUpg.name);
-                html['transUpgCost'].setTxt(player.transcendUpgrades.includes(transUpg.id) ? 'This upgrade is already bought.' : (preReqLimited ? `You need to buy ${preReqText} in order to buy ${transUpg.name}.` : (unlocked ? `Cost: ${format(transUpg.cost)} Transcension Points` : `You need to meet the upgrade's requirements before buying ${transUpg.name}!`)));
+                html['transUpgCost'].setTxt(player.transcendUpgrades.includes(transUpg.id) ? 'This upgrade is already bought.' : (preReqLimited ? `You need to buy ${preReqText} in order to buy ${transUpg.name}.` : (unlocked ? `Cost: ${format(transUpg.cost)} Transcension Points` : `You need to meet the upgrade's requirements before buying ${transUpg.name}! (Cost: ${format(transUpg.cost)} Transcension Points)`)));
 
                 html['buyTransUpgrade'].changeStyle('background-color', unlocked 
                     ? (Decimal.gte(player.transcendPoints, transUpg.cost) 
@@ -1178,6 +1178,10 @@ function canBuyTransUpg(i, j) {
 }
 
 function buyTransUpg(i, j) {
+    if (tmp.transSelectedUpg[0] === undefined || tmp.transSelectedUpg[1] === undefined) {
+        spawnPopup(0, "You bought the template upgrade! (not)", "Nice.", 5, "#808080");
+        return;
+    }
     if (!canBuyTransUpg(i, j)) {
         return;
     }
@@ -1186,12 +1190,12 @@ function buyTransUpg(i, j) {
 }
 
 function toggleTransRest() {
-    const transUpg = TRANSCENSION_UPGRADES[tmp.transSelectedUpg[0]][tmp.transSelectedUpg[1]];
-    if (!transUpg.unlock.restriction) {
+    if (tmp.transSelectedUpg[0] === undefined || tmp.transSelectedUpg[1] === undefined) {
+        spawnPopup(0, "Attempt to jump into a template restriction.", "What would that even be?", 5, "#808080");
         return;
     }
-    if (tmp.transSelectedUpg[0] === undefined || tmp.transSelectedUpg[1] === undefined) {
-        spawnPopup(0, "I don't think you can go into a non-existant upgrade's restriction...", "Huh?", 5, "#808080");
+    const transUpg = TRANSCENSION_UPGRADES[tmp.transSelectedUpg[0]][tmp.transSelectedUpg[1]];
+    if (!transUpg.unlock.restriction) {
         return;
     }
     if (transUpg.prereq !== null) {

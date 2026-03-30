@@ -242,6 +242,11 @@ function updateGame_genEnhancers() {
         addStatFactor('genEnh', `Hinderance 5`, `^`, tmp.hinderances[4].effects.resource, tmp.generatorFeatures.enhancerGain);
     }
 
+    if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
+        tmp.generatorFeatures.enhancerGain = tmp.generatorFeatures.enhancerGain.add(1).log10().add(1).pow(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
+        addStatFactor('genEnh', `PRC2`, `(to exp.) ^`, tmp.prestigeRepeatChal[1].effects.exponent, tmp.generatorFeatures.enhancerGain);
+    }
+
     if (player.transcendInSpecialReq === "prest4" && Decimal.gte(player.generatorFeatures.enhanceCount, 1)) {
         tmp.generatorFeatures.enhancerGain = new Decimal(0);
         addStatFactor('genEnh', `Advantageous 'Challenge'`, `...`, null, tmp.generatorFeatures.enhancerGain);
@@ -254,6 +259,9 @@ function updateGame_genEnhancers() {
     } else {
         tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerGain.add(1);
         tmp.generatorFeatures.enhancerNext = cheatDilateBoost(tmp.generatorFeatures.enhancerNext, true);
+        if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
+            tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.add(1).log10().add(1).root(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
+        }
         if (tmp.hinderances[4].depth.gt(0)) {
             tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.root(tmp.hinderances[4].effects.resource);
         }

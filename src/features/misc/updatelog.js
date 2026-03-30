@@ -159,4 +159,30 @@ const UPDATE_LOG = [
 
         ]
     },
+    {
+        tooSmall: true,
+        version: 32,
+        changes: [
+
+        ],
+        features: [
+            "WIP Repeatable Prestige Challenges",
+        ],
+        bugfixes: [
+
+        ]
+    },
+    {
+        tooSmall: true,
+        version: 33,
+        changes: [
+
+        ],
+        features: [
+            "WIP Repeatable Prestige Challenges",
+        ],
+        bugfixes: [
+
+        ]
+    },
 ]
