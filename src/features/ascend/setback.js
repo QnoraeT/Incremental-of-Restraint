@@ -82,10 +82,10 @@ const SETBACK_UPGRADES = [
             id: "r14",
             cost: D('e6.25e6'),
             get desc() {
-                return `[UNIMPLEMENTED] Red Energy's effect also affects all basic buyable bases at a reduced rate. Currently: ^0.10 → ×${format(this.eff, 2)}`;
+                return `Red Energy's effect also affects all basic buyable bases at a reduced rate. Currently: ^0.25 → ×${format(this.eff, 2)}`;
             },
             get eff() {
-                return tmp.energyEffs[0].pow(0.1);
+                return tmp.energyEffs[0].pow(0.25);
             }
         },
         {
@@ -194,7 +194,7 @@ const SETBACK_UPGRADES = [
         {
             id: "g14",
             cost: D('e160000'),
-            desc: `[UNIMPLEMENTED] Each buyables' tier level requirements are decreased by +/1 per generator level, outside of any challenges.`
+            desc: `Each buyables' tier level requirements are decreased by +/1 per generator level, outside of any challenges.`
         },
         {
             id: "g15",
@@ -338,7 +338,7 @@ const SETBACK_UPGRADES = [
         {
             id: "c13",
             cost: D('e1080'),
-            desc: `[UNIMPLEMENTED] Gen. Enh. B. #4's increasing cost scaling grows 50× slower.`
+            desc: `Gen. Enh. B. #4's increasing cost scaling grows 1,000× slower.`
         },
         {
             id: "c14",
@@ -891,6 +891,9 @@ function updateGame_setback() {
             }
 
             tmp.quarkDimAutoData[i][j] = tmp.quarkDimAutoData[i][j].mul(tmp.timeSpeedTiers[0]);
+            if (tmp.prestigeRepeatChal[2].depth.gt(0)) {
+                tmp.quarkDimAutoData[i][j] = tmp.prestigeRepeatChal[2].effects.autobuyer;
+            }
             if (player.cheats.autoDim) {
                 tmp.quarkDimAutoData[i][j] = D(Infinity);
             }
@@ -953,18 +956,28 @@ function updateGame_setback() {
     for (let i = 0; i < player.quarkDimsBought.length; i++) {
         tmp.dimBoughtBM[i] = D(0);
         for (let j = player.quarkDimsBought[i].length - 1; j >= 0; j--) {
+            // this is not defined at init so it's done here
+            // idk why i did this tbh, i could've easily done this at init time
+            // i could just change it but ehh i'm too lazy for that
             if (tmp.quarkDim[i][j] === undefined) {
                 tmp.quarkDim[i][j] = {
                     mult: D(1),
+                    costSpeed: D(1),
                     cost: D(1),
                     target: D(0)
                 };
             }
 
+            // higher costSpeed = faster cost scaling
+            tmp.quarkDim[i][j].costSpeed = D(1);
+            if (Decimal.gte(player.prestigeChallengeRepCompleted[2], 1)) {
+                tmp.quarkDim[i][j].costSpeed = tmp.quarkDim[i][j].costSpeed.div(tmp.prestigeRepeatChal[2].rewardEffs.costSpeed);
+            }
+
             tmp.quarkDim[i][j].target = Decimal.max(player.setbackEnergy[i], 1).log10();
             tmp.quarkDim[i][j].target = tmp.quarkDim[i][j].target.sub(Decimal.pow(j + 1, 2)).div(j + 3);
-
-            tmp.quarkDim[i][j].target = tmp.quarkDim[i][j].target.max(-0.0001); // put this after all cost scaling changes
+            tmp.quarkDim[i][j].target = tmp.quarkDim[i][j].target.div(tmp.quarkDim[i][j].costSpeed);
+            tmp.quarkDim[i][j].target = tmp.quarkDim[i][j].target.max(-0.0001); // put this after all cost scaling changes, if i don't do this then eventually it will NaN
 
             let h = tmp.quarkDim[i][j].target.mul(tmp.quarkBoostCost.sub(1)).div(tmp.quarkBoostInterval).add(1).log(tmp.quarkBoostCost).floor();
             tmp.quarkDim[i][j].target = tmp.quarkDim[i][j].target.add(tmp.quarkBoostInterval.div(tmp.quarkBoostCost.sub(1))).div(tmp.quarkBoostCost.pow(h)).add(h.sub(tmp.quarkBoostCost.sub(1).recip()).mul(tmp.quarkBoostInterval));
@@ -993,6 +1006,7 @@ function updateGame_setback() {
             let m = tmp.quarkDim[i][j].cost.sub(x.mul(tmp.quarkBoostInterval));
             tmp.quarkDim[i][j].cost = m.mul(tmp.quarkBoostCost.pow(x)).add(tmp.quarkBoostCost.pow(x).sub(1).div(tmp.quarkBoostCost.sub(1)).mul(tmp.quarkBoostInterval));
 
+            tmp.quarkDim[i][j].cost = tmp.quarkDim[i][j].cost.mul(tmp.quarkDim[i][j].costSpeed);
             tmp.quarkDim[i][j].cost = tmp.quarkDim[i][j].cost.mul(j + 3).add(Decimal.pow(j + 1, 2));
             tmp.quarkDim[i][j].cost = tmp.quarkDim[i][j].cost.pow10();
 
@@ -1021,7 +1035,19 @@ function updateGame_setback() {
                     tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(SETBACK_UPGRADES[3][5].eff);
                 }
             }
-            tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.pow(tmp.repliRankBuyables[2].eff);
+            if (i >= 0 && i <= 3) {
+                if (Decimal.gte(player.prestigeChallengeRepCompleted[4], 1)) {
+                    tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(tmp.prestigeRepeatChal[4].rewardEffs.mult);
+                }
+            }
+            if (tmp.prestigeRepeatChal[2].depth.lte(0)) {
+                tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.pow(tmp.repliRankBuyables[2].eff);
+            }
+            if (i >= 0 && i <= 3) {
+                if (tmp.prestigeRepeatChal[2].depth.lte(0) && Decimal.gte(player.prestigeChallengeRepCompleted[4], 1)) {
+                    tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.pow(tmp.prestigeRepeatChal[4].rewardEffs.pow);
+                }
+            }
 
             checkNaN(tmp.quarkDim[i][j].mult, `NaN detected while attempting to calculate mul of ${tmp.quarkNamesC[i]} Quark Dimension #${j + 1}`);
 

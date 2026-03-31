@@ -81,12 +81,7 @@ function updateGame_prestigeFluid() {
     }
 
     for (let i = 0; i < player.prestigeUpgrades.length; i++) {
-        let resource;
-        if (tmp.hinderances[4].depth.gt(0) && i != 0) {
-            resource = player.prestigeFluidUpgs[i - 1];
-        } else {
-            resource = Decimal.sub(player.prestigeFluid, tmp.pfUsed);
-        }
+        let resource = Decimal.sub(player.prestigeFluid, tmp.pfUsed);
         tmp.pfUpgData[i].canBuy = Decimal.gte(resource, tmp.pfUpgData[i].cost);
         tmp.pfUpgData[i].target = PRESTIGE_FLUID.buyTarget(i, resource);
     }
@@ -137,9 +132,7 @@ function updateHTML_prestigeFluid() {
                 html[`prestigeFluidUpg${i}`].setDisplay(show);
                 if (show) {
                     html[`prestigeFluidUpg${i}eff`].setTxt(`Raising PB${i+1}'s effect to the ^${format(tmp.pfUpgData[i].effect, 2)} → ^${format(tmp.pfUpgData[i].effectNext, 2)}.`);
-                    html[`prestigeFluidUpg${i}cost`].setTxt(tmp.hinderances[4].depth.gt(0) && i != 0
-                                ? `Cost: ${format(tmp.pfUpgData[i].cost)} PFB${i}`
-                                : `Cost: ${format(tmp.pfUpgData[i].cost)} prestige fluid`);
+                    html[`prestigeFluidUpg${i}cost`].setTxt(`Cost: ${format(tmp.pfUpgData[i].cost)} prestige fluid`);
 
                     html[`prestigeFluidUpg${i}amount`].setTxt(`PFB${i+1}: ×${format(player.prestigeFluidUpgs[i])}`);
 
@@ -165,12 +158,7 @@ function buyPrestigeFluidUpg(i) {
         return;
     }
 
-    let resource;
-    if (tmp.hinderances[4].depth.gt(0) && i != 0) {
-        resource = player.prestigeFluidUpgs[i - 1];
-    } else {
-        resource = player.prestigeFluid;
-    }
+    let resource = player.prestigeFluid;
     if (shiftDown) {
         player.prestigeFluidUpgs[i] = tmp.pfUpgData[i].target.max(player.prestigeFluidUpgs[i]).ceil();
     } else {

@@ -82,8 +82,8 @@ function initPlayer() {
         },
         prestigeUpgradesInCurrentAscension: false,
         darts: D(0),
-        hinderanceScore: [D(0), D(0), D(0), D(0)],
-        bestHinderanceScore: [D(0), D(0), D(0), D(0)],
+        hinderanceScore: [D(0), D(0), D(0), D(0), D(0)],
+        bestHinderanceScore: [D(0), D(0), D(0), D(0), D(0)],
         currentHinderance: null,
         ascend: D(0),
         ascendCount: D(0),
@@ -177,6 +177,7 @@ function initTmp() {
         transTab: 0,
         factors: {},
         timeSpeedTiers: [D(1), D(1)],
+        inAnyChallenge: false,
         pointGen: D(1),
         buyables: resetMainBuyables(),
         basicBuyableEnabled: resetBuyableEnable(),
@@ -718,8 +719,9 @@ function updatePlayer() {
         player.version = 33;
     }
     if (player.version === 33) {
-
-        // player.version = 34;
+        player.prestigeChallengeRepCompleted[4] = D(0);
+        
+        player.version = 34;
     }
     if (player.version === 34) {
 
@@ -933,6 +935,13 @@ function gameLoop() {
 
     // tick game
     try {
+        // i rather put misc stuff here, before anything else
+        tmp.inAnyChallenge = player.prestigeChallenge !== null 
+            || player.inSetback 
+            || player.currentHinderance !== null 
+            || player.transcendInSpecialReq !== null 
+            || player.prestigeChallengeRepeat !== null;
+
         // put challenge effects at the top because before they were closer to the middle and upon reloading you could exploit them
         updateGame_prestigeRepChal();
         updateGame_hinderance();
@@ -1108,13 +1117,19 @@ function calcTimeSpeed() {
         tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].mul(tmp.timeSpeedTiers[1]);
         addStatFactor('tier1Time', `Tier 2 Time Speed`, `×`, tmp.timeSpeedTiers[1], tmp.timeSpeedTiers[0]);
     }
+
+    if (tmp.prestigeRepeatChal[2].depth.gt(0)) {
+        tmp.timeSpeedTiers[0] = new Decimal(1);
+        addStatFactor('tier1Time', `PRC3`, `...`, null, tmp.timeSpeedTiers[0]);
+    }
 }
 
 function addStatFactor(type, name, desc, eff, result) {
     if (tmp.tab !== -1) {
-        if (tmp.statTab !== 1) {
-            return;
-        }
+        return;
+    }
+    if (tmp.statTab !== 1) {
+        return;
     }
     if (tmp.factors[type] === undefined) {
         tmp.factors[type] = [];
@@ -1127,6 +1142,11 @@ let ctrlDown = false;
 
 document.onkeydown = function (e) {
     shiftDown = e.shiftKey;
+    // there *is* a way to cheese the challenge but i'm not telling you how, just that it is possible
+    if (tmp.prestigeRepeatChal[2].depth.gt(0)) {
+        shiftDown = false;
+    }
+
     ctrlDown = e.ctrlKey;
 };
 

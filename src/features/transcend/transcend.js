@@ -865,32 +865,36 @@ function initHTML_transcend() {
 }
 
 function updateGame_transcend() {
-    player.timeInTranscension = Decimal.add(player.timeInTranscension, Decimal.mul(delta, tmp.timeSpeedTiers[0]))
+    player.timeInTranscension = Decimal.add(player.timeInTranscension, Decimal.mul(delta, tmp.timeSpeedTiers[0]));
 
     for (let i = 0; i < TRANSCENSION_UPGRADES.length; i++) {
         for (let j = 0; j < TRANSCENSION_UPGRADES[i].length; j++) {
-            tmp.transEffs[i][j] = TRANSCENSION_UPGRADES[i][j].eff
+            tmp.transEffs[i][j] = TRANSCENSION_UPGRADES[i][j].eff;
         }
     }
 
-    tmp.transcendReq = D('e2400')
-    tmp.factors.transcend = []
-    tmp.transcendAmount = Decimal.div(player.bestPointsInTranscend, tmp.transcendReq).pow(0.0005)
-    addStatFactor('transcend', `Base`, `(${format(player.bestPointsInTranscend)}/${format('e2400')})<sup>0.0005</sup>`, null, tmp.transcendAmount)
+    tmp.transcendReq = D('e2400');
+    tmp.factors.transcend = [];
+    tmp.transcendAmount = Decimal.div(player.bestPointsInTranscend, tmp.transcendReq).pow(0.0005);
+    addStatFactor('transcend', `Base`, `(${format(player.bestPointsInTranscend)}/${format('e2400')})<sup>0.0005</sup>`, null, tmp.transcendAmount);
     if (player.cheats.dilate) {
-        tmp.transcendAmount = cheatDilateBoost(tmp.transcendAmount)
-        addStatFactor('transcend', `Cheats`, `...`, null, tmp.transcendAmount)
+        tmp.transcendAmount = cheatDilateBoost(tmp.transcendAmount);
+        addStatFactor('transcend', `Cheats`, `...`, null, tmp.transcendAmount);
     }
-    tmp.transcendAmount = tmp.transcendAmount.floor()
+    tmp.transcendAmount = tmp.transcendAmount.floor();
 
-    tmp.transcendNext = tmp.transcendAmount
-    tmp.transcendNext = cheatDilateBoost(tmp.transcendNext, true)
-    tmp.transcendNext = tmp.transcendNext.add(1).root(0.0005).mul(tmp.transcendReq)
+    tmp.transcendNext = tmp.transcendAmount;
+    tmp.transcendNext = cheatDilateBoost(tmp.transcendNext, true);
+    tmp.transcendNext = tmp.transcendNext.add(1).root(0.0005).mul(tmp.transcendReq);
 
-    tmp.transcendEffect = Decimal.max(player.transcendPointTotal, 0).add(1).log10().mul(0.02).add(1).ln().mul(100).pow10()
-    tmp.transcendEffectNext = Decimal.add(player.transcendPointTotal, tmp.transcendAmount).max(0).add(1).log10().mul(0.02).add(1).ln().mul(100).pow10()
-    tmp.transcendResetEffect = Decimal.max(player.transcendResetCount, 0).pow_base(2) // this is probably risky, i should change this at some point
-    tmp.transcendResetEffectMilestone = Decimal.max(player.transcendResetCount, 0).pow_base(2)
+    tmp.transcendEffect = transcendPtsEff(player.transcendPointTotal);
+    tmp.transcendEffectNext = transcendPtsEff(Decimal.add(player.transcendPointTotal, tmp.transcendAmount));
+    tmp.transcendResetEffect = Decimal.max(player.transcendResetCount, 0).pow_base(2); // this is probably risky, i should change this at some point
+    tmp.transcendResetEffectMilestone = Decimal.max(player.transcendResetCount, 0).pow_base(2);
+}
+
+function transcendPtsEff(points) {
+    return Decimal.max(points, 0).add(1).log10().div(50).add(1).ln().mul(100).pow10();
 }
 
 function updateHTML_transcend() {
@@ -1078,7 +1082,7 @@ function doTranscendReset(doAnyway = false) {
     player.currentHinderance = null;
     for (let i = 0; i < HINDERANCES.length; i++) {
         if (hasTranscendMilestone(12)) {
-            player.hinderanceScore[i] = Decimal.pow(player.bestHinderanceScore[i], 0.5);
+            player.hinderanceScore[i] = Decimal.pow(player.bestHinderanceScore[i], hasSetbackUpgrade('b9') ? 1 : 0.5);
         } else {
             player.hinderanceScore[i] = D(0);
         }

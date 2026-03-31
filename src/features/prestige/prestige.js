@@ -235,7 +235,7 @@ const PRESTIGE_UPGRADES = [
     {
         cost: D(1e11),
         desc(levels) {
-            return `Raise Point gain by +^${format(tmp.prestigeUpgEffs[15], 3)} to exponent. (~^${format(tmp.pointGen.max(10).log10().root(tmp.prestigeUpgEffs[15]).pow(tmp.prestigeUpgEffs[15].sub(1)), 2)})`
+            return `Raise Point gain by +^${format(tmp.prestigeUpgEffs[15].sub(1), 3)} to exponent. (~^${format(tmp.pointGen.max(10).log10().root(tmp.prestigeUpgEffs[15]).pow(tmp.prestigeUpgEffs[15].sub(1)), 2)})`
         },
         eff(levels) {
             let eff = Decimal.max(levels, 1);
@@ -249,7 +249,7 @@ const PRESTIGE_UPGRADES = [
     {
         cost: D(1e11),
         desc(levels) {
-            return `Raise Generator Speed by +^${format(tmp.prestigeUpgEffs[16], 3)} to exponent. (~^${format(Decimal.max(player.buyablePoints[0], 10).log10().root(tmp.prestigeUpgEffs[16]).pow(tmp.prestigeUpgEffs[16].sub(1)), 2)})`;
+            return `Raise Generator Speed by +^${format(tmp.prestigeUpgEffs[16].sub(1), 3)} to exponent. (~^${format(Decimal.max(player.buyablePoints[0], 10).log10().root(tmp.prestigeUpgEffs[16]).pow(tmp.prestigeUpgEffs[16].sub(1)), 2)})`;
         },
         eff(levels) {
             let eff = Decimal.max(levels, 1);
@@ -295,7 +295,7 @@ function initHTML_prestige() {
     let txt = ``;
     for (let i = 0; i < PRESTIGE_UPGRADES.length; i++) {
         txt += `
-            <div style="width: 190px; margin: 2px">
+            <div id="prestigeUpgrade${i}all" style="width: 190px; margin: 2px">
                 <button onclick="buyPrestigeUpgrade(${i})" id="prestigeUpgrade${i}" class="whiteText font" style="height: 80px; width: 190px; font-size: 9px;">
                     <b><span id="prestigeUpgrade${i}amount"></span></b><br><br>
                     <span id="prestigeUpgrade${i}eff"></span><br>
@@ -314,6 +314,7 @@ function initHTML_prestige() {
 
     html['prestigeUpgradeList'].setHTML(txt);
     for (let i = 0; i < PRESTIGE_UPGRADES.length; i++) {
+        toHTMLvar(`prestigeUpgrade${i}all`);
         toHTMLvar(`prestigeUpgrade${i}`);
         toHTMLvar(`prestigeUpgrade${i}amount`);
         toHTMLvar(`prestigeUpgrade${i}eff`);
@@ -357,10 +358,16 @@ function updateGame_prestige() {
         tmp.peGain = new Decimal(0);
         addStatFactor('prestigeEssence', `Advantageous 'Challenge'`, `...`, null, tmp.peGain);
     }
-    if (Decimal.gte(player.hinderanceScore[0], HINDERANCES[0].start)) {
-        tmp.peGain = tmp.peGain.pow(HINDERANCES[0].eff);
-        addStatFactor('prestigeEssence', `H1 PB`, `^`, HINDERANCES[0].eff, tmp.peGain);
+
+    // exp boosts
+    if (tmp.prestigeRepeatChal[2].depth.lte(0)) {
+        if (Decimal.gte(player.hinderanceScore[0], HINDERANCES[0].start)) {
+            tmp.peGain = tmp.peGain.pow(HINDERANCES[0].eff);
+            addStatFactor('prestigeEssence', `H1 PB`, `^`, HINDERANCES[0].eff, tmp.peGain);
+        }
     }
+    
+    // nerfs
     if (tmp.hinderances[4].depth.gt(0)) {
         tmp.peGain = tmp.peGain.pow(tmp.hinderances[4].effects.resource);
         addStatFactor('prestigeEssence', `Hinderance 5`, `^`, tmp.hinderances[4].effects.resource, tmp.peGain);
@@ -389,8 +396,10 @@ function updateGame_prestige() {
     if (tmp.hinderances[4].depth.gt(0)) {
         tmp.peNext = tmp.peNext.root(tmp.hinderances[4].effects.resource);
     }
-    if (Decimal.gte(player.hinderanceScore[0], HINDERANCES[0].start)) {
-        tmp.peNext = tmp.peNext.root(HINDERANCES[0].eff);
+    if (tmp.prestigeRepeatChal[2].depth.lte(0)) {
+        if (Decimal.gte(player.hinderanceScore[0], HINDERANCES[0].start)) {
+            tmp.peNext = tmp.peNext.root(HINDERANCES[0].eff);
+        }
     }
     tmp.peNext = tmp.peNext.log(10).pow_base(2).pow_base(1e6);
 
@@ -515,7 +524,14 @@ function updateGame_prestige() {
         addStatFactor('prestige', `PRC1`, `log${tmp.prestigeRepeatChal[0].effects.log.neq(1) ? '<sup>' + format(tmp.prestigeRepeatChal[0].effects.log, 2) + '</sup>' : ''}<sub>2</sub>(${format(prevValue.sub(1))})`, null, tmp.prestigePointGain);
     }
 
+    if (tmp.prestigeRepeatChal[3].depth.gt(0)) {
+        tmp.prestigePointGain = tmp.prestigePointGain.min(player.bestTotalGenLvs);
+        addStatFactor('prestige', `PRC4`, `...`, null, tmp.prestigePointGain);
+    }
+
     tmp.prestigePointGain = cheatDilateBoost(tmp.prestigePointGain);
+    addStatFactor('prestige', `Cheats`, `...`, null, tmp.prestigePointGain);
+
     addStatFactor('prestige', `Current P. Points`, `-`, player.prestige, tmp.prestigePointGain.sub(player.prestige).max(0));
     tmp.prestigePointGain = tmp.prestigePointGain.sub(player.prestige).floor().max(0);
 
@@ -549,6 +565,12 @@ function updateGame_prestige() {
     tmp.prestigePointNext = tmp.prestigePointNext.div(HINDERANCES[1].eff);
     tmp.prestigePointNext = tmp.prestigePointNext.div(tmp.energyEffs[2]);
     tmp.prestigePointNext = tmp.prestigePointNext.sub(1).pow10().mul(1e6);
+
+    if (tmp.prestigeRepeatChal[3].depth.gt(0)) {
+        if (tmp.prestigePointGain.gte(player.bestTotalGenLvs)) {
+            tmp.prestigePointNext = player.bestTotalGenLvs;
+        }
+    }
 
     // auto-prestige
     tmp.autoPrestige = player.cheats.autoPrestige || (Decimal.gte(player.hinderanceScore[2], HINDERANCES[2].start) && player.transcendInSpecialReq !== "prest4");
@@ -668,7 +690,7 @@ function updateHTML_prestige() {
                 if (i >= 15 && i <= 17) {
                     show = Decimal.gt(player.ascendUpgrades[12], 2);
                 }
-                html[`prestigeUpgrade${i}`].setDisplay(show);
+                html[`prestigeUpgrade${i}all`].setDisplay(show);
                 if (show) {
                     html[`prestigeUpgrade${i}eff`].setTxt(tmp.prestigeUpgDescs[i]);
                     html[`prestigeUpgrade${i}cost`].setTxt(

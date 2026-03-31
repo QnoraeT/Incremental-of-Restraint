@@ -4,8 +4,8 @@ const ASCENSION_UPGRADES = [
         show: true,
         cap: D(Infinity),
         req: true,
-        get cost() {
-            let cost = D(player.ascendUpgrades[0]);
+        cost(bought) {
+            let cost = D(bought);
             if (player.transcendInSpecialReq === "point4") {
                 cost = cost.mul(1000);
             }
@@ -19,43 +19,53 @@ const ASCENSION_UPGRADES = [
             }
             return target;
         },
-        get eff() {
+        eff(bought) {
             if (player.transcendInSpecialReq === "ascend5") {
                 return D(1);
             }
-            return Decimal.pow(1.258, player.ascendUpgrades[0]);
+            return Decimal.pow(1.258, bought);
         },
         get desc() {
-            return `Multiply point gain by 25.8%. Currently: ×${format(this.eff, 2)}.`;
+            return `Multiply point gain by 25.8%. Currently: ×${format(tmp.ascendBuyables[0].eff, 2)}.`;
         } 
     },
     {
         show: true,
         cap: D(Infinity),
         req: true,
-        get cost() {
-            let cost = D(player.ascendUpgrades[1]);
+        cost(bought) {
+            let scale = D(25);
+            if (Decimal.gte(player.prestigeChallengeRepCompleted[2], 1)) {
+                scale = scale.mul(tmp.prestigeRepeatChal[2].rewardEffs.ascendCost);
+            }
+
+            let cost = D(bought);
             if (player.transcendInSpecialReq === "point4") {
                 cost = cost.mul(1000);
             }
-            cost = cost.div(25).exp().sub(1).mul(25).pow_base(2.5).mul(50);
+            cost = cost.div(scale).exp().sub(1).mul(scale).pow_base(2.5).mul(50);
             return cost;
         },
         target(resource) {
-            let target = Decimal.div(resource, 50).max(1).log(2.5).div(25).add(1).ln().mul(25);
+            let scale = D(25);
+            if (Decimal.gte(player.prestigeChallengeRepCompleted[2], 1)) {
+                scale = scale.mul(tmp.prestigeRepeatChal[2].rewardEffs.ascendCost);
+            }
+
+            let target = Decimal.div(resource, 50).max(1).log(2.5).div(scale).add(1).ln().mul(scale);
             if (player.transcendInSpecialReq === "point4") {
                 target = target.div(1000);
             }
             return target;
         },
-        get eff() {
+        eff(bought) {
             if (player.transcendInSpecialReq === "ascend5") {
                 return D(1);
             }
-            return Decimal.pow(Decimal.max(player.ascend, 0).add(1).log10().add(1.095).pow(2), player.ascendUpgrades[1]);
+            return Decimal.pow(Decimal.max(player.ascend, 0).add(1).log10().add(1.095).pow(2), bought);
         },
         get desc() {
-            return `Multiply generator gain by ${format(Decimal.max(player.ascend, 0).add(1).log10().add(1.095).pow(2), 2)}×. Currently: ×${format(this.eff, 2)}.`;
+            return `Multiply generator gain by ${format(Decimal.max(player.ascend, 0).add(1).log10().add(1.095).pow(2), 2)}×. Currently: ×${format(tmp.ascendBuyables[1].eff, 2)}.`;
         } 
     },
     {
@@ -68,8 +78,8 @@ const ASCENSION_UPGRADES = [
             return cap;
         },
         req: true,
-        get cost() {
-            let cost = D(player.ascendUpgrades[2]);
+        cost(bought) {
+            let cost = D(bought);
             if (player.transcendInSpecialReq === "point4") {
                 cost = cost.mul(1000);
             }
@@ -83,7 +93,7 @@ const ASCENSION_UPGRADES = [
             }
             return target;
         },
-        get eff() {
+        eff(bought) {
             if (player.transcendInSpecialReq === "ascend5") {
                 return D(1);
             }
@@ -91,18 +101,18 @@ const ASCENSION_UPGRADES = [
         },
         get desc() {
             return Decimal.eq(player.ascendUpgrades[2], 0)
-                ? `Buyable 1's effect is raised to the ^${format(this.eff, 2)} Currently: None.`
+                ? `Buyable 1's effect is raised to the ^${format(tmp.ascendBuyables[2].eff, 2)} Currently: None.`
                 : Decimal.eq(player.ascendUpgrades[2], 1)
-                    ? `Buyable ${format(Decimal.add(player.ascendUpgrades[2], 1))}'s effect is raised to the ^${format(this.eff, 2)} Currently: Buyable 1.`
-                    : `Buyable ${format(Decimal.add(player.ascendUpgrades[2], 1))}'s effect is raised to the ^${format(this.eff, 2)} Currently: Buyables 1-${format(player.ascendUpgrades[2])}.`
+                    ? `Buyable ${format(Decimal.add(player.ascendUpgrades[2], 1))}'s effect is raised to the ^${format(tmp.ascendBuyables[2].eff, 2)} Currently: Buyable 1.`
+                    : `Buyable ${format(Decimal.add(player.ascendUpgrades[2], 1))}'s effect is raised to the ^${format(tmp.ascendBuyables[2].eff, 2)} Currently: Buyables 1-${format(player.ascendUpgrades[2])}.`
         } 
     },
     {
         show: true,
         cap: D(Infinity),
         req: true,
-        get cost() {
-            let cost = D(player.ascendUpgrades[3]);
+        cost(bought) {
+            let cost = D(bought);
             if (player.transcendInSpecialReq === "point4") {
                 cost = cost.mul(1000);
             }
@@ -126,7 +136,7 @@ const ASCENSION_UPGRADES = [
             }
             return target;
         },
-        get eff() {
+        eff(bought) {
             if (player.transcendInSpecialReq === "ascend5") {
                 return D(1);
             }
@@ -134,10 +144,10 @@ const ASCENSION_UPGRADES = [
             if (player.transcendUpgrades.includes('ascend4')) {
                 eff = eff.mul(Decimal.max(player.ascendGems, 1).log10().add(1));
             }
-            return Decimal.pow(eff, player.ascendUpgrades[3]);
+            return Decimal.pow(eff, bought);
         },
         get desc() {
-            return `Ascension Gem gain is increased based off of your Ascension Points. Currently: ×${format(this.eff, 2)}.`;
+            return `Ascension Gem gain is increased based off of your Ascension Points. Currently: ×${format(tmp.ascendBuyables[3].eff, 2)}.`;
         } 
     },
     ...(() => {
@@ -147,8 +157,8 @@ const ASCENSION_UPGRADES = [
                 show: true,
                 cap: D(Infinity),
                 req: true,
-                get cost() {
-                    let cost = D(player.ascendUpgrades[i + 4]);
+                cost(bought) {
+                    let cost = D(bought);
                     if (player.transcendInSpecialReq === "point4") {
                         cost = cost.mul(1000);
                     }
@@ -163,14 +173,14 @@ const ASCENSION_UPGRADES = [
                     }
                     return target;
                 },
-                get eff() {
+                eff(bought) {
                     if (player.transcendInSpecialReq === "ascend5") {
                         return D(0);
                     }
-                    return Decimal.eq(player.ascendUpgrades[i + 4], 0) ? D(0) : Decimal.add(player.ascendUpgrades[i + 4], 1).pow_base(2);
+                    return Decimal.eq(bought, 0) ? D(0) : Decimal.add(bought, 1).pow_base(2);
                 },
                 get desc() {
-                    return `Automate Buyable ${i+1}. This autobuyer can buy up to ${format(this.eff)}/s.`;
+                    return `Automate Buyable ${i+1}. This autobuyer can buy up to ${format(tmp.ascendBuyables[i + 4].eff)}/s.`;
                 } 
             });
         }
@@ -181,6 +191,7 @@ const ASCENSION_UPGRADES = [
         for (let i = 0; i < 4; i++) {
             arr.push({
                 show: true,
+                // ! replace false with the condition to ignore the buyable limitation
                 get cap() {
                     if (false) {
                         return D(Infinity);
@@ -191,19 +202,18 @@ const ASCENSION_UPGRADES = [
                     }
                     return cap;
                 },
-                // ! replace false with the condition to ignore the buyable limitation
                 get req() {
-                    return (false || Decimal.lte(player.buyables[i], 0)) && Decimal.gte(player.points, Decimal.pow(player.ascendUpgrades[i + 8], 2).pow_base(1e3 * (10 ** i)).mul(1e20 * (1e3 ** i)));
+                    return (false || Decimal.lte(player.buyables[i], 0)) && Decimal.gte(player.points, Decimal.floor(player.ascendUpgrades[i + 8]).pow(2).pow_base(1e3 * (10 ** i)).mul(1e20 * (1e3 ** i)));
                 },
                 get reqDesc() {
                     if (false) {
-                        return `You must reach ${format(Decimal.pow(player.ascendUpgrades[i + 8], 2).pow_base(1e3 * (10 ** i)).mul(1e20 * (1e3 ** i)))} points.`;
+                        return `You must reach ${format(Decimal.floor(player.ascendUpgrades[i + 8]).pow(2).pow_base(1e3 * (10 ** i)).mul(1e20 * (1e3 ** i)))} points.`;
                     } else {
-                        return `You must not buy Buyable ${i+1} and you must reach ${format(Decimal.pow(player.ascendUpgrades[i + 8], 2).pow_base(1e3 * (10 ** i)).mul(1e20 * (1e3 ** i)))} points.`;
+                        return `You must not buy Buyable ${i+1} and you must reach ${format(Decimal.floor(player.ascendUpgrades[i + 8]).pow(2).pow_base(1e3 * (10 ** i)).mul(1e20 * (1e3 ** i)))} points.`;
                     }
                 },
-                get cost() {
-                    let cost = D(player.ascendUpgrades[i + 8]);
+                cost(bought) {
+                    let cost = D(bought);
                     if (player.transcendInSpecialReq === "point4") {
                         cost = cost.mul(1000);
                     }
@@ -227,17 +237,17 @@ const ASCENSION_UPGRADES = [
                     }
                     return Decimal.min(target1, target2);
                 },
-                get eff() {
+                eff(bought) {
                     // i don't believe this is a softcap because what do you expect me to do, make it go divide by 0?
                     // besides that, this is still accurate to the description
-                    if (Decimal.gt(player.ascendUpgrades[i + 8], 9)) {
-                        return Decimal.sub(player.ascendUpgrades[i + 8], 9).pow_base(0.9).recip().mul(10);
+                    if (Decimal.gt(bought, 9)) {
+                        return Decimal.sub(bought, 9).pow_base(0.9).recip().mul(10);
                     } else {
-                        return Decimal.sub(1, Decimal.mul(0.1, player.ascendUpgrades[i + 8])).recip();
+                        return Decimal.sub(1, Decimal.mul(0.1, bought)).recip();
                     }
                 },
                 get desc() {
-                    return `Buyable ${i+1}'s cost scaling is 10% slower. Currently: ${formatPerc(this.eff, 2)} slower.`
+                    return `Buyable ${i+1}'s cost scaling is 10% slower. Currently: ${formatPerc(tmp.ascendBuyables[i + 8].eff, 2)} slower.`;
                 } 
             })
         }
@@ -253,139 +263,139 @@ const ASCENSION_UPGRADES = [
             return cap;
         },
         get req() {
-            return player.prestigeChallengeCompleted.length >= 5 && !player.prestigeUpgradesInCurrentAscension
+            return player.prestigeChallengeCompleted.length >= 5 && !player.prestigeUpgradesInCurrentAscension;
         },
         reqDesc: `You must not buy any Prestige Upgrades in the current Ascension while completing 5 Prestige Challenges.`,
-        get cost() {
-            let cost = D(player.ascendUpgrades[12])
+        cost(bought) {
+            let cost = D(bought);
             if (player.transcendInSpecialReq === "point4") {
-                cost = cost.mul(1000)
+                cost = cost.mul(1000);
             }
-            cost = cost.add(1).pow_base(1e6)
-            return cost
+            cost = cost.add(1).pow_base(1e6);
+            return cost;
         },
         target(resource) {
             if (!(player.prestigeChallengeCompleted.length >= 5 && !player.prestigeUpgradesInCurrentAscension)) {
                 return D(0)
             }
-            let target = Decimal.max(resource, 1e6).log(1e6).sub(1)
+            let target = Decimal.max(resource, 1e6).log(1e6).sub(1);
             if (player.transcendInSpecialReq === "point4") {
-                target = target.div(1000)
+                target = target.div(1000);
             }
-            return target
+            return target;
         },
-        get eff() {
-            return player.ascendUpgrades[12]
+        eff(bought) {
+            return bought;
         },
         get desc() {
-            return `Unlock 1 more row of Prestige Upgrades. Currently: +${format(this.eff)} row(s).`
+            return `Unlock 1 more row of Prestige Upgrades. Currently: +${format(tmp.ascendBuyables[12].eff)} row(s).`;
         } 
     },
     {
         show: true,
         cap: D(4),
         get req() {
-            return player.prestigeChallengeCompleted.length === 0 && Decimal.gte(player.prestige, Decimal.add(player.ascendUpgrades[13], 1).pow(3).mul(10))
+            return player.prestigeChallengeCompleted.length === 0 && Decimal.gte(player.prestige, Decimal.floor(player.ascendUpgrades[13]).add(1).pow(3).mul(10));
         },
         get reqDesc() {
-            return `You must not complete any Prestige Challenges while having ${format(Decimal.add(player.ascendUpgrades[13], 1).pow(3).mul(10))} total prestige points.`
+            return `You must not complete any Prestige Challenges while having ${format(Decimal.floor(player.ascendUpgrades[13]).add(1).pow(3).mul(10))} total prestige points.`;
         },
-        get cost() {
-            let cost = D(player.ascendUpgrades[13])
+        cost(bought) {
+            let cost = D(bought);
             if (player.transcendInSpecialReq === "point4") {
-                cost = cost.mul(1000)
+                cost = cost.mul(1000);
             }
-            cost = cost.add(1).pow(2.5).pow_base(1e6).div(100)
-            return cost
+            cost = cost.add(1).pow(2.5).pow_base(1e6).div(100);
+            return cost;
         },
         target(resource) {
             if (player.prestigeChallengeCompleted.length !== 0) {
-                return D(0)
+                return D(0);
             }
-            let target1 = Decimal.max(player.ascendGems, 1e4).mul(100).log(1e6).root(2.5).sub(1)
+            let target1 = Decimal.max(resource, 1e4).mul(100).log(1e6).root(2.5).sub(1);
             if (player.transcendInSpecialReq === "point4") {
-                target1 = target1.div(1000)
+                target1 = target1.div(1000);
             }
 
-            let target2 = Decimal.max(player.prestige, 10).div(10).root(3).sub(1)
+            let target2 = Decimal.max(player.prestige, 10).div(10).root(3).sub(1);
             if (player.transcendInSpecialReq === "point4") {
-                target2 = target2.div(1000)
+                target2 = target2.div(1000);
             }
-            return Decimal.min(target1, target2)
+            return Decimal.min(target1, target2);
         },
-        get eff() {
-            return player.ascendUpgrades[13]
+        eff(bought) {
+            return bought;
         },
         get desc() {
-            return `Unlock another Prestige Challenge. Currently: +${format(this.eff)} challenges.`
+            return `Unlock another Prestige Challenge. Currently: +${format(tmp.ascendBuyables[13].eff)} challenges.`;
         } 
     },
     {
         get show() {
-            return hasSetbackUpgrade('g10')
+            return hasSetbackUpgrade('g10');
         },
         cap: D(Infinity),
         req: true,
-        get cost() {
-            let cost = D(player.ascendUpgrades[14])
+        cost(bought) {
+            let cost = D(bought);
             if (player.transcendInSpecialReq === "point4") {
-                cost = cost.mul(1000)
+                cost = cost.mul(1000);
             }
-            cost = cost.div(12).add(1).pow(2).sub(1).exp().sub(1).mul(6).pow(2).mul(2).pow_base(1e8).mul(1e60)
-            return cost
+            cost = cost.div(12).add(1).pow(2).sub(1).exp().sub(1).mul(6).pow(2).mul(2).pow_base(1e8).mul(1e60);
+            return cost;
         },
         target(resource) {
-            let target = D(resource)
-            target = target.div(1e60).max(1).log(1e8).div(2).root(2).div(6).add(1).ln().add(1).root(2).sub(1).mul(12)
+            let target = D(resource);
+            target = target.div(1e60).max(1).log(1e8).div(2).root(2).div(6).add(1).ln().add(1).root(2).sub(1).mul(12);
             if (player.transcendInSpecialReq === "point4") {
-                target = target.div(1000)
+                target = target.div(1000);
             }
-            return target
+            return target;
         },
-        get eff() {
-            let eff = D(player.ascendUpgrades[14])
+        eff(bought) {
+            let eff = D(bought);
             if (hasTranscendMilestone(3)) {
-                eff = eff.add(2)
+                eff = eff.add(2);
             }
-            return Decimal.pow(2, eff)
+            return Decimal.pow(2, eff);
         },
         get desc() {
-            return `Automate Buyable 5. This autobuyer can buy up to ${format(this.eff.mul(10))}/s.`
+            return `Automate Buyable 5. This autobuyer can buy up to ${format(tmp.ascendBuyables[14].eff.mul(10))}/s.`;
         } 
     },
     {
         get show() {
-            return hasSetbackUpgrade('g10')
+            return hasSetbackUpgrade('g10');
         },
         cap: D(Infinity),
         req: true,
-        get cost() {
-            let cost = D(player.ascendUpgrades[15])
+        cost(bought) {
+            let cost = D(bought);
             if (player.transcendInSpecialReq === "point4") {
-                cost = cost.mul(1000)
+                cost = cost.mul(1000);
             }
-            cost = cost.div(16).add(1).pow(2).sub(1).exp().sub(1).mul(6).pow(2).mul(2).pow_base(1e10).mul(1e70)
-            return cost
+            cost = cost.div(16).add(1).pow(2).sub(1).exp().sub(1).mul(6).pow(2).mul(2).pow_base(1e10).mul(1e70);
+            return cost;
         },
         target(resource) {
-            let target = D(resource)
-            target = target.div(1e70).max(1).log(1e10).div(2).root(2).div(6).add(1).ln().add(1).root(2).sub(1).mul(16)
+            let target = D(resource);
+            target = target.div(1e70).max(1).log(1e10).div(2).root(2).div(6).add(1).ln().add(1).root(2).sub(1).mul(16);
             if (player.transcendInSpecialReq === "point4") {
-                target = target.div(1000)
+                target = target.div(1000);
             }
-            return target
+            return target;
         },
-        get eff() {
-            let eff = D(player.ascendUpgrades[15])
+        eff(bought) {
+            let eff = D(bought);
             if (hasTranscendMilestone(3)) {
-                eff = eff.add(2)
+                eff = eff.add(2);
             }
-            return Decimal.eq(eff, 0) ? D(0) : Decimal.add(eff, 1).pow_base(2)
+            return Decimal.eq(eff, 0) ? D(0) : Decimal.add(eff, 1).pow_base(2);
         },
         get desc() {
-            return `Automate Buyable 6. This autobuyer can buy up to ${format(this.eff)}/s.`
-        } 
-    },
+            return `Automate Buyable 6. This autobuyer can buy up to ${format(tmp.ascendBuyables[15].eff)}/s.`;
+        }
+    }
 ]
 
 function initHTML_ascend() {
@@ -438,7 +448,7 @@ function updateGame_ascend() {
             player.ascendUpgrades[i] = D(0);
         }
 
-        tmp.ascendBuyables[i].cost = ASCENSION_UPGRADES[i].cost;
+        tmp.ascendBuyables[i].cost = ASCENSION_UPGRADES[i].cost(Decimal.floor(player.ascendUpgrades[i]));
 
         let resource;
         if (tmp.hinderances[4].depth.gt(0) && i != 0) {
@@ -450,16 +460,18 @@ function updateGame_ascend() {
         tmp.ascendBuyables[i].canBuy = Decimal.gte(resource, tmp.ascendBuyables[i].cost);
 
         if (player.cheats.autoAscendUpgrades || player.ascendUpgAuto) {
-            let bought = player.ascendUpgrades[i];
-            player.ascendUpgrades[i] = Decimal.min(tmp.ascendBuyables[i].target, ASCENSION_UPGRADES[i].cap).add(0.99999999).max(player.ascendUpgrades[i]).floor();
-            if (Decimal.gt(player.ascendUpgrades[i], bought)) {
-                player.ascendUpgrades[i] = Decimal.sub(player.ascendUpgrades[i], 1);
+            let bought = D(player.ascendUpgrades[i]);
+            // do not use timespeed changes here because the only time this "buying" var is used is in PRC3, which already disabled T1 time speed from doing anything
+            let buying = tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer : D(Infinity);
+            player.ascendUpgrades[i] = Decimal.min(tmp.ascendBuyables[i].target, ASCENSION_UPGRADES[i].cap).add(0.99999999).max(player.ascendUpgrades[i]).min(Decimal.add(player.ascendUpgrades[i], buying.mul(delta)));
+
+            // assume Decimal and not DecimalSource due to the prior lines changing it
+            if (Decimal.gt(player.ascendUpgrades[i].floor(), bought.floor())) {
                 player.ascendGems = Decimal.sub(player.ascendGems, tmp.ascendBuyables[i].cost).max(0); // idk why this is causing ascendGems to go negative so i put a max 0 here
-                player.ascendUpgrades[i] = Decimal.add(player.ascendUpgrades[i], 1);
             }
         }
 
-        tmp.ascendBuyables[i].eff = ASCENSION_UPGRADES[i].eff;
+        tmp.ascendBuyables[i].eff = ASCENSION_UPGRADES[i].eff(Decimal.floor(player.ascendUpgrades[i]));
     }
 
     tmp.ascendReq = D(1e21);
@@ -564,7 +576,7 @@ function updateHTML_ascend() {
                     }
                     
                     html[`ascendUpgrade${i}req`].setTxt(ASCENSION_UPGRADES[i].reqDesc === undefined ? '' : ASCENSION_UPGRADES[i].reqDesc);
-                    html[`ascendUpgrade${i}amount`].setTxt(`${format(player.ascendUpgrades[i])}${!Decimal.isFinite(ASCENSION_UPGRADES[i].cap) ? '×' : ' / ' + format(ASCENSION_UPGRADES[i].cap)}`);
+                    html[`ascendUpgrade${i}amount`].setTxt(`${format(Decimal.floor(player.ascendUpgrades[i]))}${!Decimal.isFinite(ASCENSION_UPGRADES[i].cap) ? '×' : ' / ' + format(ASCENSION_UPGRADES[i].cap)}`);
 
                     html[`ascendUpgrade${i}`].changeStyle('background-color', notCapped ? (canBuy ? '#00C00080' : ASCENSION_UPGRADES[i].req ? '#00800080' : '#80000080') : '#00FF0080');
                     html[`ascendUpgrade${i}`].changeStyle('border', `3px solid ${notCapped ? (canBuy ? '#00C000' : ASCENSION_UPGRADES[i].req ? '#008000' : '#800000') : '#00ff00'}`);
@@ -584,7 +596,8 @@ function updateHTML_ascend() {
             if (hasTranscendMilestone(8)) {
                 html[`ascendUpgAuto`].changeStyle('background-color', player.ascendUpgAuto ? '#00800080' : '#80000080');
                 html[`ascendUpgAuto`].changeStyle('border', `3px solid #${player.ascendUpgAuto ? '00ff00' : 'ff0000'}`);
-                html[`ascendUpgAuto`].setTxt(player.ascendUpgAuto ? 'Auto: Infinity/s' : 'Auto: Off');
+
+                html[`ascendUpgAuto`].setTxt(player.ascendUpgAuto ? `Auto: ${format(tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer : D(Infinity))}/s` : 'Auto: Off');
             }
         }
     }
@@ -670,7 +683,7 @@ function buyAscendUpgrade(i) {
 
 function respecAscendBuy() {
     for (let i = 0; i < player.ascendUpgrades.length; i++) {
-        player.ascendUpgrades[i] = D(0)
+        player.ascendUpgrades[i] = D(0);
     }
-    doTranscendReset(true)
+    doTranscendReset(true);
 }

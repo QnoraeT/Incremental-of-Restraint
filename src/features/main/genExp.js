@@ -2,13 +2,13 @@
 const GEN_XP_BUYABLES = [
     {
         show: true,
-        get cost() {
+        cost(bought) {
             let scale = D(0.004);
             if (hasSetbackUpgrade('c7')) {
                 scale = scale.div(2);
             }
             
-            let cost = D(player.generatorFeatures.buyable[0]);
+            let cost = D(bought);
             if (hasSetbackUpgrade('c11')) {
                 cost = cost.div(SETBACK_UPGRADES[3][10].eff);
             }
@@ -28,14 +28,14 @@ const GEN_XP_BUYABLES = [
             }
             return target;
         },
-        get eff() {
+        eff(bought) {
             if (player.transcendInSpecialReq === "ascend5") {
                 return D(1);
             }
 
             let eff = D(2);
             eff = eff.add(tmp.generatorFeatures.genEnhBuyables[0].eff);
-            eff = eff.pow(player.generatorFeatures.buyable[0]);
+            eff = eff.pow(bought);
             return eff;
         },
         get desc() {
@@ -44,8 +44,8 @@ const GEN_XP_BUYABLES = [
     },
     {
         show: true,
-        get cost() {
-            let cost = D(player.generatorFeatures.buyable[1]);
+        cost(bought) {
+            let cost = D(bought);
             if (hasSetbackUpgrade('c11')) {
                 cost = cost.div(SETBACK_UPGRADES[3][10].eff);
             }
@@ -61,7 +61,7 @@ const GEN_XP_BUYABLES = [
             }
             return target;
         },
-        get eff() {
+        eff(bought) {
             if (player.transcendInSpecialReq === "ascend5") {
                 return D(1);
             }
@@ -71,7 +71,7 @@ const GEN_XP_BUYABLES = [
                 eff = eff.add(Decimal.max(player.buyablePoints[i], 0).add(1).log10());
             }
 
-            eff = eff.div(1000).add(1).pow(player.generatorFeatures.buyable[1]);
+            eff = eff.div(1000).add(1).pow(bought);
             return eff;
         },
         get desc() {
@@ -82,8 +82,8 @@ const GEN_XP_BUYABLES = [
         get show() {
             return player.transcendUpgrades.includes('exp3');
         },
-        get cost() {
-            let cost = D(player.generatorFeatures.buyable[2]);
+        cost(bought) {
+            let cost = D(bought);
             if (hasSetbackUpgrade('c11')) {
                 cost = cost.div(SETBACK_UPGRADES[3][10].eff)
             }
@@ -98,13 +98,13 @@ const GEN_XP_BUYABLES = [
             }
             return target;
         },
-        get eff() {
+        eff(bought) {
             if (hasSetbackUpgrade('c14') && player.transcendInSpecialReq === "ascend5") {
                 return D(0);
             }
 
             let eff = D(0.001);
-            eff = eff.mul(player.generatorFeatures.buyable[2]);
+            eff = eff.mul(bought);
             return eff;
         },
         get desc() {
@@ -152,7 +152,7 @@ function updateGame_genXP() {
     let resource;
     if (hasSetbackUpgrade(`r10`)) {
         for (let i = 0; i < GEN_XP_BUYABLES.length; i++) {
-            tmp.generatorFeatures.genXPBuyables[i].cost = GEN_XP_BUYABLES[i].cost;
+            tmp.generatorFeatures.genXPBuyables[i].cost = GEN_XP_BUYABLES[i].cost(Decimal.floor(player.generatorFeatures.buyable[i]));
 
             if (tmp.hinderances[4].depth.gt(0) && i != 0) {
                 resource = player.generatorFeatures.buyable[i - 1];
@@ -162,14 +162,18 @@ function updateGame_genXP() {
             tmp.generatorFeatures.genXPBuyables[i].target = GEN_XP_BUYABLES[i].target(resource);
 
             if (player.genXPAuto && GEN_XP_BUYABLES[i].show) {
-                let bought = player.generatorFeatures.buyable[i];
-                player.generatorFeatures.buyable[i] = Decimal.add(tmp.generatorFeatures.genXPBuyables[i].target, 0.99999999).max(player.generatorFeatures.buyable[i]).floor();
-                if (Decimal.gt(player.generatorFeatures.buyable[i], bought)) {
+                let bought = D(player.generatorFeatures.buyable[i]);
+                // do not use timespeed changes here because the only time this "buying" var is used is in PRC3, which already disabled T1 time speed from doing anything
+                let buying = tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer : D(Infinity);
+                player.generatorFeatures.buyable[i] = Decimal.add(tmp.generatorFeatures.genXPBuyables[i].target, 0.99999999).max(player.generatorFeatures.buyable[i]).min(Decimal.add(player.generatorFeatures.buyable[i], buying.mul(delta)));
+                
+                // assume Decimal and not DecimalSource due to the prior lines changing it
+                if (Decimal.gt(player.generatorFeatures.buyable[i].floor(), bought.floor())) {
                     player.generatorFeatures.xp = Decimal.sub(player.generatorFeatures.xp, tmp.generatorFeatures.genXPBuyables[i].cost).max(0); // idk why this is causing xp to go negative so i put a max 0 here
                 }
             }
 
-            tmp.generatorFeatures.genXPBuyables[i].eff = GEN_XP_BUYABLES[i].eff;
+            tmp.generatorFeatures.genXPBuyables[i].eff = GEN_XP_BUYABLES[i].eff(Decimal.floor(player.generatorFeatures.buyable[i]));
             tmp.generatorFeatures.genXPBuyables[i].canBuy = Decimal.gte(resource, tmp.generatorFeatures.genXPBuyables[i].cost);
         }
 
@@ -215,6 +219,7 @@ function updateGame_genXP() {
             addStatFactor('genXP', `Red S. Upgrade 11`, `×`, SETBACK_UPGRADES[0][10].eff, tmp.generatorFeatures.gain);
         }
 
+        // challenges/nerfs
         if (tmp.hinderances[4].depth.gt(0)) {
             tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.pow(tmp.hinderances[4].effects.resource);
             addStatFactor('genXP', `Hinderance 5`, `^`, tmp.hinderances[4].effects.resource, tmp.generatorFeatures.gain);
@@ -242,7 +247,7 @@ function updateGame_genXP() {
         tmp.generatorFeatures.xpEffGenerators = player.generatorFeatures.xp.add(1).log10().mul(tmp.generatorFeatures.xpEffGenerators).add(1).ln().add(1);
 
         // outside of any challenge
-        if (hasSetbackUpgrade('c8') && player.prestigeChallenge === null && !player.inSetback && player.currentHinderance === null && player.transcendInSpecialReq === null && player.prestigeChallengeRepeat === null) {
+        if (hasSetbackUpgrade('c8') && !tmp.inAnyChallenge) {
             tmp.generatorFeatures.xpEffPoints = D(0.055);
         } else {
             tmp.generatorFeatures.xpEffPoints = D(0.05);
@@ -267,7 +272,7 @@ function updateHTML_genXP() {
         if (hasTranscendMilestone(10)) {
             html[`genXPAuto`].changeStyle('background-color', player.genXPAuto ? '#80400080' : '#80000080')
             html[`genXPAuto`].changeStyle('border', `3px solid #${player.genXPAuto ? 'ff8000' : 'ff0000'}`)
-            html[`genXPAuto`].setTxt(player.genXPAuto ? 'Auto: Infinity/s' : 'Auto: Off')
+            html[`genXPAuto`].setTxt(player.genXPAuto ? `Auto: ${format(tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer : D(Infinity))}/s` : 'Auto: Off')
         }
 
         html['genXP'].setTxt(format(player.generatorFeatures.xp, 2))

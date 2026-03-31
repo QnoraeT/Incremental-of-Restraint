@@ -118,7 +118,11 @@ const HINDERANCES = [
 function initHTML_hinderance() {
     toHTMLvar('hinderanceAscend');
     toHTMLvar('hinderanceAscendTabButton');
+    toHTMLvar('hinderancePtsAscend');
+    toHTMLvar('hinderancePtsAscendTabButton');
+
     toHTMLvar('hinderanceList');
+    toHTMLvar('hinderancePtsList');
 
     let txt = ``;
     for (let i = 0; i < HINDERANCES.length; i++) {
@@ -139,6 +143,20 @@ function initHTML_hinderance() {
         toHTMLvar(`hinderance${i}desc`);
         toHTMLvar(`hinderance${i}goal`);
         toHTMLvar(`hinderance${i}reward`);
+    }
+
+    txt = ``;
+    for (let i = 0; i < HINDERANCES.length; i++) {
+        txt += `
+        <div id="hindPts${i}All">
+            <div class="flex-horizontal" style="width: 600px;">
+                <div class="flex-vertical" style="width: 200px;">
+                </div>
+                <div>
+                </div>
+            </div>
+        </div>
+        `;
     }
 }
 
@@ -175,7 +193,11 @@ function updateGame_hinderance() {
 function updateHTML_hinderance() {
     if (tmp.tab === 3) {
         html['hinderanceAscendTabButton'].setDisplay(hasSetbackUpgrade(`b5`));
+        html['hinderancePtsAscendTabButton'].setDisplay(hasSetbackUpgrade(`b9`))
+
         html['hinderanceAscend'].setDisplay(tmp.ascendTab === 2);
+        html['hinderancePtsAscend'].setDisplay(tmp.ascendTab === 3);
+        
         if (tmp.ascendTab === 2) {
             for (let i = 0; i < HINDERANCES.length; i++) {
                 html[`hinderance${i}`].setDisplay(HINDERANCES[i].show);
@@ -186,6 +208,10 @@ function updateHTML_hinderance() {
                     html[`hinderance${i}reward`].setTxt(HINDERANCES[i].reward);
                 }
             }
+        }
+
+        if (tmp.ascendTab === 3) {
+
         }
     }
 }

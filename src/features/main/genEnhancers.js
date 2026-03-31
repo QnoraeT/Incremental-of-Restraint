@@ -5,8 +5,8 @@ const GEN_ENH_BUYABLES = [
         get show() {
             return Decimal.gt(player.generatorFeatures.totalEnh, 0);
         },
-        get cost() {
-            let cost = D(player.generatorFeatures.enhancerBuyables[0]);
+        cost(bought) {
+            let cost = D(bought);
             cost = cost.pow_base(1.02).sub(1).div(0.02).pow_base(2);
             return cost.floor();
         },
@@ -15,12 +15,12 @@ const GEN_ENH_BUYABLES = [
             target = target.max(1).log(2).mul(0.02).add(1).log(1.02);
             return target;
         },
-        get eff() {
+        eff(bought) {
             if (colorAmountTotal(3).gt(0) || player.transcendInSpecialReq === "ascend5") {
                 return D(0);
             }
             let eff = D(0.1);
-            eff = eff.mul(player.generatorFeatures.enhancerBuyables[0]);
+            eff = eff.mul(bought);
             return eff;
         },
         get desc() {
@@ -31,8 +31,8 @@ const GEN_ENH_BUYABLES = [
         get show() {
             return Decimal.gt(player.generatorFeatures.totalEnh, 0);
         },
-        get cost() {
-            let cost = D(player.generatorFeatures.enhancerBuyables[1]);
+        cost(bought) {
+            let cost = D(bought);
             cost = cost.pow_base(1.02).sub(1).div(0.02).pow_base(3).mul(5);
             return cost.floor();
         },
@@ -41,7 +41,7 @@ const GEN_ENH_BUYABLES = [
             target = target.div(5).max(1).log(3).mul(0.02).add(1).log(1.02);
             return target;
         },
-        get eff() {
+        eff(bought) {
             if (colorAmountTotal(3).gt(0) || player.transcendInSpecialReq === "ascend5") {
                 return D(1);
             }
@@ -50,7 +50,7 @@ const GEN_ENH_BUYABLES = [
                 eff = eff.mul(2).add(30);
             }
             eff = Decimal.div(eff, 30).add(1).ln().pow_base(1e20);
-            eff = eff.pow(player.generatorFeatures.enhancerBuyables[1]);
+            eff = eff.pow(bought);
             return eff;
         },
         get desc() {
@@ -61,8 +61,8 @@ const GEN_ENH_BUYABLES = [
         get show() {
             return Decimal.gt(player.generatorFeatures.totalEnh, 0);
         },
-        get cost() {
-            let cost = D(player.generatorFeatures.enhancerBuyables[2]);
+        cost(bought) {
+            let cost = D(bought);
             cost = cost.pow_base(2).add(1).pow10();
             return cost.floor();
         },
@@ -71,12 +71,12 @@ const GEN_ENH_BUYABLES = [
             target = target.max(100).log10().sub(1).log(2);
             return target;
         },
-        get eff() {
+        eff(bought) {
             if (colorAmountTotal(3).gt(0) || player.transcendInSpecialReq === "ascend5") {
                 return D(0);
             }
             let eff = D(1);
-            eff = eff.mul(player.generatorFeatures.enhancerBuyables[2]);
+            eff = eff.mul(bought);
             return eff;
         },
         get desc() {
@@ -90,22 +90,33 @@ const GEN_ENH_BUYABLES = [
         get show() {
             return player.transcendUpgrades.includes('exp3');
         },
-        get cost() {
-            let cost = D(player.generatorFeatures.enhancerBuyables[3]);
-            cost = cost.pow_base(1.03).sub(1).div(0.03).pow_base(3).mul(1000);
+        // TODO: make scale something else that doesn't fuck up at very low scaling due to floating point (<0.000000001)
+        cost(bought) {
+            let scale = D(0.03);
+            if (hasSetbackUpgrade('c13')) {
+                scale = scale.div(1000);
+            }
+
+            let cost = D(bought);
+            cost = cost.pow_base(scale.add(1)).sub(1).div(scale).pow_base(3).mul(2500);
             return cost.floor();
         },
         target(resource) {
+            let scale = D(0.03);
+            if (hasSetbackUpgrade('c13')) {
+                scale = scale.div(1000);
+            }
+
             let target = D(resource).ceil();
-            target = target.div(1000).max(1).log(3).mul(0.03).add(1).log(1.03);
+            target = target.div(1000).max(1).log(3).mul(scale).add(1).log(scale.add(1));
             return target;
         },
-        get eff() {
+        eff(bought) {
             if (colorAmountTotal(3).gt(0)) {
                 return D(1);
             }
             let eff = D(2);
-            eff = eff.pow(player.generatorFeatures.enhancerBuyables[3]);
+            eff = eff.pow(bought);
             return eff;
         },
         get desc() {
@@ -116,8 +127,8 @@ const GEN_ENH_BUYABLES = [
         get show() {
             return player.transcendUpgrades.includes('exp3')
         },
-        get cost() {
-            let cost = D(player.generatorFeatures.enhancerBuyables[4]);
+        cost(bought) {
+            let cost = D(bought);
             cost = cost.pow_base(1.01).sub(1).div(0.01).pow_base(1e25).mul(1e100);
             return cost.floor();
         },
@@ -126,12 +137,12 @@ const GEN_ENH_BUYABLES = [
             target = target.div(1e100).max(1).log(1e25).mul(0.01).add(1).log(1.01);
             return target;
         },
-        get eff() {
+        eff(bought) {
             if (colorAmountTotal(3).gt(0)) {
                 return D(1);
             }
             let eff = player.buyableTierPoints.reduce((accumulator, current) => Decimal.mul(accumulator, Decimal.max(current, 0).add(1)), player.buyableTierPoints[0]).max(1);
-            eff = eff.pow(player.generatorFeatures.enhancerBuyables[4]);
+            eff = eff.pow(bought);
             return eff;
         },
         get desc() {
@@ -142,8 +153,8 @@ const GEN_ENH_BUYABLES = [
         get show() {
             return player.transcendUpgrades.includes('exp3');
         },
-        get cost() {
-            let cost = D(player.generatorFeatures.enhancerBuyables[5]);
+        cost(bought) {
+            let cost = D(bought);
             cost = cost.pow_base(3).pow_base(Number.MAX_VALUE);
             return cost.floor();
         },
@@ -152,12 +163,12 @@ const GEN_ENH_BUYABLES = [
             target = target.max(1).log(Number.MAX_VALUE).max(1).log(3);
             return target;
         },
-        get eff() {
+        eff(bought) {
             if (colorAmountTotal(3).gt(0)) {
                 return D(0);
             }
             let eff = D(1);
-            eff = eff.mul(player.generatorFeatures.enhancerBuyables[5]);
+            eff = eff.mul(bought);
             return eff;
         },
         get desc() {
@@ -201,7 +212,7 @@ function initHTML_genEnhancers() {
 function updateGame_genEnhancers() {
     let resource;
     for (let i = 0; i < GEN_ENH_BUYABLES.length; i++) {
-        tmp.generatorFeatures.genEnhBuyables[i].cost = GEN_ENH_BUYABLES[i].cost;
+        tmp.generatorFeatures.genEnhBuyables[i].cost = GEN_ENH_BUYABLES[i].cost(Decimal.floor(player.generatorFeatures.enhancerBuyables[i]));
 
         if (tmp.hinderances[4].depth.gt(0) && i != 0) {
             resource = player.generatorFeatures.enhancerBuyables[i - 1];
@@ -211,14 +222,18 @@ function updateGame_genEnhancers() {
         tmp.generatorFeatures.genEnhBuyables[i].target = GEN_ENH_BUYABLES[i].target(resource);
 
         if (player.genEnhAuto && GEN_ENH_BUYABLES[i].show) {
-            let bought = player.generatorFeatures.enhancerBuyables[i]
-            player.generatorFeatures.enhancerBuyables[i] = Decimal.add(tmp.generatorFeatures.genEnhBuyables[i].target, 0.99999999).max(player.generatorFeatures.enhancerBuyables[i]).floor();
-            if (Decimal.gt(player.generatorFeatures.enhancerBuyables[i], bought)) {
+            let bought = D(player.generatorFeatures.enhancerBuyables[i]);
+            // do not use timespeed changes here because the only time this "buying" var is used is in PRC3, which already disabled T1 time speed from doing anything
+            let buying = tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer : D(Infinity);
+            player.generatorFeatures.enhancerBuyables[i] = Decimal.add(tmp.generatorFeatures.genEnhBuyables[i].target, 0.99999999).max(player.generatorFeatures.enhancerBuyables[i]).min(Decimal.add(player.generatorFeatures.enhancerBuyables[i], buying.mul(delta)));
+
+            // assume Decimal and not DecimalSource due to the prior lines changing it
+            if (Decimal.gt(player.generatorFeatures.enhancerBuyables[i].floor(), bought.floor())) {
                 player.generatorFeatures.enhancer = Decimal.sub(player.generatorFeatures.enhancer, tmp.generatorFeatures.genEnhBuyables[i].cost).max(0); // idk why this is causing ascendGems to go negative so i put a max 0 here
             }
         }
 
-        tmp.generatorFeatures.genEnhBuyables[i].eff = GEN_ENH_BUYABLES[i].eff;
+        tmp.generatorFeatures.genEnhBuyables[i].eff = GEN_ENH_BUYABLES[i].eff(Decimal.floor(player.generatorFeatures.enhancerBuyables[i]));
         tmp.generatorFeatures.genEnhBuyables[i].canBuy = Decimal.gte(resource, tmp.generatorFeatures.genEnhBuyables[i].cost);
     }
 
@@ -232,9 +247,17 @@ function updateGame_genEnhancers() {
         addStatFactor('genEnh', `Generator Enh. Buyable #4`, `×`, tmp.generatorFeatures.genEnhBuyables[3].eff, tmp.generatorFeatures.enhancerGain);
     }
 
-    if (player.transcendUpgrades.includes('enhancer1')) {
-        tmp.generatorFeatures.enhancerGain = tmp.generatorFeatures.enhancerGain.pow(tmp.transEffs[9][1]);
-        addStatFactor('genEnh', `Trans. Upg. "Enhancer Efficiency"`, `^`, tmp.transEffs[9][1], tmp.generatorFeatures.enhancerGain);
+    if (Decimal.gte(player.prestigeChallengeRepCompleted[3], 1)) {
+        tmp.generatorFeatures.enhancerGain = tmp.generatorFeatures.enhancerGain.mul(tmp.prestigeRepeatChal[3].rewardEffs.mult);
+        addStatFactor('genEnh', `PRC4 Reward`, `×`, tmp.prestigeRepeatChal[3].rewardEffs.mult, tmp.generatorFeatures.enhancerGain);
+    }
+
+    // exp boosts
+    if (tmp.prestigeRepeatChal[2].depth.lte(0)) {
+        if (player.transcendUpgrades.includes('enhancer1')) {
+            tmp.generatorFeatures.enhancerGain = tmp.generatorFeatures.enhancerGain.pow(tmp.transEffs[9][1]);
+            addStatFactor('genEnh', `Trans. Upg. "Enhancer Efficiency"`, `^`, tmp.transEffs[9][1], tmp.generatorFeatures.enhancerGain);
+        }
     }
 
     if (tmp.hinderances[4].depth.gt(0)) {
@@ -265,8 +288,13 @@ function updateGame_genEnhancers() {
         if (tmp.hinderances[4].depth.gt(0)) {
             tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.root(tmp.hinderances[4].effects.resource);
         }
-        if (player.transcendUpgrades.includes('enhancer1')) {
-            tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.root(tmp.transEffs[9][1]);
+        if (tmp.prestigeRepeatChal[2].depth.lte(0)) {
+            if (player.transcendUpgrades.includes('enhancer1')) {
+                tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.root(tmp.transEffs[9][1]);
+            }
+        }
+        if (Decimal.gte(player.prestigeChallengeRepCompleted[3], 1)) {
+            tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.div(tmp.prestigeRepeatChal[3].rewardEffs.mult);
         }
         tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.div(tmp.generatorFeatures.genEnhBuyables[3].eff);
         tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.root(0.02).mul(1e33);
@@ -300,7 +328,7 @@ function updateHTML_genEnhancers() {
         if (hasTranscendMilestone(14) && colorAmountTotal(3).lte(0)) {
             html[`genEnhAuto`].changeStyle('background-color', player.genEnhAuto ? '#80800080' : '#80000080')
             html[`genEnhAuto`].changeStyle('border', `3px solid #${player.genEnhAuto ? 'ffff00' : 'ff0000'}`)
-            html[`genEnhAuto`].setTxt(player.genEnhAuto ? 'Auto: Infinity/s' : 'Auto: Off')
+            html[`genEnhAuto`].setTxt(player.genEnhAuto ? `Auto: ${format(tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer : D(Infinity))}/s` : 'Auto: Off')
         }
 
         html['enhAmount'].setTxt(format(tmp.generatorFeatures.enhancerGain))

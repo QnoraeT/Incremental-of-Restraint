@@ -53,7 +53,7 @@ const PRESTIGE_CHALLENGES_REPEAT = [
         },
         rewardEff(comp) {
             const obj = { timeSpeed: D(1) };
-            obj.timeSpeed = Decimal.max(player.prestigeEssence, 1).ln().add(1);
+            obj.timeSpeed = Decimal.max(player.prestigeEssence, 1).log2().add(1);
             obj.timeSpeed = obj.timeSpeed.pow(comp);
 
             return obj;
@@ -70,28 +70,29 @@ const PRESTIGE_CHALLENGES_REPEAT = [
             return Decimal.gte(player.prestigeChallengeRepCompleted[1], 1);
         },
         goal(comp) {
-            // tl;dr: req starts at 1e30, multiplied by 200 per comp, but then that multiplier also gets multiplied by 3 per comp
-            let goal = linearAdd(comp, Math.log10(200), Math.log10(3), false).pow10().mul(1e30);
+            // tl;dr: req starts at 1e14, multiplied by 200 per comp, but then that multiplier also gets multiplied by 3 per comp
+            let goal = linearAdd(comp, Math.log10(200), Math.log10(3), false).pow10().mul(1e14);
             return goal;
         },
         target(essence) {
-            let target = linearAdd(Decimal.div(essence, 1e30).max(1).log10(), Math.log10(200), Math.log10(3), true);
+            let target = linearAdd(Decimal.div(essence, 1e14).max(1).log10(), Math.log10(200), Math.log10(3), true);
             return target;
         },
         name: "Arduous Traditions",
-        desc: "All autobuyers are stuck at 10/s, and Tier 1 Time Speed is stuck at 1×. Ascension and Transcension points are raised ^0.5.",
+        desc: "All autobuyers are stuck at 25/s, and Tier 1 Time Speed is stuck at 1×. Shift-clicking is disabled entirely. All exponential-and-above boosts to pre-transcension resources are disabled.",
         eff(comp) {
-            return `Blue setback dimensions scale -10% slower. Currently: -${formatPerc(this.rewardEff(comp).costSpeed, 2)} → -${formatPerc(this.rewardEff(Decimal.add(comp, 1)).costSpeed, 2)}`;
+            return `Blue setback dimensions scale -10% slower, and A.B. #2's increasing cost scaling is 2× slower. Currently: -${formatPerc(this.rewardEff(comp).costSpeed, 2)}, ${format(this.rewardEff(comp).ascendCost)}× → -${formatPerc(this.rewardEff(Decimal.add(comp, 1)).costSpeed, 2)}, ${format(this.rewardEff(Decimal.add(comp, 1)).ascendCost)}×`;
         },
         // it's actually closer to 11.1% but formatPerc makes this "9.09%" because its multiplicative and i do not want to have to put a cap on something like this because i'll have nothing to resolve it with
         rewardEff(comp) {
-            const obj = { costSpeed: D(10/9) };
+            const obj = { costSpeed: D(10/9), ascendCost: D(2) };
             obj.costSpeed = obj.costSpeed.pow(comp);
+            obj.ascendCost = obj.ascendCost.pow(comp);
 
             return obj;
         },
         chalEffects(depth) {
-            const obj = { exp: D(0.5) };
+            const obj = { autobuyer: D(25), exp: D(0.5) };
             obj.exp = obj.exp.pow(depth);
 
             return obj;
@@ -102,16 +103,16 @@ const PRESTIGE_CHALLENGES_REPEAT = [
             return Decimal.gte(player.prestigeChallengeRepCompleted[2], 1);
         },
         goal(comp) {
-            // tl;dr: req starts at 2e28, multiplied by 4000 per comp, but then that multiplier also gets multiplied by 4 per comp
-            let goal = linearAdd(comp, Math.log10(4000), Math.log10(4), false).pow10().mul(2e28);
+            // tl;dr: req starts at 2e45, multiplied by 4000 per comp, but then that multiplier also gets multiplied by 4 per comp
+            let goal = linearAdd(comp, Math.log10(4000), Math.log10(4), false).pow10().mul(2e45);
             return goal;
         },
         target(essence) {
-            let target = linearAdd(Decimal.div(essence, 2e28).max(1).log10(), Math.log10(4000), Math.log10(4), true);
+            let target = linearAdd(Decimal.div(essence, 2e45).max(1).log10(), Math.log10(4000), Math.log10(4), true);
             return target;
         },
         name: "Generator Competence",
-        desc: "All point modifiers are replaced with your Generator Experience amount. Your prior points boost this value. (Roughly every double of the exponent past 1e308 increases your resulting point gain by +^0.1). Generator Experience's base gain is 0.01, and PC1 is automatically completed instantly.",
+        desc: "Generators and tier levels' requirements scale ^2 as fast. Each prestige point requires at least 1 total generator level, alongside the point requirement.",
         eff(comp) {
             return `Prestige Points give a large boost to Generator Enhancers. Currently: ×${format(this.rewardEff(comp).mult)} → ×${format(this.rewardEff(Decimal.add(comp, 1)).mult)}`;
         },
@@ -123,7 +124,41 @@ const PRESTIGE_CHALLENGES_REPEAT = [
             return obj;
         },
         chalEffects(depth) {
-            return {}; // consistency
+            const obj = { scaling: D(2) };
+            obj.scaling = obj.scaling.pow(depth);
+
+            return obj;
+        }
+    },
+    {
+        shown() {
+            return Decimal.gte(player.prestigeChallengeRepCompleted[3], 1);
+        },
+        goal(comp) {
+            // tl;dr: req starts at 1e30, multiplied by 2000 per comp, but then that multiplier also gets multiplied by 5 per comp
+            let goal = linearAdd(comp, Math.log10(2000), Math.log10(5), false).pow10().mul(1e30);
+            return goal;
+        },
+        target(essence) {
+            let target = linearAdd(Decimal.div(essence, 1e30).max(1).log10(), Math.log10(2000), Math.log10(5), true);
+            return target;
+        },
+        name: "Transcension Translation",
+        desc: "Points are raised ^0.0005.",
+        eff(comp) {
+            return `Red to Cyan Setback Dimension multipliers are boosted based off of your transcension points. Currently: ×${format(this.rewardEff(comp).mult, 1)}, ^${format(this.rewardEff(comp).pow, 3)} → ×${format(this.rewardEff(Decimal.add(comp, 1)).mult, 1)}, ^${format(this.rewardEff(Decimal.add(comp, 1)).pow, 3)}`;
+        },
+        rewardEff(comp) {
+            const obj = { mult: D(1), pow: D(1) };
+            obj.mult = Decimal.max(player.transcendPoints, 1).log10().add(1).pow(0.25).sub(1).mul(comp).pow10();
+            obj.pow = Decimal.max(player.transcendPoints, 10).log10().log10().mul(0.005).mul(comp).add(1)
+            return obj;
+        },
+        chalEffects(depth) {
+            const obj = { pow: D(0.0005) };
+            obj.pow = obj.pow.pow(depth);
+
+            return obj;
         }
     }
 ]
@@ -239,6 +274,10 @@ function togglePrestigeChallengeRepeat(i) {
         player.transcendPoints = player.prestigeChalRepeatSave.transcendPoints;
         player.transcendResetCount = player.prestigeChalRepeatSave.transcendResetCount;
         player.transcendUpgrades = player.prestigeChalRepeatSave.transcendUpgrades;
+
+        // saving transcendUpgrades is a waste, i should've done this instead
+        player.transcendUpgrades = player.transcendUpgrades.filter((value) => { return !UNSAFE_UPGRADES.includes(value) });
+        player.transcendUpgrades.push(...UNSAFE_UPGRADES);
     }
 
     if (Decimal.gte(player.prestigeEssence, tmp.prestigeRepeatChal[i].goal)) {
