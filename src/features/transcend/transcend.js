@@ -75,7 +75,7 @@ const TU_ColorIDs = {
     gen: '00ff40',
     genXP: 'ff8000',
     genEnh: 'ffff00',
-    magnify: '404040'
+    anticap: '404040'
 }
 
 const TRANSCENSION_UPGRADES = [
@@ -598,7 +598,7 @@ const TRANSCENSION_UPGRADES = [
             },
             name: "Distant Stars",
             get desc() {
-                return `Unlock Hinderance 5, and quarks also boost dimension mults.`
+                return `Unlock Hinderance 5, and quarks also boost Red to Blue dimension mults.`
             },
             eff: null
         },
@@ -610,7 +610,7 @@ const TRANSCENSION_UPGRADES = [
             cost: D(1e33),
             prereq: ["hinderance2", "exp3"],
             get shown() {
-                return player.transcendUpgrades.includes('hinderance2')
+                return player.transcendUpgrades.includes('hinderance2');
             },
             unlock: {
                 get req() {
@@ -618,12 +618,12 @@ const TRANSCENSION_UPGRADES = [
                 },
                 restriction: true,
                 get desc() {
-                    return `Transcension's setback QoL is disabled, and you are stuck in a ${conditionMet(player.transcendInSpecialReq === "setback1")} (1, 1, 1, 1) setback, but unlock new features in setback and regain a (1, 1, 1, 1) setback loadout. Reach ${conditionMet(Decimal.gte(player.bestPointsInTranscend, 'e9000'), format(player.bestPointsInTranscend) + ' / 1.000e1,200')} points.`
+                    return `Transcension's setback QoL is disabled, and you are stuck in a ${conditionMet(player.transcendInSpecialReq === "setback1")} (1, 1, 1, 1) setback, but unlock new features in setback and regain a (1, 1, 1, 1) setback loadout. Reach ${conditionMet(Decimal.gte(player.bestPointsInTranscend, 'e9000'), format(player.bestPointsInTranscend) + ' / 1.000e1,200')} points.`;
                 }
             },
             name: "Quantum Shock",
             get desc() {
-                return `<span style="color: #ffff00"><b>[UNIMPLEMENTED]</b></span> Unlock a new feature in Setback, "Setback Priorities." where you can boost a single energy type but reduce the other types.`
+                return `<span style="color: #ffff00"><b>[UNIMPLEMENTED]</b></span> Unlock a new feature in Setback, "Setback Priorities." where you can boost a single energy type but reduce the other types.`;
             },
             eff: null
         },
@@ -671,7 +671,7 @@ const TRANSCENSION_UPGRADES = [
             },
             name: "Thanos's Payback",
             get desc() {
-                return `Increase Ascension Buyable #13's cap by 1.`
+                return `Increase Ascension Buyable #13's cap by 1.`;
             },
             eff: null
         },
@@ -694,7 +694,7 @@ const TRANSCENSION_UPGRADES = [
             },
             name: "Prestigeful Mayhem",
             get desc() {
-                return `Prestige Buyables scale slower. (10^(2^x) → 10^(1.9^x))`
+                return `Prestige Buyables scale slower. (10^(2^x) → 10^(1.9^x))`;
             },
             eff: null
         },
@@ -704,7 +704,7 @@ const TRANSCENSION_UPGRADES = [
             cost: D(1e60),
             prereq: ["hinderance2"],
             get shown() {
-                return player.transcendUpgrades.includes('hinderance2')
+                return player.transcendUpgrades.includes('hinderance2');
             },
             unlock: {
                 get req() {
@@ -717,7 +717,7 @@ const TRANSCENSION_UPGRADES = [
             },
             name: "Running Out of Names",
             get desc() {
-                return `Every OoM of generator levels and tier levels combined increase point gain by +^0.01. Currently: <b>^${format(this.eff, 3)}</b>`
+                return `Every OoM of generator levels and tier levels combined increase point gain by +^0.01. Currently: <b>^${format(this.eff, 3)}</b>`;
             },
             get eff() {
                 let boost = new Decimal(0);
@@ -738,7 +738,7 @@ const TRANSCENSION_UPGRADES = [
             cost: D(1e66),
             prereq: ["hinderance2"],
             get shown() {
-                return player.transcendUpgrades.includes('hinderance2')
+                return player.transcendUpgrades.includes('hinderance2');
             },
             unlock: {
                 get req() {
@@ -751,32 +751,32 @@ const TRANSCENSION_UPGRADES = [
             },
             name: "Full Brakes",
             get desc() {
-                return `Generator levels slow down buyables' cost scalings. (Lv 10 = /10 cost scaling)`
+                return `Generator levels slow down buyables' cost scalings. (Lv 10 = /10 cost scaling)`;
             },
             eff: null
         }
     ],
     [
         {
-            id: "magnify",
-            color: "magnify",
+            id: "anticap1",
+            color: "anticap",
             cost: D('e2000'),
             prereq: [],
             get shown() {
-                return player.transcendUpgrades.includes('hinderance2')
+                return player.transcendUpgrades.includes('hinderance2');
             },
             unlock: {
                 get req() {
-                    return true
+                    return true;
                 },
                 restriction: false,
                 get desc() {
-                    return ``
+                    return ``;
                 }
             },
-            name: "Magnifying Glass",
+            name: "Softcap Hell",
             get desc() {
-                return `<span style="color: #ffff00"><b>[UNIMPLEMENTED]</b></span> Unlock a new feature.`
+                return `Unlock a new feature, and base setback multipliers from loadouts are squared.`;
             },
             eff: null
         },
@@ -784,43 +784,38 @@ const TRANSCENSION_UPGRADES = [
 ]
 
 function initHTML_transcend() {
-    toHTMLvar('transcendTab')
-    toHTMLvar('transcendTabButton')
-    html['transcendTab'].setDisplay(false)
-    html['transcendTabButton'].setDisplay(false)
+    toHTMLvar('transcendTab');
+    toHTMLvar('transcendTabButton');
+    html['transcendTab'].setDisplay(false);
+    html['transcendTabButton'].setDisplay(false);
 
-    toHTMLvar('transcend')
-    toHTMLvar('transcendAmount')
-    toHTMLvar('transcendNext')
-    toHTMLvar('transcendPoints')
-    toHTMLvar('transcendPointEffect')
-    toHTMLvar('transcendPointEffectNext')
-    toHTMLvar('transcendResets')
-    toHTMLvar('transcendResetEffect')
+    toHTMLvar('transcend');
+    toHTMLvar('transcendAmount');
+    toHTMLvar('transcendNext');
+    toHTMLvar('transcendPoints');
+    toHTMLvar('transcendPointEffect');
+    toHTMLvar('transcendPointEffectNext');
+    toHTMLvar('transcendResets');
+    toHTMLvar('transcendResetEffect');
 
-    toHTMLvar('transUpgName')
-    toHTMLvar('transUpgDesc')
-    toHTMLvar('transUpgReq')
-    toHTMLvar('buyTransUpgrade')
-    toHTMLvar('transUpgName2')
-    toHTMLvar('transUpgCost')
-    toHTMLvar('enterTransRestriction')
+    toHTMLvar('transUpgName');
+    toHTMLvar('transUpgDesc');
+    toHTMLvar('transUpgReq');
+    toHTMLvar('buyTransUpgrade');
+    toHTMLvar('transUpgName2');
+    toHTMLvar('transUpgCost');
+    toHTMLvar('enterTransRestriction');
 
-    toHTMLvar('upgradeTransTabButton')
-    toHTMLvar('milestoneTransTabButton')
-    toHTMLvar('perkTransTabButton')
-    // does nothing as of now
-    html['perkTransTabButton'].setDisplay(false)
+    toHTMLvar('upgradeTransTabButton');
+    toHTMLvar('milestoneTransTabButton');
 
-    toHTMLvar('UpgradeTransTab')
-    toHTMLvar('MilestoneTransTab')
-    toHTMLvar('PerkTransTab')
+    toHTMLvar('UpgradeTransTab');
+    toHTMLvar('MilestoneTransTab');
 
-    toHTMLvar('transUpgradeList')
-    toHTMLvar('transMilestoneList')
-    toHTMLvar('transPerkList')
+    toHTMLvar('transUpgradeList');
+    toHTMLvar('transMilestoneList');
 
-    let txt = ``
+    let txt = ``;
     for (let i = TRANSCENSION_MILESTONES.length - 1; i >= 0; i--) {
         txt += `
             <div style="font-size: 12px; width: 600px; margin: 4px; padding: 4px;" class="flex-vertical whiteText font" id="transcendMilestone${i}">
@@ -828,39 +823,40 @@ function initHTML_transcend() {
                 <span id="transcendMilestone${i}desc" style="text-align: center">${TRANSCENSION_MILESTONES[i].desc}</span>
                 <span id="transcendMilestone${i}req" style="text-align: center"></span>
             </div>
-        `
+        `;
     }
-    html['transMilestoneList'].setHTML(txt)
+    html['transMilestoneList'].setHTML(txt);
 
     for (let i = TRANSCENSION_MILESTONES.length - 1; i >= 0; i--) {
-        toHTMLvar(`transcendMilestone${i}`)
-        toHTMLvar(`transcendMilestone${i}desc`)
-        toHTMLvar(`transcendMilestone${i}req`)
+        toHTMLvar(`transcendMilestone${i}`);
+        toHTMLvar(`transcendMilestone${i}desc`);
+        toHTMLvar(`transcendMilestone${i}req`);
     }
 
-    txt = ``
+    txt = ``;
     for (let i = 0; i < TRANSCENSION_UPGRADES.length; i++) {
-        let upg = ``
+        let upg = ``;
         for (let j = 0; j < TRANSCENSION_UPGRADES[i].length; j++) {
             upg += `
                 <button id="transcendUpg${i},${j}" onclick="tmp.transSelectedUpg[0] = ${i}; tmp.transSelectedUpg[1] = ${j}" class="whiteText font" style="margin: 4px; cursor: pointer; height: 50px; width: 100px;">
                     <span style="font-size: 12px;">${TRANSCENSION_UPGRADES[i][j].id}</span>
                 </button>
-            `
+            `;
         }
+
         txt += `
             <div id="transcendUpgCate${i}" class="flex-vertical" style="margin-top: -3px; margin-left: -3px; height: 100%; min-width: 300px; border: 3px dashed #8000ff80; justify-content: center;">
                 ${upg}
             </div>
-        `
+        `;
     }
-    html['transUpgradeList'].setHTML(txt)
+    html['transUpgradeList'].setHTML(txt);
 
     for (let i = 0; i < TRANSCENSION_UPGRADES.length; i++) {
         for (let j = 0; j < TRANSCENSION_UPGRADES[i].length; j++) {
-            toHTMLvar(`transcendUpg${i},${j}`)
+            toHTMLvar(`transcendUpg${i},${j}`);
         }
-        toHTMLvar(`transcendUpgCate${i}`)
+        toHTMLvar(`transcendUpgCate${i}`);
     }
 }
 
@@ -877,6 +873,9 @@ function updateGame_transcend() {
     tmp.factors.transcend = [];
     tmp.transcendAmount = Decimal.div(player.bestPointsInTranscend, tmp.transcendReq).pow(0.0005);
     addStatFactor('transcend', `Base`, `(${format(player.bestPointsInTranscend)}/${format('e2400')})<sup>0.0005</sup>`, null, tmp.transcendAmount);
+    if (player.anticap.active) {
+        tmp.transcendAmount = anticapSoftcap(tmp.transcendAmount, "transcendPoints", "transcend", false);
+    }
     if (player.cheats.dilate) {
         tmp.transcendAmount = cheatDilateBoost(tmp.transcendAmount);
         addStatFactor('transcend', `Cheats`, `...`, null, tmp.transcendAmount);
@@ -885,6 +884,9 @@ function updateGame_transcend() {
 
     tmp.transcendNext = tmp.transcendAmount;
     tmp.transcendNext = cheatDilateBoost(tmp.transcendNext, true);
+    if (player.anticap.active) {
+        tmp.transcendNext = anticapSoftcap(tmp.transcendNext, "transcendPoints", "transcend", true);
+    }
     tmp.transcendNext = tmp.transcendNext.add(1).root(0.0005).mul(tmp.transcendReq);
 
     tmp.transcendEffect = transcendPtsEff(player.transcendPointTotal);
@@ -899,7 +901,7 @@ function transcendPtsEff(points) {
 
 function updateHTML_transcend() {
     html['transcendTab'].setDisplay(tmp.tab === 4)
-    html['transcendTabButton'].setDisplay(Decimal.gt(player.transcendPointTotal, 0))
+    html['transcendTabButton'].setDisplay(Decimal.gt(player.transcendPointTotal, 0) || player.anticap.active)
 
     if (tmp.tab === 0 && tmp.mainTab === 0) {
         html['transcendAmount'].setTxt(`${format(tmp.transcendAmount)}`);
@@ -922,7 +924,7 @@ function updateHTML_transcend() {
 
         html['MilestoneTransTab'].setDisplay(tmp.transTab === 0);
         html['UpgradeTransTab'].setDisplay(tmp.transTab === 1);
-        html['PerkTransTab'].setDisplay(tmp.transTab === 2);
+        html['AnticapTransTab'].setDisplay(tmp.transTab === 2);
         if (tmp.transTab === 0) {
             for (let i = 0; i < TRANSCENSION_MILESTONES.length; i++) {
                 if (i > 0) {
@@ -1011,9 +1013,9 @@ function updateHTML_transcend() {
             for (let i = 0; i < TRANSCENSION_UPGRADES.length; i++) {
                 let displayed = false;
                 for (let j = 0; j < TRANSCENSION_UPGRADES[i].length; j++) {
-                    html[`transcendUpg${i},${j}`].setDisplay(TRANSCENSION_UPGRADES[i][j].shown);
-                    displayed ||= TRANSCENSION_UPGRADES[i][j].shown;
-                    if (TRANSCENSION_UPGRADES[i][j].shown) {
+                    html[`transcendUpg${i},${j}`].setDisplay(TRANSCENSION_UPGRADES[i][j].shown || player.transcendUpgrades.includes(TRANSCENSION_UPGRADES[i][j].id));
+                    displayed ||= TRANSCENSION_UPGRADES[i][j].shown || player.transcendUpgrades.includes(TRANSCENSION_UPGRADES[i][j].id);
+                    if (TRANSCENSION_UPGRADES[i][j].shown || player.transcendUpgrades.includes(TRANSCENSION_UPGRADES[i][j].id)) {
                         html[`transcendUpg${i},${j}`].changeStyle('background-color', `${colorChange(
                             TU_ColorIDs[TRANSCENSION_UPGRADES[i][j].color], 
                             0.25 * (player.transcendUpgrades.includes(TRANSCENSION_UPGRADES[i][j].id) ? 2 : 1),
@@ -1028,9 +1030,6 @@ function updateHTML_transcend() {
                 }
                 html[`transcendUpgCate${i}`].setDisplay(displayed);
             }
-        }
-        if (tmp.transTab === 2) {
-
         }
     }
 }

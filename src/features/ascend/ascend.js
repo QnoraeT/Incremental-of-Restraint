@@ -4,6 +4,48 @@ const ASCENSION_UPGRADES = [
         show: true,
         cap: D(Infinity),
         req: true,
+        /*
+        idea for A.B. #1:
+        "Increase point gain by +1×."
+        eff(bought) { return Decimal.add(bought, 1); }
+
+        base cost: x.pow(2).mul(10)
+        scaling: every +308.254 (~OoMs of JS_Infinity) OoMs bought multiplies effective OoMs for cost by 2x
+        in this way, it still scales like how i want to early on, but stays log with points/ascend gain so it doesn't inflate on high dilation
+
+        cost(bought) {
+            let cost = D(bought);
+            if (player.transcendInSpecialReq === "point4") {
+                cost = cost.mul(1000);
+            }
+
+            let scaleExp = D(2);
+            let scaleInterval = D(308.254);
+
+            cost = cost.add(1).log10().div(scaleInterval).pow_base(scaleExp).sub(1).mul(scaleInterval).div(Decimal.ln(scaleExp)).pow10();
+            cost = cost.pow(2).mul(10);
+            return cost;
+        }
+
+        target(resource) {
+            if (Decimal.lt(resource, 10)) {
+                return D(0);
+            }
+            let target = D(resource);
+
+            let scaleExp = D(2);
+            let scaleInterval = D(308.254);
+
+            target = target.div(10).root(2);
+            target = target.log10().mul(Decimal.ln(scaleExp)).div(scaleInterval).add(1).log(scaleExp).mul(scaleInterval).pow10().sub(1);
+
+            if (player.transcendInSpecialReq === "point4") {
+                target = target.div(1000);
+            }
+            return target;
+        }
+
+        */
         cost(bought) {
             let cost = D(bought);
             if (player.transcendInSpecialReq === "point4") {
@@ -251,7 +293,7 @@ const ASCENSION_UPGRADES = [
                 } 
             })
         }
-        return arr
+        return arr;
     })(),
     {
         show: true,
@@ -448,7 +490,11 @@ function updateGame_ascend() {
             player.ascendUpgrades[i] = D(0);
         }
 
-        tmp.ascendBuyables[i].cost = ASCENSION_UPGRADES[i].cost(Decimal.floor(player.ascendUpgrades[i]));
+        let cost = Decimal.floor(player.ascendUpgrades[i]);
+        if (player.anticap.active) {
+            cost = anticapScaling(cost, "ascendBuyables", false);
+        }
+        tmp.ascendBuyables[i].cost = ASCENSION_UPGRADES[i].cost(cost);
 
         let resource;
         if (tmp.hinderances[4].depth.gt(0) && i != 0) {
@@ -457,6 +503,10 @@ function updateGame_ascend() {
             resource = player.ascendGems;
         }
         tmp.ascendBuyables[i].target = ASCENSION_UPGRADES[i].target(resource);
+        if (player.anticap.active) {
+            tmp.ascendBuyables[i].target = anticapScaling(tmp.ascendBuyables[i].target, "ascendBuyables", true);
+        }
+
         tmp.ascendBuyables[i].canBuy = Decimal.gte(resource, tmp.ascendBuyables[i].cost);
 
         if (player.cheats.autoAscendUpgrades || player.ascendUpgAuto) {
@@ -495,6 +545,9 @@ function updateGame_ascend() {
     if (player.transcendInSpecialReq === "prest4" && Decimal.gte(player.ascendCount, 1)) {
         tmp.ascendPointGain = new Decimal(0);
         addStatFactor('ascend', `Advantageous 'Challenge'`, `...`, null, tmp.ascendPointGain);
+    }
+    if (player.anticap.active) {
+        tmp.ascendPointGain = anticapSoftcap(tmp.ascendPointGain, "ascendPoints", "ascend", false);
     }
     if (player.cheats.dilate) {
         tmp.ascendPointGain = cheatDilateBoost(tmp.ascendPointGain);

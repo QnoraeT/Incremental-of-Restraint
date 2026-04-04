@@ -179,8 +179,8 @@ function updateGame_main() {
             }
             tmp.buyables[i].tierEffect = (
                 player.transcendInSpecialReq !== 'exp2' 
-                    ? tmp.buyables[i].tierLevels 
-                    : tmp.buyables[i].tierLevels.neg())
+                    ? tmp.buyables[i].tierLevels.sub(1)
+                    : tmp.buyables[i].tierLevels.sub(1).neg())
                 .pow_base(tmp.tierEffectBase);
 
             tmp.buyables[i].costSpeed = D(1);
@@ -198,9 +198,11 @@ function updateGame_main() {
                 tmp.buyables[i].costSpeed = tmp.buyables[i].costSpeed.div(SETBACK_UPGRADES[1][11].eff);
             }
             tmp.buyables[i].costSpeed = tmp.buyables[i].costSpeed.div(tmp.buyables[i].tierEffect);
+
             if (player.transcendUpgrades.includes('enhancer1')) {
                 tmp.buyables[i].costSpeed = tmp.buyables[i].costSpeed.div(Decimal.max(tmp.buyables[i].genLevels, 1))
             }
+
             if (player.transcendInSpecialReq === "point4") {
                 tmp.buyables[i].costSpeed = tmp.buyables[i].costSpeed.mul(1000);
             }
@@ -226,6 +228,10 @@ function updateGame_main() {
 
             tmp.buyables[i].target = tmp.buyables[i].target.div(baseCost).max(1).mul(pow.sub(1)).add(1).log(pow).sub(1);
             tmp.buyables[i].target = tmp.buyables[i].target.div(tmp.buyables[i].costSpeed);
+            if (player.anticap.active) {
+                tmp.buyables[i].target = anticapScaling(tmp.buyables[i].target, "basicBuyables", true);
+            }
+
             let h = tmp.buyables[i].target.mul(tmp.bybBoostCost.sub(1)).div(tmp.bybBoostInterval).add(1).log(tmp.bybBoostCost).floor();
             tmp.buyables[i].target = tmp.buyables[i].target.add(tmp.bybBoostInterval.div(tmp.bybBoostCost.sub(1))).div(tmp.bybBoostCost.pow(h)).add(h.sub(tmp.bybBoostCost.sub(1).recip()).mul(tmp.bybBoostInterval));
             checkNaN(tmp.buyables[i].target, `NaN detected while attempting to calculate target of Buyable #${i + 1}`);
@@ -252,6 +258,10 @@ function updateGame_main() {
             let x = tmp.buyables[i].cost.div(tmp.bybBoostInterval).floor();
             let m = tmp.buyables[i].cost.sub(x.mul(tmp.bybBoostInterval));
             tmp.buyables[i].cost = m.mul(tmp.bybBoostCost.pow(x)).add(tmp.bybBoostCost.pow(x).sub(1).div(tmp.bybBoostCost.sub(1)).mul(tmp.bybBoostInterval));
+
+            if (player.anticap.active) {
+                tmp.buyables[i].cost = anticapScaling(tmp.buyables[i].cost, "basicBuyables", false);
+            }
             tmp.buyables[i].cost = tmp.buyables[i].cost.mul(tmp.buyables[i].costSpeed);
             tmp.buyables[i].cost = Decimal.add(tmp.buyables[i].cost, 1).pow_base(pow).sub(1).div(pow.sub(1)).mul(baseCost);
 
@@ -507,7 +517,7 @@ function updateGame_main() {
                         addStatFactor('generator', `Tier 1 Time Speed`, `×`, tmp.timeSpeedTiers[0], upgGen);
                     }
 
-                    tmp.generatorSpeed = upgGen
+                    tmp.generatorSpeed = upgGen;
                 }
             }
 
@@ -804,6 +814,11 @@ function updateGame_main() {
             tmp.pointGen = tmp.pointGen.add(1).log10().add(1).pow(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
             addStatFactor('points', `PRC2`, `(to exp.) ^`, tmp.prestigeRepeatChal[1].effects.exponent, tmp.pointGen);
         }
+
+        // i DO NOT want to scatter these lines of code to make them consistent with modifier rules, so i'm just going to place these here as log priority reductions
+        if (player.anticap.active) {
+            tmp.pointGen = anticapSoftcap(tmp.pointGen, "points", "points", false);
+        }
     }
     if (player.cheats.dilate) {
         tmp.pointGen = cheatDilateBoost(tmp.pointGen);
@@ -814,8 +829,8 @@ function updateGame_main() {
         addStatFactor('points', `Tier 1 Time Speed`, `×`, tmp.timeSpeedTiers[0], tmp.pointGen);
     }
 
-    let old = player.points
-    let oldpps = tmp.pointGen
+    let old = player.points;
+    let oldpps = tmp.pointGen;
     if (tmp.hinderances[1].depth.gt(0)) {
         player.points = Decimal.max(player.points, 0).add(1).log10().add(1).root(tmp.hinderances[1].effects.decay).sub(1).pow10().add(tmp.pointGen.mul(delta)).log10().add(1).pow(tmp.hinderances[1].effects.decay).sub(1).pow10().sub(1)
         tmp.pointGen = Decimal.sub(player.points, old).div(delta);
@@ -831,13 +846,16 @@ function updateGame_main() {
     if (player.currentHinderance === null) {
         player.bestPointsInTranscend = Decimal.max(player.points, player.bestPointsInTranscend);
     }
+    if (player.anticap.active) {
+        player.anticap.bestPoints = Decimal.max(player.points, player.anticap.bestPoints);
+    }
 }
 
 function updateHTML_main() {
     let txt = ``;
     html['mainTab'].setDisplay(tmp.tab === 0)
     if (tmp.tab === 0) {
-        html['mainMainTabButton'].setDisplay(hasSetbackUpgrade(`r10`) || player.transcendUpgrades.includes('point3'));
+        html['mainMainTabButton'].setDisplay(hasSetbackUpgrade(`r10`) || player.transcendUpgrades.includes('point3') || player.generatorFeatures.advanceUpgsChosen.includes(1));
         html['specialMainTabButton'].setDisplay(player.transcendUpgrades.includes('point3'));
         html['mainMain'].setDisplay(tmp.mainTab === 0);
         html['specialMain'].setDisplay(tmp.mainTab === 2);
@@ -1166,6 +1184,9 @@ function genPointFunc(xp, inv, genID) {
             eff = eff.div(0.9);
         }
 
+        if (player.anticap.active) {
+            eff = anticapScaling(eff, "genLevels", true);
+        }
         if (tmp.prestigeRepeatChal[3].depth.gt(0)) {
             eff = eff.root(tmp.prestigeRepeatChal[3].effects.scaling);
         }
@@ -1185,6 +1206,9 @@ function genPointFunc(xp, inv, genID) {
         }
         if (tmp.prestigeRepeatChal[3].depth.gt(0)) {
             eff = eff.pow(tmp.prestigeRepeatChal[3].effects.scaling);
+        }
+        if (player.anticap.active) {
+            eff = anticapScaling(eff, "genLevels", false);
         }
 
         if (genID === 0 && hasSetbackUpgrade('c1')) {
@@ -1230,6 +1254,9 @@ function tierPointFunc(xp, inv, genID) {
 
         eff = Decimal.add(eff, 1).mul(0.01).add(1).log(1.01);
 
+        if (player.anticap.active) {
+            eff = anticapScaling(eff, "tierLevels", true);
+        }
         if (tmp.prestigeRepeatChal[3].depth.gt(0)) {
             eff = eff.root(tmp.prestigeRepeatChal[3].effects.scaling);
         }
@@ -1237,9 +1264,12 @@ function tierPointFunc(xp, inv, genID) {
         if (tmp.prestigeRepeatChal[3].depth.gt(0)) {
             eff = eff.pow(tmp.prestigeRepeatChal[3].effects.scaling);
         }
+        if (player.anticap.active) {
+            eff = anticapScaling(eff, "tierLevels", false);
+        }
 
         eff = Decimal.pow(1.01, eff).sub(1).div(0.01).sub(1).max(0);
-        
+
         if (hasSetbackUpgrade('g14') && !tmp.inAnyChallenge) {
             eff = eff.div(tmp.buyables[genID].genLevels);
         }

@@ -8,10 +8,10 @@ const SETBACK_UPGRADES = [
                     id: `r${i+1}`,
                     cost: D(1e6 * 1000 ** i),
                     get desc() {
-                        return `Points are multiplied by +0.01% for each Buyable ${i+1} (${format(tmp.buyables[i].effective)}). Currently: ×${format(this.eff, 2)} (Caps at ×${format(1e3)})`;
+                        return `Points are multiplied by +0.02% for each Buyable ${i+1} (${format(tmp.buyables[i].effective)}). Currently: ×${format(this.eff, 2)}`;
                     },
                     get eff() {
-                        return tmp.buyables[i].effective.pow_base(1.0001).min(1e3);
+                        return tmp.buyables[i].effective.mul(0.0002).add(1);
                     }
                 },)
             }
@@ -109,7 +109,7 @@ const SETBACK_UPGRADES = [
                             }
                             total = total.add(player.buyables[j]);
                         }
-                        return `Total bought buyables excluding Buyable ${i+1} (${format(total)}) multiply point gain. Currently: ×${format(this.eff, 2)} (Caps at ×${format(1e3)})`;
+                        return `Total bought buyables excluding Buyable ${i+1} (${format(total)}) multiply point gain. Currently: ×${format(this.eff, 2)}`;
                     },
                     get eff() {
                         let total = D(0);
@@ -119,7 +119,7 @@ const SETBACK_UPGRADES = [
                             }
                             total = total.add(player.buyables[j]);
                         }
-                        return total.pow_base(1.00025).min(1e3);
+                        return total.mul(0.0005).add(1);
                     }
                 },)
             }
@@ -519,23 +519,19 @@ const SETBACK_PRIO = {
                 : Decimal.pow(3, x).pow_base(1e120);
         }
     ],
-    /* score calc:
-    add your own priority
-    subtract all other priorities
-
-    ex.
-    red: 4 (4-0-2-1) = +1
-    green: 0 (0-0-2-1) = -3
-    blue: 2 (2-0-2-1) = -1
-    cyan: 1 (1-0-2-1) = -2
-    */
     prioScoreEff(x) {
+        if (!player.transcendUpgrades.includes('setback1')) {
+            return D(1);
+        }
         return (Decimal.gte(x, 0)
             ? Decimal.add(x, 1)
             : Decimal.neg(x).add(1).recip()).max(0);
     },
     prioBoost(x) {
-        return Decimal.mul(x, 0.1).add(1)
+        if (!player.transcendUpgrades.includes('setback1')) {
+            return D(1);
+        }
+        return Decimal.mul(x, 0.1).add(1);
     }
 }
 
@@ -698,7 +694,7 @@ function initHTML_setback() {
         toHTMLvar(`setbackEff${capsColor}PrioNeutral`);
         toHTMLvar(`setbackEff${capsColor}PrioPlus1`);
         toHTMLvar(`setbackEff${capsColor}PrioMinus1`);
-        
+
         txt.dimDisp = ``;
         txt.dimDisp += `
             <div class="flex-horizontal">
@@ -970,13 +966,18 @@ function updateGame_setback() {
 
             // higher costSpeed = faster cost scaling
             tmp.quarkDim[i][j].costSpeed = D(1);
-            if (Decimal.gte(player.prestigeChallengeRepCompleted[2], 1)) {
-                tmp.quarkDim[i][j].costSpeed = tmp.quarkDim[i][j].costSpeed.div(tmp.prestigeRepeatChal[2].rewardEffs.costSpeed);
+            if (i === 2) {
+                if (Decimal.gte(player.prestigeChallengeRepCompleted[2], 1)) {
+                    tmp.quarkDim[i][j].costSpeed = tmp.quarkDim[i][j].costSpeed.div(tmp.prestigeRepeatChal[2].rewardEffs.costSpeed);
+                }
             }
 
             tmp.quarkDim[i][j].target = Decimal.max(player.setbackEnergy[i], 1).log10();
             tmp.quarkDim[i][j].target = tmp.quarkDim[i][j].target.sub(Decimal.pow(j + 1, 2)).div(j + 3);
             tmp.quarkDim[i][j].target = tmp.quarkDim[i][j].target.div(tmp.quarkDim[i][j].costSpeed);
+            if (player.anticap.active) {
+                tmp.quarkDim[i][j].target = anticapScaling(tmp.quarkDim[i][j].target, "setbackDims", true);
+            }
             tmp.quarkDim[i][j].target = tmp.quarkDim[i][j].target.max(-0.0001); // put this after all cost scaling changes, if i don't do this then eventually it will NaN
 
             let h = tmp.quarkDim[i][j].target.mul(tmp.quarkBoostCost.sub(1)).div(tmp.quarkBoostInterval).add(1).log(tmp.quarkBoostCost).floor();
@@ -1006,6 +1007,9 @@ function updateGame_setback() {
             let m = tmp.quarkDim[i][j].cost.sub(x.mul(tmp.quarkBoostInterval));
             tmp.quarkDim[i][j].cost = m.mul(tmp.quarkBoostCost.pow(x)).add(tmp.quarkBoostCost.pow(x).sub(1).div(tmp.quarkBoostCost.sub(1)).mul(tmp.quarkBoostInterval));
 
+            if (player.anticap.active) {
+                tmp.quarkDim[i][j].cost = anticapScaling(tmp.quarkDim[i][j].cost, "setbackDims", false);
+            }
             tmp.quarkDim[i][j].cost = tmp.quarkDim[i][j].cost.mul(tmp.quarkDim[i][j].costSpeed);
             tmp.quarkDim[i][j].cost = tmp.quarkDim[i][j].cost.mul(j + 3).add(Decimal.pow(j + 1, 2));
             tmp.quarkDim[i][j].cost = tmp.quarkDim[i][j].cost.pow10();
@@ -1018,7 +1022,7 @@ function updateGame_setback() {
             tmp.quarkDim[i][j].mult = D(1);
             tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(Decimal.pow(baseMultBoost, player.quarkDimsBought[i][j]));
             if (player.currentSetback !== null) {
-                tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(Decimal.pow(2, Decimal.mul(player.setbackLoadout[player.currentSetback][i], 0.75).add(tmp.trueQuarkTotal.mul(0.25))));
+                tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(getLoadoutBaseMult(player.setbackLoadout[player.currentSetback][i], tmp.trueQuarkTotal));
             }
             if (i === 0) {
                 if (hasSetbackUpgrade(`r6`)) {
@@ -1035,6 +1039,11 @@ function updateGame_setback() {
                     tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(SETBACK_UPGRADES[3][5].eff);
                 }
             }
+            if (i >= 0 && i <= 2) {
+                if (player.transcendUpgrades.includes('hinderance2')) {
+                    tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(tmp.quarkEffs[i]);
+                }
+            }
             if (i >= 0 && i <= 3) {
                 if (Decimal.gte(player.prestigeChallengeRepCompleted[4], 1)) {
                     tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(tmp.prestigeRepeatChal[4].rewardEffs.mult);
@@ -1047,6 +1056,9 @@ function updateGame_setback() {
                 if (tmp.prestigeRepeatChal[2].depth.lte(0) && Decimal.gte(player.prestigeChallengeRepCompleted[4], 1)) {
                     tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.pow(tmp.prestigeRepeatChal[4].rewardEffs.pow);
                 }
+            }
+            if (player.anticap.active) {
+                tmp.quarkDim[i][j].mult = anticapSoftcap(tmp.quarkDim[i][j].mult, "quarkDimMult", null, false);
             }
 
             checkNaN(tmp.quarkDim[i][j].mult, `NaN detected while attempting to calculate mul of ${tmp.quarkNamesC[i]} Quark Dimension #${j + 1}`);
@@ -1071,6 +1083,14 @@ function updateGame_setback() {
             }
         }
     }
+}
+
+function getLoadoutBaseMult(base, total) {
+    let loadoutMult = Decimal.mul(base, 0.75).add(total.mul(0.25)).pow_base(2);
+    if (player.transcendUpgrades.includes("anticap1")) {
+        loadoutMult = loadoutMult.pow(2);
+    }
+    return loadoutMult;
 }
 
 function updateHTML_setback() {
@@ -1286,10 +1306,11 @@ function displaySetbackCompleted() {
             }
             let color = tmp.quarkNames[j]
             let capsColor = tmp.quarkNamesC[j]
+
             txt2 += `
                     <span style="color: ${colorChange(tmp.quarkColors[j], 1.0, 0.5)}; font-size: 14px">${capsColor}: <b>${format(player.setbackLoadout[i][j])}</b></span>
                     <span style="color: ${colorChange(tmp.quarkColors[j], 1.0, 0.5)}; font-size: 12px">This will generate <b>${format(total.pow(2).mul(Decimal.pow(player.setbackLoadout[i][j], 2)))}</b> base ${color} quarks per second.</span>
-                    <span style="color: ${colorChange(tmp.quarkColors[j], 1.0, 0.5)}; font-size: 12px">${capsColor} multipliers are increased by <b>${format(Decimal.pow(2, Decimal.mul(player.setbackLoadout[i][j], 0.75).add(total.mul(0.25))), 2)}×</b>.</span>
+                    <span style="color: ${colorChange(tmp.quarkColors[j], 1.0, 0.5)}; font-size: 12px">${capsColor} multipliers are increased by <b>${format(getLoadoutBaseMult(player.setbackLoadout[i][j], total), 2)}×</b>.</span>
                 `
         }
         txt += `
@@ -1329,7 +1350,7 @@ function displaySetbackView() {
         txt2 += `
                 <span style="color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}; font-size: 14px">${capsColor}: <b>${format(player.setback[i])}</b></span>
                 <span style="color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}; font-size: 12px">This will generate <b>${format(total.pow(2).mul(Decimal.pow(player.setback[i], 2)))}</b> base ${color} quarks per second.</span>
-                <span style="color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}; font-size: 12px">${capsColor} multipliers are increased by <b>${format(Decimal.pow(2, Decimal.mul(player.setback[i], 0.75).add(total.mul(0.25))), 2)}×</b>.</span>
+                <span style="color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}; font-size: 12px">${capsColor} multipliers are increased by <b>${format(getLoadoutBaseMult(player.setback[i], total), 2)}×</b>.</span>
             `
     }
     txt += `
@@ -1380,7 +1401,7 @@ function buySBDim(i, j) {
     if (Decimal.gte(player.setbackEnergy[i], tmp.quarkDim[i][j].cost)) {
         player.setbackEnergy[i] = player.setbackEnergy[i].sub(tmp.quarkDim[i][j].cost);
         player.quarkDimsBought[i][j] = Decimal.add(player.quarkDimsBought[i][j], 1);
-        player.quarkDimsAutobought[i][j] = Decimal.add(player.quarkDimsBought[i][j], 1);
+        player.quarkDimsAutobought[i][j] = Decimal.add(player.quarkDimsAutobought[i][j], 1);
         updateGame_setback();
     }
 }
@@ -1389,7 +1410,7 @@ function buyMaxSBDim(i) {
     for (let j = player.quarkDimsBought[i].length - 1; j >= 0; j--) {
         if (Decimal.gte(player.setbackEnergy[i], tmp.quarkDim[i][j].cost)) {
             player.quarkDimsBought[i][j] = tmp.quarkDim[i][j].target.floor().add(1).max(player.quarkDimsBought[i][j]);
-            player.quarkDimsAutobought[i][j] = tmp.quarkDim[i][j].target.floor().add(1).max(player.quarkDimsBought[i][j]);
+            player.quarkDimsAutobought[i][j] = tmp.quarkDim[i][j].target.floor().add(1).max(player.quarkDimsAutobought[i][j]);
             player.setbackEnergy[i] = player.setbackEnergy[i].sub(tmp.quarkDim[i][j].cost); // this isn't updated but whatever, not like it actually matters too much
         }
     }

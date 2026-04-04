@@ -3,6 +3,15 @@ function rand(min, max) {
     return Math.random() * (max - min) + min;
 }
 
+// approximation
+function digamma(x) {
+    return Decimal.ln(x)
+        .sub(Decimal.div(0.5, x))
+        .sub(Decimal.div(1, Decimal.pow(x, 2).mul(12)))
+        .add(Decimal.div(1, Decimal.pow(x, 4).mul(120)));
+};
+
+
 function inverseFact(num) {
     if (Decimal.gte(num, "eee18")) {
         return Decimal.log10(num);
@@ -10,7 +19,34 @@ function inverseFact(num) {
     if (Decimal.gte(num, "eee4")) {
         return Decimal.log10(num).div(Decimal.log10(num).log10());
     }
-    return Decimal.div(num, 2.5066282746310002).ln().div(Math.E).lambertw().add(1).exp().sub(0.5);
+    // good enough approximation, also newton method bugs out for some reason at higher values
+    if (Decimal.gte(num, "ee6")) {
+        return Decimal.div(num, 2.5066282746310002).ln().div(Math.E).lambertw().add(1).exp().sub(0.5);
+    }
+
+    let f, f_prime;
+
+    let guess;
+    guess = Decimal.div(num, 2.5066282746310002).ln().div(Math.E).lambertw().add(1).exp().sub(0.5);
+
+    for (let i = 0; i < 100; i++) {
+        f = guess.factorial();
+        f_prime = guess.factorial().mul(digamma(guess.add(1)));
+
+        // tolerance is 1e-12
+        let converged = 
+            Decimal.gte(num, Number.MAX_SAFE_INTEGER)
+                ? guess.sub(f.sub(num).div(f_prime)).ln().sub(guess.ln()).abs().lt(1e-12)
+                : guess.sub(f.sub(num).div(f_prime)).sub(guess).abs().lt(1e-12);
+        if (converged) {
+            return guess;
+        }
+
+        // -num because we're trying to find a root of the function
+        guess = guess.sub(f.sub(num).div(f_prime));
+    }
+
+    throw new Error(`Number failed to converge. ${num}`);
 };
 
 function smoothPoly(num, poly, start, inverse) {

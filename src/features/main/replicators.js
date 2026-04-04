@@ -172,7 +172,7 @@ function updateGame_replicators() {
             
             let bought = player.replirankBuyables[i];
             tmp.repliRankBuyables[i].cost = REPLIRANK_DATA.buyables[i].cost(bought);
-            tmp.repliRankBuyables[i].eff = REPLIRANK_DATA.buyables[i].eff(bought);
+            tmp.repliRankBuyables[i].eff = REPLIRANK_DATA.buyables[i].eff(player.anticap.active ? D(0) : bought);
             tmp.repliRankBuyables[i].canBuy = Decimal.gte(resource, tmp.repliRankBuyables[i].cost);
         }
 
@@ -190,6 +190,9 @@ function updateGame_replicators() {
         if (player.cheats.dilate) {
             tmp.repliRankPointGen = cheatDilateBoost(tmp.repliRankPointGen);
         }
+        if (player.anticap.active) {
+            tmp.repliRankPointGen = D(0);
+        }
 
         player.replirankPoints = Decimal.add(player.replirankPoints, tmp.repliRankPointGen.mul(delta));
 
@@ -199,8 +202,11 @@ function updateGame_replicators() {
         if (player.cheats.dilate) {
             tmp.replicatorSpd = cheatDilateBoost(tmp.replicatorSpd);
         }
+        tmp.replicatorSpd = tmp.replicatorSpd.div(60).add(1); // adjusted to "per minute"
+        if (player.anticap.active) {
+            tmp.replicatorSpd = D(1);
+        }
 
-        tmp.replicatorSpd = tmp.replicatorSpd.div(60).add(1); // per minute
         tmp.replicatorStrength = D(100); // ! player.replicators CANNOT be placed in this without .log10() without runaway inflation
 
         tmp.replicatorTrueSpdDisp2 = player.replicators;
@@ -210,8 +216,12 @@ function updateGame_replicators() {
 
         player.bestReplicators = Decimal.max(player.bestReplicators, player.replicators);
 
-        tmp.replicatorEff = Decimal.max(player.replirank, 0).mul(0.05).add(1);
-        tmp.replicatorEff = Decimal.max(player.bestReplicators, 1).floor().log10().div(100).add(1).ln().mul(1000).pow10().pow(tmp.replicatorEff);
+        if (player.anticap.active) {
+            tmp.replicatorEff = D(1);
+        } else {
+            tmp.replicatorEff = Decimal.max(player.replirank, 0).mul(0.05).add(1);
+            tmp.replicatorEff = Decimal.max(player.bestReplicators, 1).floor().log10().div(100).add(1).ln().mul(1000).pow10().pow(tmp.replicatorEff);
+        }
     }
 }
 

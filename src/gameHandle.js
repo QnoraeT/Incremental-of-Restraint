@@ -276,7 +276,16 @@ function initTmp() {
         repliRankReq: D(Infinity),
         repliRankTarget: D(0),
         repliRankEffect: D(0),
-        repliRankBuyables: resetRepliRankBuyables()
+        repliRankBuyables: resetRepliRankBuyables(),
+        anticap: {
+            softcaps: [],
+            scalings: [],
+            powerGain: D(0),
+            powerNext: D(0),
+            energyGain: D(0),
+            energyExp: D(1),
+            energyEffs: [D(1), D(1), D(0), D(1), D(1)]
+        }
     };
 }
 
@@ -785,6 +794,7 @@ function initHTML() {
         toHTMLvar('offlineTimeProgressBar');
         toHTMLvar('offlineTimeProgressBarBase');
         toHTMLvar('offlineTimeDisplay');
+        toHTMLvar('offlineTimeView');
         toHTMLvar('popup-container');
 
         html['inGame'].setDisplay(false);
@@ -794,6 +804,7 @@ function initHTML() {
         toHTMLvar('pointsPerSecond');
         toHTMLvar('chalList');
 
+        initHTML_anticap();
         initHTML_replicators();
         initHTML_transcend();
         initHTML_genAdvances();
@@ -821,7 +832,7 @@ function initHTML() {
                 Check the console by right click → Inspect, or by pressing Ctrl + Shift + I (Windows).
             </span>
         `;
-        document.getElementById("inGame")
+
         console.error(e);
         throw new Error('stopped.');
     }
@@ -878,7 +889,7 @@ function doOfflineTime() {
     if (gameVars.offlineTimeFailed) {
         return;
     }
-    for (let i = 0; i < Math.min(tmp.offlineTime.tickRemaining, 100); i++) {
+    for (let i = 0; i < Math.min(tmp.offlineTime.tickRemaining, 32); i++) {
         try {
             gameLoop();
             tmp.offlineTime.tickRemaining -= 1;
@@ -895,6 +906,65 @@ function doOfflineTime() {
 
     html['offlineTimeDisplay'].setTxt(`Ticks: ${format(tmp.offlineTime.tickRemaining)} / ${format(tmp.offlineTime.tickMax)} (${formatTime(tmp.offlineTime.tickRemaining * tmp.offlineTime.tickLength)} / ${formatTime(tmp.offlineTime.tickMax * tmp.offlineTime.tickLength)})`);
     html['offlineTimeProgressBar'].changeStyle('width', `${100 * (1 - (tmp.offlineTime.tickRemaining / tmp.offlineTime.tickMax))}%`);
+
+    let txt = ``;
+
+    txt += `<b><span>You have ${format(player.points)} points. (+${format(tmp.pointGen)}/s)</span></b>`;
+    if (player.prestigeChallengeCompleted.includes(0)) {
+        txt += `<span style="color: #80ffa0">Your total generator levels are ${format(tmp.buyables.reduce((accumulator, current) => { return Decimal.add(accumulator, current.genLevels) }, tmp.buyables[0]))}.</span>`;
+        txt += `<span style="color: #80ffa0">Your best generator level is ${format(tmp.buyables.reduce((accumulator, current) => { return Decimal.max(accumulator, current.genLevels) }, tmp.buyables[0]))}.</span>`;
+    }
+    if (Decimal.gte(tmp.generatorFeatures.genEnhBuyables[2].eff, 1)) {
+        txt += `<span style="color: #ffa080">Your total tier levels are ${format(tmp.buyables.reduce((accumulator, current) => { return Decimal.add(accumulator, current.tierLevels) }, tmp.buyables[0]))}.</span>`;
+        txt += `<span style="color: #ffa080">Your best tier level is ${format(tmp.buyables.reduce((accumulator, current) => { return Decimal.max(accumulator, current.tierLevels) }, tmp.buyables[0]))}.</span>`;
+    }
+
+    if (hasSetbackUpgrade('r10')) {
+        txt += `<br>`;
+        txt += `<b><span style="color: #ffc080">You have ${format(player.generatorFeatures.xp)} generator experience. (+${format(tmp.generatorFeatures.gain)}/s)</span></b>`;
+    }
+    if (Decimal.gt(player.generatorFeatures.totalEnh, 0)) {
+        txt += `<span style="color: #ffff80">You have ${format(player.generatorFeatures.enhancer)} generator enhancers. (+${format(tmp.generatorFeatures.enhancerGain)})</span>`;
+    }
+    if (Decimal.gt(player.generatorFeatures.enhancerBuyables[5], 0)) {
+        txt += `<span style="color: #80ffff">You have ${format(player.generatorFeatures.advance)} generator advances. (+${format(tmp.generatorFeatures.advanceGain)})</span>`;
+    }
+
+    if (player.generatorFeatures.advanceUpgsChosen.includes(1)) {
+        txt += `<br>`;
+        txt += `<b><span style="color: #ff80c0">You have ${format(player.replicators)} replicators. (&times;${format(tmp.replicatorTrueSpdDisp2, 3)}/s)</span></b>`;
+        txt += `<span style="color: #ff80c0">You have ${format(player.replirankPoints)} rank points. (+${format(tmp.repliRankPointGen)}/s)</span>`;
+    }
+
+    txt += `<br>`;
+    txt += `<b><span style="color: #80c0ff">You have ${format(player.prestige)} prestige points. (+${format(tmp.prestigePointGain)})</span></b>`;
+    if (hasSetbackUpgrade('b1')) {
+        txt += `<span style="color: #80c0ff">You have ${format(player.prestigeEssence)} prestige essence. (+${format(tmp.peGain)})</span>`;
+    }
+    if (hasSetbackUpgrade(`b6`)) {
+        txt += `<span style="color: #80a0ff">You have ${format(player.prestigeFluid)} prestige fluid. (+${format(tmp.pfGain)})</span>`;
+    }
+    
+    if (Decimal.gte(player.bestPointsInAscend, 1e21) || Decimal.gt(player.ascend, 0)) {
+        txt += `<br>`;
+        txt += `<b><span style="color: #80ff80">You have ${format(player.ascend)} ascension points. (+${format(tmp.ascendPointGain)})</span></b>`;
+        txt += `<span style="color: #80ff80">You have ${format(player.ascendGems)} ascension gems. (+${format(tmp.ascendPointEffect)}/s)</span>`;
+    }
+
+    if (player.currentSetback != null) {
+        for (let i = 0; i < SETBACK_CALC.shown.length; i++) {
+            if (SETBACK_CALC.shown[i]()) {
+                txt += `<span style="color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}">You have ${format(player.setbackEnergy[i])} ${tmp.quarkNames[i]} energy.</span>`;
+            }
+        }
+    }
+
+    if (Decimal.gt(player.transcendPointTotal, 0)) {
+        txt += `<br>`;
+        txt += `<b><span style="color: #a080ff">You have ${format(player.transcendPoints)} transcension points. (+${format(tmp.transcendAmount)})</span></b>`;
+    }
+
+    html['offlineTimeView'].setHTML(txt);
 
     if (tmp.offlineTime.tickRemaining > 0) {
         window.setTimeout(doOfflineTime, 0);
@@ -918,9 +988,9 @@ function gameLoop() {
         if (delta >= 10) {
             tmp.offlineTime.active = true;
             tmp.offlineTime.tickMax = Math.floor(delta / tmp.offlineTime.tickLength);
-            if (tmp.offlineTime.tickMax > 1000) {
-                tmp.offlineTime.tickLength = tmp.offlineTime.tickLength * (tmp.offlineTime.tickMax / 1000);
-                tmp.offlineTime.tickMax = tmp.offlineTime.tickMax / (tmp.offlineTime.tickMax / 1000);
+            if (tmp.offlineTime.tickMax > 1024) {
+                tmp.offlineTime.tickLength = tmp.offlineTime.tickLength * (tmp.offlineTime.tickMax / 1024);
+                tmp.offlineTime.tickMax = tmp.offlineTime.tickMax / (tmp.offlineTime.tickMax / 1024);
             }
             tmp.offlineTime.tickRemaining = tmp.offlineTime.tickMax;
             tmp.offlineTime.returnTime = sessionTime + (tmp.offlineTime.tickLength * 10);
@@ -943,6 +1013,7 @@ function gameLoop() {
             || player.prestigeChallengeRepeat !== null;
 
         // put challenge effects at the top because before they were closer to the middle and upon reloading you could exploit them
+        updateGame_anticap();
         updateGame_prestigeRepChal();
         updateGame_hinderance();
         updateGame_setback();
@@ -986,6 +1057,7 @@ function updateHTML() {
     }
 
     let txt = ``;
+    updateHTML_anticap();
     updateHTML_replicators();
     updateHTML_transcend();
     updateHTML_genAdvances();
@@ -1045,6 +1117,9 @@ function updateHTML() {
     }
     if (player.prestigeChallengeRepeat !== null) {
         enteredArr.push(`<span style="color: #0080ff"><b>PRC${player.prestigeChallengeRepeat + 1}</b>: ${PRESTIGE_CHALLENGES_REPEAT[player.prestigeChallengeRepeat].name}</span>`);
+    }
+    if (player.anticap.active) {
+        enteredArr.push(`<span style="color: #c0c0c0"><b>Anticap</b>: Softcap Hell</span>`);
     }
     if (enteredArr.length === 0) {
         txt = `You currently have no obstructions.`;

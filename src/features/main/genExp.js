@@ -152,7 +152,11 @@ function updateGame_genXP() {
     let resource;
     if (hasSetbackUpgrade(`r10`)) {
         for (let i = 0; i < GEN_XP_BUYABLES.length; i++) {
-            tmp.generatorFeatures.genXPBuyables[i].cost = GEN_XP_BUYABLES[i].cost(Decimal.floor(player.generatorFeatures.buyable[i]));
+            let cost = Decimal.floor(player.generatorFeatures.buyable[i])
+            if (player.anticap.active) {
+                cost = anticapScaling(cost, "genXPBuyables", false);
+            }
+            tmp.generatorFeatures.genXPBuyables[i].cost = GEN_XP_BUYABLES[i].cost(cost);
 
             if (tmp.hinderances[4].depth.gt(0) && i != 0) {
                 resource = player.generatorFeatures.buyable[i - 1];
@@ -160,6 +164,9 @@ function updateGame_genXP() {
                 resource = player.generatorFeatures.xp;
             }
             tmp.generatorFeatures.genXPBuyables[i].target = GEN_XP_BUYABLES[i].target(resource);
+            if (player.anticap.active) {
+                tmp.generatorFeatures.genXPBuyables[i].target = anticapScaling(tmp.generatorFeatures.genXPBuyables[i].target, "genXPBuyables", true);
+            }
 
             if (player.genXPAuto && GEN_XP_BUYABLES[i].show) {
                 let bought = D(player.generatorFeatures.buyable[i]);
@@ -228,6 +235,10 @@ function updateGame_genXP() {
         if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
             tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.add(1).log10().add(1).pow(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
             addStatFactor('genXP', `PRC2`, `(to exp.) ^`, tmp.prestigeRepeatChal[1].effects.exponent, tmp.generatorFeatures.gain);
+        }
+
+        if (player.anticap.active) {
+            tmp.generatorFeatures.gain = anticapSoftcap(tmp.generatorFeatures.gain, "genXP", "genXP", false);
         }
 
         if (player.cheats.dilate) {

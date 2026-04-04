@@ -1,4 +1,4 @@
-"use strict;"
+"use strict";
 
 const PRESTIGE_CHALLENGES_REPEAT = [
     {
@@ -252,6 +252,12 @@ function updateHTML_prestigeRepChal() {
 }
 
 function togglePrestigeChallengeRepeat(i) {
+    if (!hasTranscendMilestone(14)) {
+        if (!confirm("Are you sure you want to enter this challenge? You are entering a challenge which will do a TRANSCENSION reset! You have not gotten the 15th transcension milestone yet, which entering may lead to extensive loss of progress!")) {
+            return;
+        }
+    }
+
     if (!(player.prestigeChallengeRepeat === i || player.prestigeChallengeRepeat === null)) {
         return;
     }

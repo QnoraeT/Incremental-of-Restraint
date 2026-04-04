@@ -1,4 +1,5 @@
 "use strict";
+
 const PRESTIGE_UPGRADES = [
     {
         cost: D(1),
@@ -366,7 +367,7 @@ function updateGame_prestige() {
             addStatFactor('prestigeEssence', `H1 PB`, `^`, HINDERANCES[0].eff, tmp.peGain);
         }
     }
-    
+
     // nerfs
     if (tmp.hinderances[4].depth.gt(0)) {
         tmp.peGain = tmp.peGain.pow(tmp.hinderances[4].effects.resource);
@@ -375,6 +376,10 @@ function updateGame_prestige() {
     if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
         tmp.peGain = tmp.peGain.add(1).log10().add(1).pow(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
         addStatFactor('prestigeEssence', `PRC2`, `(to exp.) ^`, tmp.prestigeRepeatChal[1].effects.exponent, tmp.peGain);
+    }
+
+    if (player.anticap.active) {
+        tmp.peGain = anticapSoftcap(tmp.peGain, "prestigeEssence", "prestigeEssence", false);
     }
 
     if (!hasSetbackUpgrade('b7')) {
@@ -465,7 +470,7 @@ function updateGame_prestige() {
             if (tmp.hinderances[4].depth.gt(0) && i != 0) {
                 continue;
             } 
-            tmp.prestigePointsUsed = tmp.prestigePointsUsed.add(PRESTIGE_UPGRADES[i].cost.mul(prestigeUpgradeCostScaling(Decimal.add(player.prestigeUpgrades[i], 1), false)));
+            tmp.prestigePointsUsed = tmp.prestigePointsUsed.add(PRESTIGE_UPGRADES[i].cost.mul(prestigeUpgradeCostScaling(Decimal.sub(player.prestigeUpgrades[i], 1), false)));
         }
     }
     tmp.totalPrestigeUpg = player.prestigeUpgrades.reduce((accu, bought) => Decimal.add(accu, bought));
@@ -493,7 +498,7 @@ function updateGame_prestige() {
         tmp.prestigePointGain = tmp.prestigePointGain.div(tmp.transEffs[2][1]);
         addStatFactor('prestige', `Trans. Upg. "Tier Combine"`, `/`, tmp.transEffs[2][1], tmp.prestigePointGain);
     }
-    if (Decimal.gt(player.generatorFeatures.totalAdv, 0)) {
+    if (Decimal.neq(tmp.generatorFeatures.advanceEff, 0)) {
         tmp.prestigePointGain = tmp.prestigePointGain.mul(tmp.generatorFeatures.advanceEff);
         addStatFactor('prestige', `Generator Advance Effect"`, `×`, tmp.generatorFeatures.advanceEff, tmp.prestigePointGain);
     }
@@ -529,8 +534,14 @@ function updateGame_prestige() {
         addStatFactor('prestige', `PRC4`, `...`, null, tmp.prestigePointGain);
     }
 
+    if (player.anticap.active) {
+        tmp.prestigePointGain = anticapSoftcap(tmp.prestigePointGain, "prestigePts", "prestige", false);
+    }
+
     tmp.prestigePointGain = cheatDilateBoost(tmp.prestigePointGain);
-    addStatFactor('prestige', `Cheats`, `...`, null, tmp.prestigePointGain);
+    if (player.cheats.dilate) {
+        addStatFactor('prestige', `Cheats`, `...`, null, tmp.prestigePointGain);
+    }
 
     addStatFactor('prestige', `Current P. Points`, `-`, player.prestige, tmp.prestigePointGain.sub(player.prestige).max(0));
     tmp.prestigePointGain = tmp.prestigePointGain.sub(player.prestige).floor().max(0);
@@ -540,6 +551,10 @@ function updateGame_prestige() {
         tmp.prestigePointNext = new Decimal(Infinity);
     }
     tmp.prestigePointNext = cheatDilateBoost(tmp.prestigePointNext, true);
+
+    if (player.anticap.active) {
+        tmp.prestigePointNext = anticapSoftcap(tmp.prestigePointNext, "prestigePts", "prestige", true);
+    }
 
     if (tmp.prestigeRepeatChal[0].depth.gt(0)) {
         tmp.prestigePointNext = tmp.prestigePointNext.layeradd(tmp.prestigeRepeatChal[0].effects.log.toNumber(), 2, true);

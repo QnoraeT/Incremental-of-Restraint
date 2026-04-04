@@ -1,9 +1,12 @@
 "use strict";
+
 const PRESTIGE_FLUID = {
     gain(essence) {
+        if (!hasSetbackUpgrade(`b6`)) { return D(0); }
         return Decimal.max(essence, 1).log10().div(10).sub(2).max(0);
     },
     next(fluid) {
+        if (!hasSetbackUpgrade(`b6`)) { return D(Infinity); }
         return Decimal.add(fluid, 1).add(2).mul(10).pow10();
     },
     effect(fluid) {

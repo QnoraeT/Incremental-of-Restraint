@@ -56,7 +56,9 @@ function updateGame_genAdvances() {
         tmp.generatorFeatures.advanceNext = tmp.generatorFeatures.advanceNext.factorial().pow_base(Number.MAX_VALUE);
     }
 
-    tmp.generatorFeatures.advanceEff = Decimal.max(player.generatorFeatures.totalAdv, 0).mul(Decimal.max(player.generatorFeatures.enhancerBuyables[5], 1)).add(1);
+    tmp.generatorFeatures.advanceEff = player.transcendUpgrades.includes('exp3')
+        ? Decimal.max(player.generatorFeatures.totalAdv, 0).mul(Decimal.max(player.generatorFeatures.enhancerBuyables[5], 1)).add(1)
+        : D(1);
 }
 
 function updateHTML_genAdvances() {

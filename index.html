@@ -12,6 +12,7 @@
 
         <script type="module" src="src/utils/i18n.js"></script>
 
+        <script src="src/features/transcend/anticap.js"></script>
         <script src="src/features/transcend/transcend.js"></script>
         <script src="src/features/main/replicators.js"></script>
         <script src="src/features/main/genAdvances.js"></script>
@@ -41,6 +42,7 @@
                         <div id="offlineTimeProgressBarBase" style="background-color: #ff0000; position: absolute; top: 0; left: 0; height: 100%; width: 100%;"></div>
                         <div id="offlineTimeProgressBar" style="background-color: #00ff00;position: absolute; top: 0; left: 0; height: 100%"></div>
                     </div>
+                    <div class="flex-vertical whiteText font" style="font-size: 12px;" id="offlineTimeView"></div>
                 </div>
             </div>
             <div id="error">
@@ -487,8 +489,8 @@
                             <button onclick="tmp.transTab = 1" id="upgradeTransTabButton" class="whiteText font" style="background-color: #40008080; border: 3px solid #8000ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                                 Upgrades
                             </button>
-                            <button onclick="tmp.transTab = 2" id="perkTransTabButton" class="whiteText font" style="background-color: #40008080; border: 3px solid #8000ff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
-                                Perks
+                            <button onclick="tmp.transTab = 2" id="anticapTransTabButton" class="whiteText font" style="background-color: #20202080; border: 3px solid #404040; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                                Anticap
                             </button>
                         </div>
                         <div id="UpgradeTransTab">
@@ -514,9 +516,32 @@
                                 <div class="flex-vertical" id="transMilestoneList"></div>
                             </div>
                         </div>
-                        <div id="PerkTransTab">
+                        <div id="AnticapTransTab">
                             <div class="flex-vertical">
-                                <div class="flex-vertical" id="transPerkList"></div>
+                                <div class="flex-horizontal">
+                                    <div style="margin: 4px" class="flex-vertical">
+                                        <span class="font" style="font-size: 24px; color: #c0c0c0" id="anticapPower"></span><span class="font" style="font-size: 12px; color: #c0c0c0">anticap power</span>
+                                        <span class="font" style="font-size: 12px; color: #c0c0c0" id="anticapPowerGain"></span>
+                                        <span class="font" style="font-size: 12px; color: #c0c0c0" id="anticapPowerEffect"></span>
+                                    </div>
+                                    <div style="margin: 4px" class="flex-vertical">
+                                        <span class="font" style="font-size: 24px; color: #c0c0c0" id="anticapEnergy"></span><span class="font" style="font-size: 12px; color: #c0c0c0">anticap energy<sup id="anticapEnergyExp"></sup></span>
+                                        <span class="font" style="font-size: 12px; color: #c0c0c0" id="anticapEnergyEffect1"></span>
+                                        <span class="font" style="font-size: 12px; color: #c0c0c0" id="anticapEnergyEffect2"></span>
+                                        <span class="font" style="font-size: 12px; color: #c0c0c0" id="anticapEnergyEffect3"></span>
+                                        <span class="font" style="font-size: 12px; color: #c0c0c0" id="anticapEnergyEffect4"></span>
+                                        <span class="font" style="font-size: 12px; color: #c0c0c0" id="anticapEnergyEffect5"></span>
+                                    </div>
+                                </div>
+                                <button id="anticapToggle" onclick="toggleAnticap()" class="whiteText font" style="cursor: pointer; font-size: 12px; text-align: center; background-color: #20202080; border: 3px solid #404040; padding: 6px; margin-top: 16px;">
+                                    <b style="font-size: 15px;">SOFTCAP HELL</b><br>
+                                    Enter Softcap Hell.<br>
+                                    <br>
+                                    Upon entering, you will lose all transcension upgrades before anticap1 and your total transcension points are reset to 1. (These will be restored upon leaving.)<br>
+                                    Replicators will also be paused and disabled.<br>
+                                    Some prior resources will have softcaps/scalings applied to them. You can see some of these in Statistics -> Factors.<br><br>
+                                    You will gain anticap power depending on how far you get in Softcap Hell.
+                                </button>
                             </div>
                         </div>
                     </div>

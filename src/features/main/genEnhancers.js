@@ -212,7 +212,11 @@ function initHTML_genEnhancers() {
 function updateGame_genEnhancers() {
     let resource;
     for (let i = 0; i < GEN_ENH_BUYABLES.length; i++) {
-        tmp.generatorFeatures.genEnhBuyables[i].cost = GEN_ENH_BUYABLES[i].cost(Decimal.floor(player.generatorFeatures.enhancerBuyables[i]));
+        let cost = Decimal.floor(player.generatorFeatures.enhancerBuyables[i]);
+        if (player.anticap.active) {
+            cost = anticapScaling(cost, "genEnhBuyables", false);
+        }
+        tmp.generatorFeatures.genEnhBuyables[i].cost = GEN_ENH_BUYABLES[i].cost(cost);
 
         if (tmp.hinderances[4].depth.gt(0) && i != 0) {
             resource = player.generatorFeatures.enhancerBuyables[i - 1];
@@ -220,6 +224,9 @@ function updateGame_genEnhancers() {
             resource = player.generatorFeatures.enhancer;
         }
         tmp.generatorFeatures.genEnhBuyables[i].target = GEN_ENH_BUYABLES[i].target(resource);
+        if (player.anticap.active) {
+            tmp.generatorFeatures.genEnhBuyables[i].target = anticapScaling(tmp.generatorFeatures.genEnhBuyables[i].target, "genEnhBuyables", true);
+        }
 
         if (player.genEnhAuto && GEN_ENH_BUYABLES[i].show) {
             let bought = D(player.generatorFeatures.enhancerBuyables[i]);
@@ -270,6 +277,10 @@ function updateGame_genEnhancers() {
         addStatFactor('genEnh', `PRC2`, `(to exp.) ^`, tmp.prestigeRepeatChal[1].effects.exponent, tmp.generatorFeatures.enhancerGain);
     }
 
+    if (player.anticap.active) {
+        tmp.generatorFeatures.enhancerGain = anticapSoftcap(tmp.generatorFeatures.enhancerGain, "genEnh", "genEnh", false);
+    }
+
     if (player.transcendInSpecialReq === "prest4" && Decimal.gte(player.generatorFeatures.enhanceCount, 1)) {
         tmp.generatorFeatures.enhancerGain = new Decimal(0);
         addStatFactor('genEnh', `Advantageous 'Challenge'`, `...`, null, tmp.generatorFeatures.enhancerGain);
@@ -282,6 +293,9 @@ function updateGame_genEnhancers() {
     } else {
         tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerGain.add(1);
         tmp.generatorFeatures.enhancerNext = cheatDilateBoost(tmp.generatorFeatures.enhancerNext, true);
+        if (player.anticap.active) {
+            tmp.generatorFeatures.enhancerNext = anticapSoftcap(tmp.generatorFeatures.enhancerNext, "genEnh", "genEnh", true);
+        }
         if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
             tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.add(1).log10().add(1).root(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
         }
