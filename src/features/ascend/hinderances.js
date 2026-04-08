@@ -6,7 +6,7 @@ const HINDERANCES = [
         desc: "You gain a certain amount of darts upon prestiging based on your points and your time since a prestige. Your dart amount must be as close to an interval of 1,000 as possible. Buyables bought must be a perfect square in order for their effects to count.",
         start: D(1e160),
         get reward() {
-            return `Prestige Essence gain is raised ^${format(this.eff, 3)} and every OoM of Prestige Essence increases Generator Speed by ^1.02.`;
+            return `Prestige Essence gain is raised ^${format(this.eff, 3)} and every OoM of Prestige Essence increases Generator Speed by +^0.02.`;
         },
         get eff() {
             if (Decimal.lt(player.hinderanceScore[0], 1e160)) {

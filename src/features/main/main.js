@@ -7,12 +7,26 @@ const MAIN_SPECIALS = {
         },
         get cost() {
             let cost = D(player.specialBuyables[0]);
-            cost = cost.div(10).add(3).pow_base(2).pow10();
+            if (player.transcendUpgrades.includes('point6')) {
+                cost = smoothPoly(smoothExp(smoothPoly(cost, 10, 30, true), 1.01, false), 10, 30, false).pow(1.5).pow_base(2).mul(1e8);
+            } else {
+                cost = cost.div(10).add(3).pow_base(2).pow10();
+            }
+            
             return cost;
         },
         get target() {
             let target = Decimal.max(player.points, 10);
-            target = target.log10().log2().sub(3).mul(10);
+            if (target.lt(1e8)) {
+                return D(0);
+            }
+            
+            if (player.transcendUpgrades.includes('point6')) {
+                target = smoothPoly(smoothExp(smoothPoly(target.div(1e8).log2().root(1.5), 10, 30, true), 1.01, true), 10, 30, false);
+            } else {
+                target = target.log10().log2().sub(3).mul(10);
+            }
+            
             return target;
         },
         get effect() {
@@ -328,7 +342,7 @@ function updateGame_main() {
                     if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
                         upgGen = upgGen.add(1).log10().add(1).pow(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
                         if (i === 0) {
-                            addStatFactor('tier', `PRC2`, `(to exp.) ^`, tmp.prestigeRepeatChal[1].effects.exponent, upgGen);
+                            addStatFactor('tier', `PRC2`, `▲`, tmp.prestigeRepeatChal[1].effects.exponent, upgGen);
                         }
                     }
 
@@ -435,9 +449,9 @@ function updateGame_main() {
                             }
                         }
                         if (Decimal.gte(player.hinderanceScore[0], HINDERANCES[0].start)) {
-                            upgGen = upgGen.pow(Decimal.pow(1.02, Decimal.max(player.prestigeEssence, 1).log10()));
+                            upgGen = upgGen.pow(Decimal.max(player.prestigeEssence, 1).log10().mul(0.02).add(1));
                             if (i === 0) {
-                                addStatFactor('generator', `H1 Reward`, `^1.02<sup>log<sub>10</sub>(${format(player.prestigeEssence)})</sup> → ^`, Decimal.pow(1.02, Decimal.max(player.prestigeEssence, 1).log10()), upgGen);
+                                addStatFactor('generator', `H1 Reward`, `^1+0.02log<sub>10</sub>(${format(player.prestigeEssence)})</sup> → ^`, Decimal.max(player.prestigeEssence, 1).log10().mul(0.02).add(1), upgGen);
                             }
                         }
                         if (player.transcendUpgrades.includes('gen2')) {
@@ -456,7 +470,7 @@ function updateGame_main() {
                         if (hasPrestigeUpgrade(16)) {
                             upgGen = upgGen.max(1).log10().add(1).pow(tmp.prestigeUpgEffs[16]).sub(1).pow10();
                             if (i === 0) {
-                                addStatFactor('generator', `Prestige Upgrade 17`, `(to exp.) ^`, tmp.prestigeUpgEffs[16], upgGen);
+                                addStatFactor('generator', `Prestige Upgrade 17`, `▲`, tmp.prestigeUpgEffs[16], upgGen);
                             }
                         }
                     }
@@ -501,7 +515,7 @@ function updateGame_main() {
                     if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
                         upgGen = upgGen.add(1).log10().add(1).pow(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
                         if (i === 0) {
-                            addStatFactor('generator', `PRC2`, `(to exp.) ^`, tmp.prestigeRepeatChal[1].effects.exponent, upgGen);
+                            addStatFactor('generator', `PRC2`, `▲`, tmp.prestigeRepeatChal[1].effects.exponent, upgGen);
                         }
                     }
 
@@ -541,7 +555,11 @@ function updateGame_main() {
             }
 
             if (player.transcendUpgrades.includes('point4')) {
-                tmp.buyables[i].genEffect = tmp.buyables[i].genEffect.max(0).add(1).log10().add(1).pow(1.4).sub(1).pow10().sub(1);
+                tmp.buyables[i].genEffect = tmp.buyables[i].genEffect.max(0).add(1).log10().add(1).pow(1.25).sub(1).pow10().sub(1);
+            }
+
+            if (!tmp.inAnyChallenge) {
+                tmp.buyables[i].genEffect = tmp.buyables[i].genEffect.max(0).add(1).log10().add(1).pow(tmp.anticap.buyables[4].eff.add(1)).sub(1).pow10().sub(1);
             }
 
             tmp.buyables[i].effectBase = [D(1.0), D(0.5), D(0.25), D(0.1), D(0.05), D(0.01)][i];
@@ -585,6 +603,14 @@ function updateGame_main() {
             tmp.buyables[i].effect = tmp.buyables[i].effect.mul(Decimal.div(player.buyables[i], tmp.bybBoostInterval).floor().pow_base(tmp.bybBoostEffect));
             if (Decimal.lt(i, player.ascendUpgrades[2])) {
                 tmp.buyables[i].effect = tmp.buyables[i].effect.pow(tmp.ascendBuyables[2].eff);
+            }
+            if (player.anticap.upgrades.includes(8)) {
+                if (i >= 0 && i <= 3) {
+                    tmp.buyables[i].effect = tmp.buyables[i].effect.pow(tmp.ascendBuyables[i + 4].eff);
+                }
+                if (i >= 4 && i <= 5) {
+                    tmp.buyables[i].effect = tmp.buyables[i].effect.pow(tmp.ascendBuyables[i + 10].eff);
+                }
             }
 
             if (tmp.prestigeChal[12].depth.gt(0)) {
@@ -723,6 +749,10 @@ function updateGame_main() {
             tmp.pointGen = tmp.pointGen.mul(tmp.replicatorEff)
             addStatFactor('points', `Replicator Effect`, `×`, tmp.replicatorEff, tmp.pointGen);
         }
+        if (player.anticap.active && tmp.anticap.buyables[1].eff.neq(1)) {
+            tmp.pointGen = tmp.pointGen.mul(tmp.anticap.buyables[1].eff)
+            addStatFactor('points', `Anticap Buyable #2`, `×`, tmp.anticap.buyables[1].eff, tmp.pointGen);
+        }
 
         // exp boosts
         if (tmp.prestigeRepeatChal[2].depth.lte(0)) {
@@ -764,11 +794,15 @@ function updateGame_main() {
                 tmp.pointGen = tmp.pointGen.pow(tmp.transEffs[10][2]);
                 addStatFactor('points', `Trans. Upg. "Running Out of Names"`, `^`, tmp.transEffs[10][2], tmp.pointGen);
             }
+            if (tmp.anticap.energyEffs[0].neq(1)) {
+                tmp.pointGen = tmp.pointGen.pow(tmp.anticap.energyEffs[0]);
+                addStatFactor('points', `Anticap Energy`, `^`, tmp.anticap.energyEffs[0], tmp.pointGen);
+            }
 
             // exp^2 boosts
             if (hasPrestigeUpgrade(15)) {
                 tmp.pointGen = tmp.pointGen.add(1).log10().add(1).pow(tmp.prestigeUpgEffs[15]).sub(1).pow10().sub(1);
-                addStatFactor('points', `Prestige Upgrade 16`, `(to exp.) ^`, tmp.prestigeUpgEffs[15], tmp.pointGen);
+                addStatFactor('points', `Prestige Upgrade 16`, `▲`, tmp.prestigeUpgEffs[15], tmp.pointGen);
             }
         }
 
@@ -802,7 +836,7 @@ function updateGame_main() {
             nerf = nerf.pow_base(0.9).pow_base(0.25)
 
             tmp.pointGen = tmp.pointGen.max(1).log10().add(1).pow(nerf).sub(1).pow10();
-            addStatFactor('points', `point5 restriction`, `(to exp.) ^`, nerf, tmp.pointGen);
+            addStatFactor('points', `point5 restriction`, `▲`, nerf, tmp.pointGen);
         }
 
         if (tmp.prestigeRepeatChal[4].depth.gt(0)) {
@@ -812,7 +846,7 @@ function updateGame_main() {
 
         if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
             tmp.pointGen = tmp.pointGen.add(1).log10().add(1).pow(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
-            addStatFactor('points', `PRC2`, `(to exp.) ^`, tmp.prestigeRepeatChal[1].effects.exponent, tmp.pointGen);
+            addStatFactor('points', `PRC2`, `▲`, tmp.prestigeRepeatChal[1].effects.exponent, tmp.pointGen);
         }
 
         // i DO NOT want to scatter these lines of code to make them consistent with modifier rules, so i'm just going to place these here as log priority reductions
@@ -1019,6 +1053,9 @@ function checkBuyableActivity() {
                 tmp.basicBuyableEnabled[i] = false;
             }
         }
+        if (player.transcendInSpecialReq === "point6") {
+            tmp.basicBuyableEnabled[i] = false;
+        }
 
         // what's the point of this?
         tmp.basicBuyableEnabled[i] &&= true;
@@ -1068,6 +1105,11 @@ function checkBuyableAutobuyers() {
 
             if (tmp.prestigeRepeatChal[2].depth.gt(0)) {
                 tmp.basicBuyableAutobData[i] = tmp.prestigeRepeatChal[2].effects.autobuyer;
+            }
+
+            // fuck you PRC3
+            if (player.anticap.upgrades.includes(7)) {
+                tmp.basicBuyableAutobData[i] = D(Infinity);
             }
 
             if (player.cheats.autobuyBulk) {
@@ -1162,6 +1204,7 @@ function genPointFunc(xp, inv, genID) {
         } else {
             eff = inverseFact(xp);
         }
+        eff = eff.root(tmp.anticap.energyEffs[1]);
         if (hasSetbackUpgrade('c12')) {
             eff = eff.mul(Decimal.max(tmp.buyables[genID].tierLevels, 1).log10().mul(0.02).add(1))
         }
@@ -1232,6 +1275,7 @@ function genPointFunc(xp, inv, genID) {
         if (hasSetbackUpgrade('c12')) {
             eff = eff.div(Decimal.max(tmp.buyables[genID].tierLevels, 1).log10().mul(0.02).add(1))
         }
+        eff = eff.pow(tmp.anticap.energyEffs[1]);
 
         if (tmp.prestigeChal[12].depth.gt(0)) {
             eff = Decimal.pow(1.05, eff).sub(1).div(0.05).mul(100);
@@ -1254,6 +1298,8 @@ function tierPointFunc(xp, inv, genID) {
 
         eff = Decimal.add(eff, 1).mul(0.01).add(1).log(1.01);
 
+        eff = eff.root(tmp.anticap.energyEffs[1]);
+
         if (player.anticap.active) {
             eff = anticapScaling(eff, "tierLevels", true);
         }
@@ -1267,6 +1313,8 @@ function tierPointFunc(xp, inv, genID) {
         if (player.anticap.active) {
             eff = anticapScaling(eff, "tierLevels", false);
         }
+
+        eff = eff.pow(tmp.anticap.energyEffs[1]);
 
         eff = Decimal.pow(1.01, eff).sub(1).div(0.01).sub(1).max(0);
 

@@ -47,7 +47,7 @@ const PRESTIGE_CHALLENGES_REPEAT = [
             return target;
         },
         name: "Complete Dilation",
-        desc: "All pre-transcension resources' gains are decreased by ^0.75 to their exponents.",
+        desc: "All pre-transcension resources' gains are decreased by ▲0.75.",
         eff(comp) {
             return `Tier 1 Time Speed is increased by prestige essence. ${format(this.rewardEff(comp).timeSpeed, 2)}× → ${format(this.rewardEff(Decimal.add(comp, 1)).timeSpeed, 2)}×`;
         },
@@ -273,7 +273,9 @@ function togglePrestigeChallengeRepeat(i) {
         player.transcendResetCount = D(0);
         player.transcendUpgrades = player.transcendUpgrades.filter((value) => { return !UNSAFE_UPGRADES.includes(value) });
 
+        player.specialBuyables[0] = D(0);
         doTranscendReset(true);
+
         player.prestigeChallengeRepeat = i;
         return;
     } else {
@@ -289,6 +291,9 @@ function togglePrestigeChallengeRepeat(i) {
     if (Decimal.gte(player.prestigeEssence, tmp.prestigeRepeatChal[i].goal)) {
         player.prestigeChallengeRepCompleted[i] = Decimal.add(player.prestigeChallengeRepCompleted[i], 1);
     }
+
+    player.specialBuyables[0] = D(0);
     doTranscendReset(true);
+    
     player.prestigeChallengeRepeat = null;
 }

@@ -9,8 +9,13 @@ const TEXTBOOK = [
                 This is an incremental game created by TearonQ (@QnoraeT in Github).<br>
                 I imposed a bit of a challenge for myself, to not use any softcaps, scalings, and the game mustn't inflate. Idk, I was bored and I tried doing something.<br>
                 This game is also slower than my other incrementals, but is still pretty active. This may be comparable to randomtuba's Algebraic Progression, but with slightly more head room for optimization.<br><br>
-                You can hold shift to buy max what you click on. This will not come with a confirmation!<br><br>
-                Inspired by <span style="color: #ffff00">randomtuba</span>, <span style="color: #8000ff">Jacorb</span>, <span style="color: #ff0000">MrRedShark</span>, and more!
+                You can hold shift to buy max what you click on. This will not come with a confirmation!<br>
+                <br>
+                ▲X.XX = The exponent is raised to the power of X.XX. (ex. e1,000,000 ▲2 = e1.000 T), a.k.a. "dilation"<br>
+                ■X.XX = The 2nd exponent is raised to the power of X.XX. (ex. ee1,000 ■2 = ee1,000,000) a.k.a. "siltation"<br>
+                ⬟X.XX = The 3rd exponent is raised to the power of X.XX. (ex. eee100 ⬟2 = eee10,000)<br>
+                <br>
+                Inspired by <span style="color: #ffff80">randomtuba</span>, <span style="color: #c080ff">Jacorb</span>, <span style="color: #ff8080">MrRedShark</span>, <span style="color: #80ff80">Hevipelle</span>,and more!
             `;
         },
         enabled: false // changable, doesn't need to be saved
@@ -258,13 +263,12 @@ function initHTML_textbook() {
     let txt = ``;
     for (let i = 0; i < TEXTBOOK.length; i++) {
         if (TEXTBOOK[i].colors.length === 1) {
-            console.log(`${TEXTBOOK[i].colors[0]}Border`)
             txt += `
-                <div onclick="TEXTBOOK[${i}].enabled = !TEXTBOOK[${i}].enabled" id="textbookButton${i}" class="flex-vertical whiteText font ${TEXTBOOK[i].colors[0]}Border ${TEXTBOOK[i].colors[0]}Fill" style="border: 3px solid #ffffff; padding: 4px; height: 40px; width: 400px; font-size: 16px; margin-top: 2px; margin-bottom: 4px; cursor: pointer">
+                <div onclick="TEXTBOOK[${i}].enabled = !TEXTBOOK[${i}].enabled" id="textbookButton${i}" class="flex-vertical whiteText font ${TEXTBOOK[i].colors[0]}FillBorder" style="padding: 4px; height: 40px; width: 400px; font-size: 16px; margin-top: 2px; margin-bottom: 4px; cursor: pointer">
                     <b style="margin-bottom: 4px">${TEXTBOOK[i].title}</b>
                     <span id="textbookStage${i}" style="font-size: 12px">${TEXTBOOK[i].stage}</span>
                 </div>
-                <div id="textbook${i}" class="whiteText font ${TEXTBOOK[i].colors[0]}Border ${TEXTBOOK[i].colors[0]}Fill" style="border: 3px solid #ffffff; width: 1000px; padding: 4px; margin-top: -7px; margin-bottom: 3px; font-size: 12px; text-align: center"></div>
+                <div id="textbook${i}" class="whiteText font ${TEXTBOOK[i].colors[0]}FillBorder" style="width: 1000px; padding: 4px; margin-top: -7px; margin-bottom: 3px; font-size: 12px; text-align: center"></div>
             `;
         } else {
             txt += `

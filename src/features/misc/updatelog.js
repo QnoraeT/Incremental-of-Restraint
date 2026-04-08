@@ -199,4 +199,41 @@ const UPDATE_LOG = [
 
         ]
     },
+    {
+        tooSmall: false,
+        version: 35,
+        changes: [
+            "The inverse factorial formula was inaccurate at low values. I've changed it to be more accurate at a slight performance cost.",
+            "Slightly buffed PB5, it now takes into account effective buyable amounts.",
+            "Nerfed Ascension Buyables #9-12's effects, but increased their cap and slowed down their cost scalings.",
+            "Setback upgrades R1-10 and G1-10 are changed into being additive, and no longer have a cap.",
+            "Nerfed Hinderance 1's completion from being multiplicative to being additive.",
+            "Nerfed point4 from ▲1.4 to ▲1.25."
+        ],
+        features: [
+            "Added anticap."
+        ],
+        bugfixes: [
+            "Fixed Setback in the Textbook not having a colored border. I hate CSS for this, but oh well.",
+            "Fixed an exploit that likely made several challenges trivial via 1 tick of extra PBs not being discarded after a reset.",
+            "Fixed tiers having 1 extra level of effect.",
+            "Fixed hinderance2's effect on dimensions not working at all.",
+            "Fixed PRC3 working on all dimensions instead of only Blue dimensions."
+        ]
+    },
 ]
+
+/*
+    player.replitierBuyables = [D(0), D(0), D(0), D(0), D(0)]
+    player.anticap = {
+        active: false,
+        savedTotalTP: null,
+        savedTranscensionTimes: null,
+        bestPoints: D(0),
+        power: D(0),
+        energy: D(0),
+        bestEnergy: D(0),
+        buyables: [D(0), D(0), D(0), D(0), D(0)],
+        upgrades: []
+    }
+*/

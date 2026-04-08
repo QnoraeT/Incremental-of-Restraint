@@ -251,7 +251,7 @@ const SETBACK_UPGRADES = [
         {
             id: "b9",
             cost: D('e1600'),
-            desc: `[UNIMPLEMENTED] Unlock Hinderance Points, which are earned based on your highest PB. Hinderance scores no longer get reset on transcension resets. Kept on transcension resets.`
+            desc: `[UNIMPLEMENTED] Unlock Hinderance Points, which are earned based on your highest PB. Hinderance scores no longer get reset on transcension resets, but you must have transcension milestone 13.`
         },
         {
             id: "b10",
@@ -774,17 +774,11 @@ function initHTML_setback() {
 }
 
 function updateGame_setback() {
-    tmp.setbackTotalStacks = [];
-    tmp.setbackProjectedStacks = [];
+    tmp.setbackSelected = [];
     tmp.setbackEffects = [];
     tmp.projectedEffects = [];
-    tmp.setbackSelected = [];
-
-    // calculate this before the main loop that calculates effects
-    let totalPrioScore = D(0);
-    for (let i = 0; i < player.setback.length; i++) {
-        totalPrioScore = totalPrioScore.add(player.setbackPriority[i]);
-    }
+    tmp.setbackTotalStacks = [];
+    tmp.setbackProjectedStacks = [];
 
     for (let i = 0; i < player.setback.length; i++) {
         let capsColor = tmp.quarkNamesC[i];
@@ -797,25 +791,6 @@ function updateGame_setback() {
             }
         }
 
-        tmp.quarkEffs[i] = Decimal.max(player.setbackQuarks[i], 0);
-
-        // multiply this by 2 because we've already counted it in the totalPrioScore variable, and we actually want to add itself instead of cancelling itself out
-        tmp.setbackPriorityData[i].effPrio = Decimal.mul(player.setbackPriority[i], 3).sub(totalPrioScore).div(2);
-        let baseEffect = SETBACK_CALC.energy[i](Decimal.max(player.setbackEnergy[i], 0));
-        
-        tmp.energyEffs[i] = baseEffect.pow(SETBACK_PRIO.prioScoreEff(tmp.setbackPriorityData[i].effPrio)).pow(SETBACK_PRIO.prioBoost(player.setbackPriority[i]));
-        tmp.setbackPriorityData[i].plus1 = baseEffect.pow(SETBACK_PRIO.prioScoreEff(tmp.setbackPriorityData[i].effPrio.add(1))).pow(SETBACK_PRIO.prioBoost(Decimal.add(player.setbackPriority[i], 1)));
-        tmp.setbackPriorityData[i].minus1 = baseEffect.pow(SETBACK_PRIO.prioScoreEff(tmp.setbackPriorityData[i].effPrio.sub(0.5))).pow(SETBACK_PRIO.prioBoost(player.setbackPriority[i]));
-
-        tmp.setbackPriorityData[i].cost = Decimal.lt(player.setbackPriority[i], player.bestSetbackPriority[i]) ? D(0) : SETBACK_PRIO.prioReq[i](player.setbackPriority[i], false)
-        tmp.setbackPriorityData[i].nextCost = Decimal.add(player.setbackPriority[i], 1).lt(player.bestSetbackPriority[i]) ? D(0) : SETBACK_PRIO.prioReq[i](Decimal.add(player.setbackPriority[i], 1), false)
-        tmp.setbackPriorityData[i].target = SETBACK_PRIO.prioReq[i](player.setbackEnergy[i], true).max(player.bestSetbackPriority[i])
-
-        for (let j = 0; j < player.setbackLoadout.length; j++) {
-            if (player.setbackLoadout[j][i] === undefined) {
-                player.setbackLoadout[j][i] = D(0);
-            }
-        }
         tmp.setbackEffects[i] = SETBACK_CALC.difficulty[i](0);
         tmp.projectedEffects[i] = SETBACK_CALC.difficulty[i](0);
     }
@@ -844,6 +819,36 @@ function updateGame_setback() {
     const actual = processSetbackEffects(tmp.setbackTotalStacks, tmp.setbackEffects);
     tmp.setbackTotalStacks = actual.stacks;
     tmp.setbackEffects = actual.effect;
+}
+
+function updateGame_setbackResources() {
+    // calculate this before the main loop that calculates effects
+    let totalPrioScore = D(0);
+    for (let i = 0; i < player.setback.length; i++) {
+        totalPrioScore = totalPrioScore.add(player.setbackPriority[i]);
+    }
+
+    for (let i = 0; i < player.setback.length; i++) {
+        tmp.quarkEffs[i] = Decimal.max(player.setbackQuarks[i], 0);
+
+        // multiply this by 2 because we've already counted it in the totalPrioScore variable, and we actually want to add itself instead of cancelling itself out
+        tmp.setbackPriorityData[i].effPrio = Decimal.mul(player.setbackPriority[i], 3).sub(totalPrioScore).div(2);
+        let baseEffect = SETBACK_CALC.energy[i](Decimal.max(player.setbackEnergy[i], 0));
+        
+        tmp.energyEffs[i] = baseEffect.pow(SETBACK_PRIO.prioScoreEff(tmp.setbackPriorityData[i].effPrio)).pow(SETBACK_PRIO.prioBoost(player.setbackPriority[i]));
+        tmp.setbackPriorityData[i].plus1 = baseEffect.pow(SETBACK_PRIO.prioScoreEff(tmp.setbackPriorityData[i].effPrio.add(1))).pow(SETBACK_PRIO.prioBoost(Decimal.add(player.setbackPriority[i], 1)));
+        tmp.setbackPriorityData[i].minus1 = baseEffect.pow(SETBACK_PRIO.prioScoreEff(tmp.setbackPriorityData[i].effPrio.sub(0.5))).pow(SETBACK_PRIO.prioBoost(player.setbackPriority[i]));
+
+        tmp.setbackPriorityData[i].cost = Decimal.lt(player.setbackPriority[i], player.bestSetbackPriority[i]) ? D(0) : SETBACK_PRIO.prioReq[i](player.setbackPriority[i], false)
+        tmp.setbackPriorityData[i].nextCost = Decimal.add(player.setbackPriority[i], 1).lt(player.bestSetbackPriority[i]) ? D(0) : SETBACK_PRIO.prioReq[i](Decimal.add(player.setbackPriority[i], 1), false)
+        tmp.setbackPriorityData[i].target = SETBACK_PRIO.prioReq[i](player.setbackEnergy[i], true).max(player.bestSetbackPriority[i])
+
+        for (let j = 0; j < player.setbackLoadout.length; j++) {
+            if (player.setbackLoadout[j][i] === undefined) {
+                player.setbackLoadout[j][i] = D(0);
+            }
+        }
+    }
 
     for (let i = 0; i < player.quarkDimsBought.length; i++) {
         for (let j = 0; j < player.quarkDimsBought[i].length; j++) {
@@ -884,6 +889,9 @@ function updateGame_setback() {
                         tmp.quarkDimAutoData[i][j] = tmp.quarkDimAutoData[i][j].mul(2.5);
                     }
                 }
+            }
+            if (player.anticap.upgrades.includes(11)) {
+                tmp.quarkDimAutoData[i][j] = D(20);
             }
 
             tmp.quarkDimAutoData[i][j] = tmp.quarkDimAutoData[i][j].mul(tmp.timeSpeedTiers[0]);
@@ -1018,6 +1026,9 @@ function updateGame_setback() {
 
             let baseMultBoost = D(2);
             baseMultBoost = baseMultBoost.add(Decimal.div(player.quarkDimsBought[i][j], tmp.quarkBoostInterval).floor().mul(tmp.quarkBoostEffect));
+            if (player.anticap.upgrades.includes(9)) {
+                baseMultBoost = baseMultBoost.pow(tmp.anticap.upgrades[9].eff);
+            }
 
             tmp.quarkDim[i][j].mult = D(1);
             tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(Decimal.pow(baseMultBoost, player.quarkDimsBought[i][j]));

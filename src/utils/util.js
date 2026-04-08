@@ -42,7 +42,7 @@ function inverseFact(num) {
             return guess;
         }
 
-        // -num because we're trying to find a root of the function
+        // subtracted num because we're trying to find a root of the function that equals x, not a root of the formulae itself
         guess = guess.sub(f.sub(num).div(f_prime));
     }
 
@@ -78,6 +78,14 @@ function linearAdd(num, base, growth, inverse) {
                 .div(Decimal.mul(growth, 2))
         : Decimal.sub(num, 1).mul(growth).add(Decimal.mul(base, 2)).mul(num).div(2);
 };
+
+function strikeThrough(bool, text) {
+    if (bool) {
+        return `<span style='text-decoration: line-through'>${text}</span>`;
+    } else {
+        return text;
+    }
+}
 
 class Element {
     constructor(el) {
@@ -115,6 +123,12 @@ class Element {
     }
     static setDisplay(id, bool) {
         new Element(id).setDisplay(bool);
+    }
+    setFlexDisplay(bool) {
+        this.el.style.display = bool ? "flex" : "none";
+    }
+    static setFlexDisplay(id, bool) {
+        new Element(id).setFlexDisplay(bool);
     }
     addClass(name) {
         this.el.classList.add(name);

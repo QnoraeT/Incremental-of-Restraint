@@ -89,7 +89,7 @@ const PRESTIGE_UPGRADES = [
             }
             let total = D(0);
             for (let i = 0; i < player.buyables.length; i++) {
-                total = total.add(player.buyables[i]);
+                total = total.add(tmp.buyables[i].effective);
             }
             let eff = total.mul(0.01).add(1);
             eff = eff.pow(Decimal.max(levels, 1).add(hasPrestigeUpgrade(17) ? tmp.prestigeUpgEffs[17] : 0));
@@ -236,7 +236,7 @@ const PRESTIGE_UPGRADES = [
     {
         cost: D(1e11),
         desc(levels) {
-            return `Raise Point gain by +^${format(tmp.prestigeUpgEffs[15].sub(1), 3)} to exponent. (~^${format(tmp.pointGen.max(10).log10().root(tmp.prestigeUpgEffs[15]).pow(tmp.prestigeUpgEffs[15].sub(1)), 2)})`
+            return `Raise Point gain by +▲${format(tmp.prestigeUpgEffs[15].sub(1), 3)}. (~^${format(tmp.pointGen.max(10).log10().root(tmp.prestigeUpgEffs[15]).pow(tmp.prestigeUpgEffs[15].sub(1)), 3)})`;
         },
         eff(levels) {
             let eff = Decimal.max(levels, 1);
@@ -250,7 +250,7 @@ const PRESTIGE_UPGRADES = [
     {
         cost: D(1e11),
         desc(levels) {
-            return `Raise Generator Speed by +^${format(tmp.prestigeUpgEffs[16].sub(1), 3)} to exponent. (~^${format(Decimal.max(player.buyablePoints[0], 10).log10().root(tmp.prestigeUpgEffs[16]).pow(tmp.prestigeUpgEffs[16].sub(1)), 2)})`;
+            return `Raise Generator Speed by +▲${format(tmp.prestigeUpgEffs[16].sub(1), 3)}. (~^${format(Decimal.max(player.buyablePoints[0], 10).log10().root(tmp.prestigeUpgEffs[16]).pow(tmp.prestigeUpgEffs[16].sub(1)), 3)})`;
         },
         eff(levels) {
             let eff = Decimal.max(levels, 1);
@@ -329,7 +329,7 @@ function initHTML_prestige() {
 }
 
 function updateGame_prestige() {
-    for (let i = 0; i < PRESTIGE_UPGRADES.length; i++) {
+    for (let i = PRESTIGE_UPGRADES.length - 1; i >= 0; i--) {
         let upgGen = D(0);
         if (Decimal.gte(player.prestigeChallengeRepCompleted[0], 1)) {
             upgGen = Decimal.gt(player.prestigeUpgrades[i], 0) ? Decimal.pow(tmp.prestigeRepeatChal[0].rewardEffs.exponent, player.prestigeUpgrades[i]) : D(0);
@@ -340,6 +340,8 @@ function updateGame_prestige() {
 
         let levels = Decimal.max(player.prestigeUpgrades[i], 0);
         levels = levels.add(tmp.prestigeUpgLevels[i].sub(1).mul(0.5));
+        levels = levels.add(tmp.anticap.energyEffs[2]);
+
         tmp.prestigeUpgEffs[i] = PRESTIGE_UPGRADES[i].eff(levels);
         // sigh, i don't want to go through each and every prestige upgrade, and i also want it to be faithful to the description of PF buyables
         // "Raises PB# effect by ^x.xx"
@@ -375,7 +377,7 @@ function updateGame_prestige() {
     }
     if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
         tmp.peGain = tmp.peGain.add(1).log10().add(1).pow(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
-        addStatFactor('prestigeEssence', `PRC2`, `(to exp.) ^`, tmp.prestigeRepeatChal[1].effects.exponent, tmp.peGain);
+        addStatFactor('prestigeEssence', `PRC2`, `▲`, tmp.prestigeRepeatChal[1].effects.exponent, tmp.peGain);
     }
 
     if (player.anticap.active) {
@@ -502,6 +504,16 @@ function updateGame_prestige() {
         tmp.prestigePointGain = tmp.prestigePointGain.mul(tmp.generatorFeatures.advanceEff);
         addStatFactor('prestige', `Generator Advance Effect"`, `×`, tmp.generatorFeatures.advanceEff, tmp.prestigePointGain);
     }
+    if (player.anticap.upgrades.includes(6)) {
+        tmp.prestigePointGain = tmp.prestigePointGain.mul(tmp.anticap.upgrades[6].eff);
+        addStatFactor('prestige', `Anticap Upgrade #7`, `×`, tmp.anticap.upgrades[6].eff, tmp.prestigePointGain);
+    }
+    if (tmp.repliTierBuyables[4].eff.neq(1)) {
+        tmp.prestigePointGain = tmp.prestigePointGain.pow(tmp.repliTierBuyables[4].eff);
+        addStatFactor('prestige', `RepliTier Buyable #5`, `^`, tmp.repliTierBuyables[4].eff, tmp.prestigePointGain);
+    }
+
+    // challenge effs
     if (colorAmountTotal(1).gt(0)) {
         tmp.prestigePointGain = tmp.prestigePointGain.div(tmp.setbackEffects[1][0]);
         addStatFactor('prestige', `Setback Green Effect`, `/`, tmp.setbackEffects[1][0], tmp.prestigePointGain);
@@ -516,7 +528,7 @@ function updateGame_prestige() {
     }
     if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
         tmp.prestigePointGain = tmp.prestigePointGain.add(1).log10().add(1).pow(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
-        addStatFactor('prestige', `PRC2`, `(to exp.) ^`, tmp.prestigeRepeatChal[1].effects.exponent, tmp.prestigePointGain);
+        addStatFactor('prestige', `PRC2`, `▲`, tmp.prestigeRepeatChal[1].effects.exponent, tmp.prestigePointGain);
     }
     if (tmp.prestigeRepeatChal[0].depth.gt(0)) {
         // i have to cache this cuz slogs/tetrates are super slow
@@ -556,6 +568,9 @@ function updateGame_prestige() {
         tmp.prestigePointNext = anticapSoftcap(tmp.prestigePointNext, "prestigePts", "prestige", true);
     }
 
+    if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
+        tmp.prestigePointNext = tmp.prestigePointNext.add(1).log10().add(1).root(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
+    }
     if (tmp.prestigeRepeatChal[0].depth.gt(0)) {
         tmp.prestigePointNext = tmp.prestigePointNext.layeradd(tmp.prestigeRepeatChal[0].effects.log.toNumber(), 2, true);
     }
@@ -567,6 +582,11 @@ function updateGame_prestige() {
     }
     if (colorAmountTotal(1).gt(0)) {
         tmp.prestigePointNext = tmp.prestigePointNext.mul(tmp.setbackEffects[1][0]);
+    }
+
+    tmp.prestigePointGain = tmp.prestigePointGain.root(tmp.repliTierBuyables[4].eff);
+    if (player.anticap.upgrades.includes(6)) {
+        tmp.prestigePointNext = tmp.prestigePointNext.div(tmp.anticap.upgrades[6].eff);
     }
     if (Decimal.gt(player.generatorFeatures.totalAdv, 0)) {
         tmp.prestigePointNext = tmp.prestigePointNext.div(tmp.generatorFeatures.advanceEff);
@@ -845,6 +865,11 @@ function hasPrestigeUpgrade(i) {
             return true;
         }
     }
+    if (i >= 0 && i <= 14) {
+        if (tmp.anticap.energyEffs[2].gt(0)) {
+            return true;
+        }
+    }
 
     return Decimal.gt(player.prestigeUpgrades[i], 0);
 }
@@ -884,9 +909,7 @@ function doPrestigeReset(doAnyway = false) {
         player.prestigeCount = Decimal.add(player.prestigeCount, 1);
         player.prestigeCountInTrans = Decimal.add(player.prestigeCountInTrans, 1);
 
-        if (!doAnyway) {
-            player.darts = Decimal.add(player.darts, tmp.dartGain);
-        }
+        player.darts = Decimal.add(player.darts, tmp.hinderances[0].effects.dartGain);
     }
 
     player.timeInPrestige = D(0);

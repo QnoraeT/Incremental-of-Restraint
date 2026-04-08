@@ -149,11 +149,22 @@ function initPlayer() {
         replirankBuyables: [D(0), D(0), D(0), D(0)],
         replitier: D(0),
         replitierPoints: D(0),
+        replitierBuyables: [D(0), D(0), D(0), D(0), D(0)],
         replitetr: D(0),
         replitetrPoints: D(0),
         replispawns: D(0),
         repliupgrades: [],
-        perksUsed: []
+        anticap: {
+            active: false,
+            savedTotalTP: null,
+            savedTranscensionTimes: null,
+            bestPoints: D(0),
+            power: D(0),
+            energy: D(0),
+            bestEnergy: D(0),
+            buyables: [D(0), D(0), D(0), D(0), D(0)],
+            upgrades: []
+        }
     };
 }
 function initTmp() {
@@ -277,6 +288,11 @@ function initTmp() {
         repliRankTarget: D(0),
         repliRankEffect: D(0),
         repliRankBuyables: resetRepliRankBuyables(),
+        repliTierPointGen: D(0),
+        repliTierReq: D(Infinity),
+        repliTierTarget: D(0),
+        repliTierEffect: D(0),
+        repliTierBuyables: resetRepliTierBuyables(),
         anticap: {
             softcaps: [],
             scalings: [],
@@ -284,7 +300,9 @@ function initTmp() {
             powerNext: D(0),
             energyGain: D(0),
             energyExp: D(1),
-            energyEffs: [D(1), D(1), D(0), D(1), D(1)]
+            energyEffs: [D(1), D(1), D(0), D(1), D(1)],
+            buyables: resetAnticapBuyables(),
+            upgrades: resetAnticapUpgs()
         }
     };
 }
@@ -376,6 +394,8 @@ function resetAscendBuyables() {
         arr[i] = {
             eff: D(0),
             cost: D(1),
+            req: false,
+            reqDesc: null,
             target: D(0),
             canBuy: false
         };
@@ -495,6 +515,44 @@ function resetRepliRankBuyables() {
             target: D(0),
             canBuy: false
         };
+    }
+    return arr;
+}
+
+function resetRepliTierBuyables() {
+    const arr = [];
+    for (let i = 0; i < player.replitierBuyables.length; i++) {
+        arr[i] = {
+            eff: D(0),
+            cost: D(1),
+            target: D(0),
+            canBuy: false
+        };
+    }
+    return arr;
+}
+
+function resetAnticapBuyables() {
+    const arr = [];
+    for (let i = 0; i < ANTICAP.buyables.length; i++) {
+        arr[i] = {
+            eff: D(0),
+            cost: D(1),
+            target: D(0),
+            canBuy: false,
+            desc: ""
+        };
+    }
+    return arr;
+}
+
+function resetAnticapUpgs() {
+    const arr = [];
+    for (let i = 0; i < ANTICAP.upgrades.length; i++) {
+        arr.push({
+            eff: null,
+            desc: ""
+        });
     }
     return arr;
 }
@@ -751,6 +809,8 @@ function loadGame() {
             console.error(localStorage.getItem(saveID));
             gameVars.saveDisabled = true;
         }
+    } else {
+        console.log("no save detected");
     }
 
     updatePlayer();
@@ -882,7 +942,7 @@ const drawing = () => {
 }
 
 function doGameLoopTicksLol() {
-    gameTick = setInterval(gameLoop, 20);
+    gameTick = setInterval(gameLoop, 50);
 }
 
 function doOfflineTime() {
@@ -1010,9 +1070,10 @@ function gameLoop() {
             || player.inSetback 
             || player.currentHinderance !== null 
             || player.transcendInSpecialReq !== null 
-            || player.prestigeChallengeRepeat !== null;
+            || player.prestigeChallengeRepeat !== null
+            || player.anticap.active;
 
-        // put challenge effects at the top because before they were closer to the middle and upon reloading you could exploit them
+        // put challenge effects at the top because before they were closer to the middle and upon reloading/entering you could exploit a bug that allows you to go really far in only 1 frame
         updateGame_anticap();
         updateGame_prestigeRepChal();
         updateGame_hinderance();
@@ -1020,11 +1081,13 @@ function gameLoop() {
         updateGame_prestigeChallenges();
 
         calcTimeSpeed();
+        updateGame_anticapResources();
         updateGame_replicators();
         updateGame_transcend();
         updateGame_genAdvances();
         updateGame_genEnhancers();
         updateGame_genXP();
+        updateGame_setbackResources();
         updateGame_ascend();
         updateGame_prestigeFluid();
         updateGame_prestige();
@@ -1177,6 +1240,10 @@ function calcTimeSpeed() {
     if (Decimal.gte(player.hinderanceScore[4], HINDERANCES[4].start)) {
         tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].mul(HINDERANCES[4].eff);
         addStatFactor('tier1Time', `Hinderance 5 PB`, `×`, HINDERANCES[4].eff, tmp.timeSpeedTiers[0]);
+    }
+    if (tmp.anticap.energyEffs[4].neq(1)) {
+        tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].mul(tmp.anticap.energyEffs[4]);
+        addStatFactor('tier1Time', `Anticap Energy`, `×`, tmp.anticap.energyEffs[4], tmp.timeSpeedTiers[0]);
     }
     if (tmp.prestigeChal[11].depth.gt(0)) {
         tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].div(tmp.prestigeChal[11].effects.timeSpeed);

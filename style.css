@@ -69,6 +69,18 @@
     100% { background-color: #8008; }
 }
 
+/* css is a piece of shit that doesn't allow me to stack animations
+how? i don't understand this */
+@keyframes rainbowFillBorder {
+    0%   { border: 3px solid #f00; background-color: #8008; }
+    20%  { border: 3px solid #ff0; background-color: #8808; }
+    30%  { border: 3px solid #0f0; background-color: #0808; }
+    80%  { border: 3px solid #0ff; background-color: #0888; }
+    60%  { border: 3px solid #00f; background-color: #0088; }
+    80%  { border: 3px solid #f0f; background-color: #8088; }
+    100% { border: 3px solid #f00; background-color: #8008; }
+}
+
 .rainbowText {
     animation-name: rainbowText;
     animation-duration: 8s;
@@ -78,6 +90,13 @@
 
 .rainbowBorder {
     animation-name: rainbowBorder;
+    animation-duration: 8s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+
+.rainbowFillBorder {
+    animation-name: rainbowFillBorder;
     animation-duration: 8s;
     animation-iteration-count: infinite;
     animation-timing-function: linear;

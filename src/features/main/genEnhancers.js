@@ -6,13 +6,23 @@ const GEN_ENH_BUYABLES = [
             return Decimal.gt(player.generatorFeatures.totalEnh, 0);
         },
         cost(bought) {
+            let scale = D(0.02);
+            if (player.transcendUpgrades.includes("exp4")) {
+                scale = scale.div(1000);
+            }
+
             let cost = D(bought);
-            cost = cost.pow_base(1.02).sub(1).div(0.02).pow_base(2);
+            cost = cost.pow_base(scale.add(1)).sub(1).div(scale).pow_base(2);
             return cost.floor();
         },
         target(resource) {
+            let scale = D(0.02);
+            if (player.transcendUpgrades.includes("exp4")) {
+                scale = scale.div(1000);
+            }
+
             let target = D(resource).ceil();
-            target = target.max(1).log(2).mul(0.02).add(1).log(1.02);
+            target = target.max(1).log(2).mul(scale).add(1).log(scale.add(1));
             return target;
         },
         eff(bought) {
@@ -228,7 +238,7 @@ function updateGame_genEnhancers() {
             tmp.generatorFeatures.genEnhBuyables[i].target = anticapScaling(tmp.generatorFeatures.genEnhBuyables[i].target, "genEnhBuyables", true);
         }
 
-        if (player.genEnhAuto && GEN_ENH_BUYABLES[i].show) {
+        if ((player.genEnhAuto && hasTranscendMilestone(14)) && GEN_ENH_BUYABLES[i].show) {
             let bought = D(player.generatorFeatures.enhancerBuyables[i]);
             // do not use timespeed changes here because the only time this "buying" var is used is in PRC3, which already disabled T1 time speed from doing anything
             let buying = tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer : D(Infinity);
@@ -274,7 +284,7 @@ function updateGame_genEnhancers() {
 
     if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
         tmp.generatorFeatures.enhancerGain = tmp.generatorFeatures.enhancerGain.add(1).log10().add(1).pow(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
-        addStatFactor('genEnh', `PRC2`, `(to exp.) ^`, tmp.prestigeRepeatChal[1].effects.exponent, tmp.generatorFeatures.enhancerGain);
+        addStatFactor('genEnh', `PRC2`, `▲`, tmp.prestigeRepeatChal[1].effects.exponent, tmp.generatorFeatures.enhancerGain);
     }
 
     if (player.anticap.active) {
@@ -314,7 +324,7 @@ function updateGame_genEnhancers() {
         tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.root(0.02).mul(1e33);
     }
 
-    if (player.genEnhGenerate && player.transcendInSpecialReq !== "prest4") {
+    if ((player.genEnhGenerate && hasTranscendMilestone(13)) && player.transcendInSpecialReq !== "prest4") {
         player.generatorFeatures.enhancer = Decimal.add(player.generatorFeatures.enhancer, tmp.generatorFeatures.enhancerGain.mul(0.01).mul(delta).mul(tmp.timeSpeedTiers[0]));
         player.generatorFeatures.totalEnh = Decimal.add(player.generatorFeatures.totalEnh, tmp.generatorFeatures.enhancerGain.mul(0.01).mul(delta).mul(tmp.timeSpeedTiers[0]));
     }
@@ -323,6 +333,8 @@ function updateGame_genEnhancers() {
     if (hasSetbackUpgrade(`r13`)) {
         decay = decay.mul(100);
     }
+    decay = decay.mul(tmp.anticap.energyEffs[3]);
+    
     tmp.generatorFeatures.enhancerEff = Decimal.max(player.generatorFeatures.totalEnh, 1).log10().div(decay).add(1).ln().mul(decay.mul(5)).pow10();
     if (colorAmountTotal(3).gt(0)) {
         tmp.generatorFeatures.enhancerEff = D(1);

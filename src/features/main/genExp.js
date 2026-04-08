@@ -7,6 +7,9 @@ const GEN_XP_BUYABLES = [
             if (hasSetbackUpgrade('c7')) {
                 scale = scale.div(2);
             }
+            if (player.transcendUpgrades.includes("exp4")) {
+                scale = scale.div(100);
+            }
             
             let cost = D(bought);
             if (hasSetbackUpgrade('c11')) {
@@ -19,6 +22,9 @@ const GEN_XP_BUYABLES = [
             let scale = D(0.004);
             if (hasSetbackUpgrade('c7')) {
                 scale = scale.div(2);
+            }
+            if (player.transcendUpgrades.includes("exp4")) {
+                scale = scale.div(100);
             }
 
             let target = D(resource).ceil();
@@ -168,7 +174,7 @@ function updateGame_genXP() {
                 tmp.generatorFeatures.genXPBuyables[i].target = anticapScaling(tmp.generatorFeatures.genXPBuyables[i].target, "genXPBuyables", true);
             }
 
-            if (player.genXPAuto && GEN_XP_BUYABLES[i].show) {
+            if ((player.genXPAuto && hasTranscendMilestone(10)) && GEN_XP_BUYABLES[i].show) {
                 let bought = D(player.generatorFeatures.buyable[i]);
                 // do not use timespeed changes here because the only time this "buying" var is used is in PRC3, which already disabled T1 time speed from doing anything
                 let buying = tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer : D(Infinity);
@@ -234,7 +240,7 @@ function updateGame_genXP() {
 
         if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
             tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.add(1).log10().add(1).pow(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
-            addStatFactor('genXP', `PRC2`, `(to exp.) ^`, tmp.prestigeRepeatChal[1].effects.exponent, tmp.generatorFeatures.gain);
+            addStatFactor('genXP', `PRC2`, `▲`, tmp.prestigeRepeatChal[1].effects.exponent, tmp.generatorFeatures.gain);
         }
 
         if (player.anticap.active) {
@@ -256,6 +262,9 @@ function updateGame_genXP() {
         tmp.generatorFeatures.xpEffGenerators = D(0.05);
         tmp.generatorFeatures.xpEffGenerators = tmp.generatorFeatures.xpEffGenerators.add(tmp.generatorFeatures.genXPBuyables[2].eff);
         tmp.generatorFeatures.xpEffGenerators = player.generatorFeatures.xp.add(1).log10().mul(tmp.generatorFeatures.xpEffGenerators).add(1).ln().add(1);
+        if (player.transcendInSpecialReq === "exp4") {
+            tmp.generatorFeatures.xpEffGenerators = D(1);
+        }
 
         // outside of any challenge
         if (hasSetbackUpgrade('c8') && !tmp.inAnyChallenge) {
@@ -270,6 +279,9 @@ function updateGame_genXP() {
         tmp.generatorFeatures.xpEffPoints = player.generatorFeatures.xp.add(1).log10().add(1).log10().mul(total.max(1).log2()).mul(tmp.generatorFeatures.xpEffPoints).add(1);
         if (tmp.hinderances[3].depth.gt(0)) {
             tmp.generatorFeatures.xpEffPoints = tmp.generatorFeatures.xpEffPoints.pow(tmp.hinderances[3].effects.pts);
+        }
+        if (player.transcendInSpecialReq === "exp4") {
+            tmp.generatorFeatures.xpEffPoints = D(1);
         }
     }
 }

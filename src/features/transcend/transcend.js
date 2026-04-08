@@ -15,7 +15,7 @@ const TRANSCENSION_MILESTONES = [
     },
     {
         baseReq: D(10),
-        desc: "Enhancement resets no longer do an ascension reset as well."
+        desc: "Enhancer resets no longer do an ascension reset as well."
     },
     {
         baseReq: D(20),
@@ -23,7 +23,7 @@ const TRANSCENSION_MILESTONES = [
     },
     {
         baseReq: D(50),
-        desc: "All Setback Dimension 2s and Green Dimensions 3-5 now have autobuyers that run at 4/s, and keep the first 5 Red and green Setback upgrades."
+        desc: "All Setback Dimension 2s and Green Dimensions 3-5 now have autobuyers that run at 4/s, and keep the first 5 Red and Green Setback upgrades."
     },
     {
         baseReq: D(128),
@@ -75,7 +75,8 @@ const TU_ColorIDs = {
     gen: '00ff40',
     genXP: 'ff8000',
     genEnh: 'ffff00',
-    anticap: '404040'
+    anticap: '404040',
+    repli: 'ff0040'
 }
 
 const TRANSCENSION_UPGRADES = [
@@ -220,7 +221,7 @@ const TRANSCENSION_UPGRADES = [
             },
             name: "Cap Extender",
             get desc() {
-                return `Increase the cap of Ascension Buyables 3 and 9-12 by 1 purchase.`
+                return `Increase the cap of Ascension Buyables 3 and 9-12 by 5 purchases.`
             },
             eff: null
         },
@@ -236,11 +237,11 @@ const TRANSCENSION_UPGRADES = [
             },
             unlock: {
                 get req() {
-                    return Decimal.gte(player.bestPointsInTranscend, 'e2400') && !player.buyableInTranscension[4] && !player.buyableInTranscension[5]
+                    return player.anticap.upgrades.includes(5) || (Decimal.gte(player.bestPointsInTranscend, 'e2400') && !player.buyableInTranscension[4] && !player.buyableInTranscension[5]);
                 },
                 restriction: false,
                 get desc() {
-                    return `You must reach ${conditionMet(Decimal.gte(player.bestPointsInTranscend, 'e2400'), format(player.bestPointsInTranscend) + ' / 1.000e2,400')} points and never buy Buyables ${conditionMet(!player.buyableInTranscension[4])} 5 & ${conditionMet(!player.buyableInTranscension[5])} 6 in the Transcension run.`
+                    return strikeThrough(player.anticap.upgrades.includes(5), `You must reach ${conditionMet(Decimal.gte(player.bestPointsInTranscend, 'e2400'), format(player.bestPointsInTranscend) + ' / 1.000e2,400')} points and never buy Buyables ${conditionMet(!player.buyableInTranscension[4])} 5 & ${conditionMet(!player.buyableInTranscension[5])} 6 in the current transcension.`);
                 }
             },
             name: "Buyable 7?!",
@@ -259,11 +260,11 @@ const TRANSCENSION_UPGRADES = [
             },
             unlock: {
                 get req() {
-                    return Decimal.gte(player.bestPointsInTranscend, 'e2000') && player.prestigeChallengeCompleted.filter((completed) => completed >= 7).length === 0
+                    return player.anticap.upgrades.includes(5) || (Decimal.gte(player.bestPointsInTranscend, 'e2000') && player.prestigeChallengeCompleted.filter((completed) => completed >= 7).length === 0);
                 },
                 restriction: false,
                 get desc() {
-                    return `Reach ${conditionMet(Decimal.gte(player.bestPointsInTranscend, 'e2000'), format(player.bestPointsInTranscend) + ' / 1.000e2,000')} points while never completing ${conditionMet(player.prestigeChallengeCompleted.filter((completed) => completed >= 7).length === 0)} PC7+ in the current Transcension run.`
+                    return strikeThrough(player.anticap.upgrades.includes(5), `Reach ${conditionMet(Decimal.gte(player.bestPointsInTranscend, 'e2000'), format(player.bestPointsInTranscend) + ' / 1.000e2,000')} points while never completing ${conditionMet(player.prestigeChallengeCompleted.filter((completed) => completed >= 7).length === 0)} PC7+ in the current transcension.`);
                 }
             },
             name: "Savings Account",
@@ -282,11 +283,11 @@ const TRANSCENSION_UPGRADES = [
             },
             unlock: {
                 get req() {
-                    return Decimal.lte(player.ascendUpgrades[1], 0) && Decimal.lte(player.generatorFeatures.totalEnh, 0) && player.setbackLoadout.filter((array) => (Decimal.eq(array[0], 4) && Decimal.eq(array[1], 10) && Decimal.eq(array[2], 4))).length >= 1
+                    return player.anticap.upgrades.includes(5) || (Decimal.lte(player.ascendUpgrades[1], 0) && Decimal.lte(player.generatorFeatures.totalEnh, 0) && player.setbackLoadout.filter((array) => (Decimal.eq(array[0], 4) && Decimal.eq(array[1], 10) && Decimal.eq(array[2], 4))).length >= 1);
                 },
                 restriction: false,
                 get desc() {
-                    return `Complete ${conditionMet(player.setbackLoadout.filter((array) => (Decimal.eq(array[0], 4) && Decimal.eq(array[1], 10) && Decimal.eq(array[2], 4))).length >= 1)} setback (4, 10, 4) without having ${conditionMet(Decimal.lte(player.ascendUpgrades[1], 0))} Ascension Buyable 2 nor ${conditionMet(Decimal.lte(player.generatorFeatures.totalEnh, 0))} Generator Enhancers in the current Transcension run.`
+                    return strikeThrough(player.anticap.upgrades.includes(5), `Complete ${conditionMet(player.setbackLoadout.filter((array) => (Decimal.eq(array[0], 4) && Decimal.eq(array[1], 10) && Decimal.eq(array[2], 4))).length >= 1)} setback (4, 10, 4) without having ${conditionMet(Decimal.lte(player.ascendUpgrades[1], 0))} Ascension Buyable 2 nor ${conditionMet(Decimal.lte(player.generatorFeatures.totalEnh, 0))} Generator Enhancers in the current transcension.`);
                 }
             },
             name: "Generator Ascensions",
@@ -309,6 +310,9 @@ const TRANSCENSION_UPGRADES = [
             },
             unlock: {
                 get req() {
+                    if (player.anticap.upgrades.includes(5)) {
+                        return true;
+                    }
                     if (!(player.inSetback && Decimal.eq(player.setback[0], 4) && Decimal.eq(player.setback[1], 4))) {
                         return false;
                     }
@@ -325,7 +329,7 @@ const TRANSCENSION_UPGRADES = [
                 },
                 restriction: false,
                 get desc() {
-                    return `Enter setback ${conditionMet(player.inSetback && Decimal.eq(player.setback[0], 4) && Decimal.eq(player.setback[1], 4))} (4, 4, Any) and ${conditionMet(player.currentHinderance === 1)} Hinderance 2, then reach a highest generator level of ${conditionMet(tmp.buyables.reduce((accumulator, current) => Decimal.max(accumulator, current.genLevels)).gte(40), format(tmp.buyables.reduce((accumulator, current) => Decimal.max(accumulator, current.genLevels))) + ' / 40')} without Gen. Enh. Buyable #2. ${conditionMet(Decimal.lte(player.generatorFeatures.enhancerBuyables[1], 0))}`
+                    return strikeThrough(player.anticap.upgrades.includes(5), `Enter setback ${conditionMet(player.inSetback && Decimal.eq(player.setback[0], 4) && Decimal.eq(player.setback[1], 4))} (4, 4, Any) and ${conditionMet(player.currentHinderance === 1)} Hinderance 2, then reach a highest generator level of ${conditionMet(tmp.buyables.reduce((accumulator, current) => Decimal.max(accumulator, current.genLevels)).gte(40), format(tmp.buyables.reduce((accumulator, current) => Decimal.max(accumulator, current.genLevels))) + ' / 40')} without Gen. Enh. Buyable #2. ${conditionMet(Decimal.lte(player.generatorFeatures.enhancerBuyables[1], 0))}`);
                 }
             },
             name: "Truly a Hinderance",
@@ -573,7 +577,7 @@ const TRANSCENSION_UPGRADES = [
             },
             name: "Extreme Buyable Boost",
             get desc() {
-                return `The generator effect to buyables are dilated by 1.4.`
+                return `The generator effect to buyables are raised ▲1.25. (▲X.XX = raise the exponent to the power of X.XX)`
             },
             eff: null
         },
@@ -623,7 +627,7 @@ const TRANSCENSION_UPGRADES = [
             },
             name: "Quantum Shock",
             get desc() {
-                return `<span style="color: #ffff00"><b>[UNIMPLEMENTED]</b></span> Unlock a new feature in Setback, "Setback Priorities." where you can boost a single energy type but reduce the other types.`;
+                return `Unlock a new feature in Setback, "Setback Priorities." where you can boost a single energy type but reduce the other types.`;
             },
             eff: null
         },
@@ -781,6 +785,79 @@ const TRANSCENSION_UPGRADES = [
             eff: null
         },
     ],
+    [
+        {
+            id: "point6",
+            color: "basic",
+            cost: D('ee6'),
+            prereq: [],
+            get shown() {
+                return player.transcendUpgrades.includes('anticap1');
+            },
+            unlock: {
+                get req() {
+                    return player.transcendInSpecialReq === "point6" && Decimal.gte(player.bestPointsInTranscend, 'ee7');
+                },
+                restriction: true,
+                get desc() {
+                    return `All basic buyables are disabled. ${conditionMet(player.transcendInSpecialReq === "point6")} Reach ${conditionMet(Decimal.gte(player.bestPointsInTranscend, 'ee7'), format(player.bestPointsInTranscend) + ' / e10.000 M')} points.`;
+                }
+            },
+            name: "Buyable 7's Jealousy",
+            get desc() {
+                return `Buyable 7's cost scales way slower and persists on non-challenge transcension resets.`;
+            },
+            eff: null
+        },
+        {
+            id: "repli1",
+            color: "repli",
+            cost: D('e2e6'),
+            prereq: [],
+            get shown() {
+                return player.transcendUpgrades.includes('anticap1');
+            },
+            unlock: {
+                get req() {
+                    return true;
+                },
+                restriction: false,
+                get desc() {
+                    return ``;
+                }
+            },
+            name: "Replicators are kinda garbage",
+            get desc() {
+                return `Unlock Replicator Tiers, and Replicator speed is increased by transcension points. Currently: <b>${format(this.eff, 2)}×</b>`;
+            },
+            get eff() {
+                return Decimal.max(player.transcendPointTotal, 10).log10().log2().add(1);
+            }
+        },
+        {
+            id: "exp4",
+            color: "genXP",
+            cost: D('ee6'),
+            prereq: [],
+            get shown() {
+                return player.transcendUpgrades.includes('anticap1');
+            },
+            unlock: {
+                get req() {
+                    return player.transcendInSpecialReq === "exp4" && Decimal.gte(player.bestPointsInTranscend, 'ee8');
+                },
+                restriction: true,
+                get desc() {
+                    return `Generator XP's effects are nullified. ${conditionMet(player.transcendInSpecialReq === "exp4")} Reach ${conditionMet(Decimal.gte(player.bestPointsInTranscend, 'ee8'), format(player.bestPointsInTranscend) + ' / e100.000 M')} points.`;
+                }
+            },
+            name: "XP of Overpowered",
+            get desc() {
+                return `Gen. XP Buyable #1's increasing cost scaling is 100× slower. Gen. Enh. Buyable #1's increasing cost scaling is 1,000× slower.`;
+            },
+            eff: null
+        },
+    ],
 ]
 
 function initHTML_transcend() {
@@ -896,7 +973,10 @@ function updateGame_transcend() {
 }
 
 function transcendPtsEff(points) {
-    return Decimal.max(points, 0).add(1).log10().div(50).add(1).ln().mul(100).pow10();
+    let decay = D(50);
+    decay = decay.mul(tmp.anticap.energyEffs[3]);
+
+    return Decimal.max(points, 0).add(1).log10().div(decay).add(1).ln().mul(decay.mul(2)).pow10();
 }
 
 function updateHTML_transcend() {
@@ -930,9 +1010,23 @@ function updateHTML_transcend() {
                 if (i > 0) {
                     html[`transcendMilestone${i}`].setDisplay(willGetTM(i - 1));
                 }
-                html[`transcendMilestone${i}`].changeStyle('background-color', hasTranscendMilestone(i) ? '#8000FF80' : '#40008080');
-                html[`transcendMilestone${i}`].changeStyle('border', hasTranscendMilestone(i) ? '3px solid #8000FF' : '3px solid #400080');
-                html[`transcendMilestone${i}req`].setHTML(`Requirement: ${willGetTM(i) && !hasTranscendMilestone(i) ? '<b>' : ''}${format(player.transcendPointTotal)} (+${format(tmp.transcendAmount)}) / ${format(TRANSCENSION_MILESTONES[i].baseReq.div(Decimal.pow(2, player.transcendResetCount)))}${willGetTM(i) && !hasTranscendMilestone(i) ? '</b>' : ''} Total Transcension Points`);
+                html[`transcendMilestone${i}`].changeStyle('background-color', hasTranscendMilestone(i) 
+                    ? '#8000FF80' 
+                    : (willGetTM(i) 
+                        ? '#6000C080'
+                        : '#40008080'));
+                html[`transcendMilestone${i}`].changeStyle('border', hasTranscendMilestone(i) 
+                    ? '3px solid #8000FF' 
+                    : (willGetTM(i)
+                        ? '3px solid #6000C0'
+                        : '3px solid #400080'));
+                html[`transcendMilestone${i}req`].setHTML(shiftDown
+                        ? (hasTranscendMilestone(i)
+                            ? 'This milestone is already achieved! :3'
+                            : (willGetTM(i)
+                                ? 'You are guaranteed to gain this milestone next transcension reset for transcend points!'
+                                : `You will either need to gain ${format(getTranscendMilestoneReq(i).div(2).sub(Decimal.add(player.transcendPointTotal, tmp.transcendAmount)).ceil())} more TP or reset ~${format(getTranscendMilestoneReq(i).div(Decimal.add(player.transcendPointTotal, tmp.transcendAmount)).log2().ceil())} more times.`))
+                        : `Requirement: ${willGetTM(i) && !hasTranscendMilestone(i) ? '<b>' : ''}${format(player.transcendPointTotal)} (+${format(tmp.transcendAmount)}) / ${format(getTranscendMilestoneReq(i).ceil())}${willGetTM(i) && !hasTranscendMilestone(i) ? '</b>' : ''} total transcension points`);
             }
         }
         if (tmp.transTab === 1) {
@@ -1042,6 +1136,11 @@ function conditionMet(bool, txt) {
 }
 
 function hasTranscendMilestone(id) {
+    if (player.anticap.upgrades.includes(10)) {
+        if (id === 4 || id === 10) {
+            return true;
+        }
+    }
     return Decimal.gte(player.transcendPointTotal, getTranscendMilestoneReq(id));
 }
 
@@ -1054,7 +1153,7 @@ function getTranscendMilestoneReq(id) {
 }
 
 function transcendResetWOGainPrompt() {
-    if (Decimal.gte(tmp.transcendAmount, player.transcendPoints) && Decimal.lt(player.transcendPoints, 'ee4')) {
+    if (Decimal.gt(tmp.transcendAmount, player.transcendPoints) && Decimal.lt(player.transcendPoints, 'ee4')) {
         return confirm("Are you sure? You will NOT gain any transcension points by doing this transcension reset!");
     }
     return true;
@@ -1069,7 +1168,25 @@ function doTranscendReset(doAnyway = false) {
         player.transcendPoints = Decimal.add(player.transcendPoints, tmp.transcendAmount);
         player.transcendPointTotal = Decimal.add(player.transcendPointTotal, tmp.transcendAmount);
         player.transcendResetCount = Decimal.add(player.transcendResetCount, 1);
+
+        // i'm doing this again because i can't stand gaining a milestone but it not giving me the QoL until next reset, you fucking bitch
+        // fuck you whoever does that intentionally
+        // if you don't mean it, please implement this, and if you can't, then i'm sorry
+        updateGame_transcend();
     }
+
+    const PROTECTED_T_UPGRADES = [];
+    if (player.anticap.upgrades.includes(0)) {
+        PROTECTED_T_UPGRADES.push("base");
+    }
+    if (player.anticap.upgrades.includes(4)) {
+        PROTECTED_T_UPGRADES.push("point1");
+        PROTECTED_T_UPGRADES.push("prest1");
+        PROTECTED_T_UPGRADES.push("ascend1");
+    }
+
+    player.transcendUpgrades = player.transcendUpgrades.filter((value) => { return !PROTECTED_T_UPGRADES.includes(value) });
+    player.transcendUpgrades.push(...PROTECTED_T_UPGRADES);
 
     player.bestPointsInTranscend = D(0);
     player.timeInTranscension = D(0);
@@ -1108,7 +1225,7 @@ function doTranscendReset(doAnyway = false) {
     player.inSetback = false;
     player.setbackLoadout = [];
     if (hasTranscendMilestone(14) && player.transcendInSpecialReq != "setback1") {
-        player.setbackLoadout.push([D(10), D(10), D(10)]);
+        player.setbackLoadout.push([D(10), D(10), D(10), D(player.anticap.upgrades.includes(11) ? 10 : 0)]);
         player.currentSetback = 0;
     }
     if (player.transcendInSpecialReq === "setback1") {
@@ -1116,29 +1233,34 @@ function doTranscendReset(doAnyway = false) {
         player.currentSetback = 0;
     }
 
-    const PROTECTED_UPGRADES = [];
+    const PROTECTED_S_UPGRADES = [];
     for (let i = 0; i < 5; i++) {
-        PROTECTED_UPGRADES.push(`r${i+11}`);
-        PROTECTED_UPGRADES.push(`g${i+11}`);
-        PROTECTED_UPGRADES.push(`b${i+6}`);
-        PROTECTED_UPGRADES.push(`c${i+11}`);
+        PROTECTED_S_UPGRADES.push(`r${i+11}`);
+        PROTECTED_S_UPGRADES.push(`g${i+11}`);
+        PROTECTED_S_UPGRADES.push(`b${i+6}`);
+        PROTECTED_S_UPGRADES.push(`c${i+11}`);
     }
 
     if (hasTranscendMilestone(4) && player.transcendInSpecialReq != "setback1") {
         for (let i = 0; i < 5; i++) {
-            PROTECTED_UPGRADES.push(`r${i+1}`);
-            PROTECTED_UPGRADES.push(`g${i+1}`);
+            PROTECTED_S_UPGRADES.push(`r${i+1}`);
+            PROTECTED_S_UPGRADES.push(`g${i+1}`);
         }
     }
     if (hasTranscendMilestone(10) && player.transcendInSpecialReq != "setback1") {
         for (let i = 0; i < 5; i++) {
-            PROTECTED_UPGRADES.push(`r${i+6}`);
-            PROTECTED_UPGRADES.push(`g${i+6}`);
-            PROTECTED_UPGRADES.push(`b${i+1}`);
+            PROTECTED_S_UPGRADES.push(`r${i+6}`);
+            PROTECTED_S_UPGRADES.push(`g${i+6}`);
+            PROTECTED_S_UPGRADES.push(`b${i+1}`);
+        }
+    }
+    if (player.anticap.upgrades.includes(11)) {
+        for (let i = 0; i < 10; i++) {
+            PROTECTED_S_UPGRADES.push(`c${i+1}`);
         }
     }
 
-    player.setbackUpgrades = player.setbackUpgrades.filter((value) => { return PROTECTED_UPGRADES.includes(value) });
+    player.setbackUpgrades = player.setbackUpgrades.filter((value) => { return PROTECTED_S_UPGRADES.includes(value) });
 
     player.generatorFeatures.xp = D(0);
     for (let i = 0; i < player.generatorFeatures.buyable.length; i++) {
@@ -1154,9 +1276,13 @@ function doTranscendReset(doAnyway = false) {
     player.prestigeChallengeCompleted = [];
     for (let i = 0; i < player.prestigeUpgrades.length; i++) {
         player.prestigeUpgrades[i] = D(0);
-        player.prestigeFluidUpgs[i] = D(0);
+        if (!player.anticap.upgrades.includes(10)) {
+            player.prestigeFluidUpgs[i] = D(0);
+        }
     }
-    player.prestigeFluid = D(0);
+    if (!player.anticap.upgrades.includes(10)) {
+        player.prestigeFluid = D(0);
+    }
 
     for (let i = 0; i < player.buyables.length; i++) {
         player.buyableInTranscension[i] = false;

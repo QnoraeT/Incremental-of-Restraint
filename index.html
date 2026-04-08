@@ -31,7 +31,7 @@
         <script src="src/features/misc/popups.js"></script>
         <script src="src/gameHandle.js"></script>
     </head>
-    <body onload="loadGame()">
+    <body style="background-color: #000000;" onload="loadGame()">
         <canvas id="draw" style="height: 100vh; width: 100vw; position: absolute; top: 0px; left: 0px; z-index: -2; position: fixed"></canvas>
         <div style="height: 100vh; width: 100vw; margin: 0px; padding: 0px;">
             <div id="offlineTime">
@@ -219,30 +219,52 @@
                         <div class="flex-vertical whiteText font">
                             <div class="flex-horizontal">
                                 <div style="margin: 4px" class="flex-vertical">
-                                    <span class="font" style="font-size: 24px; color: #ff80c0" id="replicatorDisp"></span><span class="font" style="font-size: 12px; color: #ff80c0">replicators</span>
-                                    <span class="font" style="font-size: 12px; color: #ff80c0" id="replicatorBestDisp"></span>
-                                    <span class="font" style="font-size: 12px; color: #ff80c0" id="replicatorEffectDisp"></span>
+                                    <span class="font" style="font-size: 24px; color: #ff80a0" id="replicatorDisp"></span><span class="font" style="font-size: 12px; color: #ff80a0">replicators</span>
+                                    <span class="font" style="font-size: 12px; color: #ff80a0" id="replicatorBestDisp"></span>
+                                    <span class="font" style="font-size: 12px; color: #ff80a0" id="replicatorEffectDisp"></span>
                                 </div>
                                 <div style="margin: 4px" class="flex-vertical" id="rankPointShow">
-                                    <span class="font" style="font-size: 24px; color: #ff80e0" id="rankPointDisp"></span><span class="font" style="font-size: 12px; color: #ff80e0">rank points</span>
-                                    <span class="font" style="font-size: 12px; color: #ff80e0" id="rankPointGenDisp"></span>
+                                    <span class="font" style="font-size: 24px; color: #ff80c0" id="rankPointDisp"></span><span class="font" style="font-size: 12px; color: #ff80c0">rank points</span>
+                                    <span class="font" style="font-size: 12px; color: #ff80c0" id="rankPointGenDisp"></span>
+                                </div>
+                                <div style="margin: 4px" class="flex-vertical" id="tierPointShow">
+                                    <span class="font" style="font-size: 24px; color: #ff80e0" id="tierPointDisp"></span><span class="font" style="font-size: 12px; color: #ff80e0">tier points</span>
+                                    <span class="font" style="font-size: 12px; color: #ff80e0" id="tierPointGenDisp"></span>
+                                    <span class="font" style="font-size: 12px; color: #ff80e0" id="tierPointEffectDisp"></span>
                                 </div>
                             </div>
-                            <span style="font-size: 12px;">Your replicator strength is <b><span id="replicatorStrengthDisp1"></span></b>, meaning that every <span id="replicatorStrengthDisp2"></span> OoMs of replicators slow down replicator speed by 10×.</span>
-                            <span style="font-size: 12px;">Your replicators have slowed down by <b><span id="replicatorStrengthEffect"></span></b>&times; due to overcrowding.</span>
+                            <span style="font-size: 12px;">Your replicator strength is <b><span id="replicatorStrengthDisp1"></span></b>, meaning that every <span id="replicatorStrengthDisp2"></span> OoMs of replicators slow down replicator speed by 10√.</span>
+                            <span style="font-size: 12px;">Your replicators have slowed down by <b><span id="replicatorStrengthEffect"></span></b>√ due to overcrowding.</span>
                             <span style="font-size: 12px;">Your replicators will double in <b><span id="replicatorTrueSpeed"></span></b>. (<span id="replicatorTrueSpeed2"></span>&times;/s.)</span>
                             <span style="font-size: 12px; color: #ffff00">Replicators use Tier 2 Time Speed!</span>
-                            <div class="flex-vertical">
-                                <div style="border: 2px solid #ff0080; background-color: #88004080; margin: 2px;" class="flex-horizontal">
-                                    <div id="repliRankAll" style="width: 200px; margin: 2px">
-                                        <button onclick="repliRankReset()" id="repliRank" class="whiteText font" style="height: 100px; width: 200px; font-size: 10px; margin: 2px">
-                                            <span style="font-size: 12px;"><b>Replirank <span id="repliRankAmount"></span></b></span><br>
-                                            <br>
-                                            Reset prior progress to increase rank point gain from <span id="repliRankEff"></span> and increase replicator effect by +^0.05.<br>
-                                            Requires: <span id="repliRankCost"></span>
-                                        </button>
+                            <div id="repliRankUpgsAll">
+                                <div class="flex-vertical">
+                                    <div style="border: 2px solid #ff0080; background-color: #80004080; margin: 2px;" class="flex-horizontal">
+                                        <div id="repliRankAll" style="width: 200px; margin: 2px">
+                                            <button onclick="repliRankReset()" id="repliRank" class="whiteText font" style="height: 100px; width: 200px; font-size: 10px; margin: 2px">
+                                                <span style="font-size: 12px;"><b>Replirank <span id="repliRankAmount"></span></b></span><br>
+                                                <br>
+                                                Reset prior progress to increase rank point gain from <span id="repliRankEff"></span> and increase replicator effect by +^0.05.<br>
+                                                Requires: <span id="repliRankCost"></span>
+                                            </button>
+                                        </div>
+                                        <div id="rankPointBuyList" style="align-items: center; margin: 2px; margin-right: 4px;" class="flex-horizontal"></div>
                                     </div>
-                                    <div id="rankPointBuyList" style="align-items: center; margin: 2px; margin-right: 4px;" class="flex-horizontal"></div>
+                                </div>
+                            </div>
+                            <div id="repliTierUpgsAll">
+                                <div class="flex-vertical">
+                                    <div style="border: 2px solid #ff00c0; background-color: #80006080; margin: 2px;" class="flex-horizontal">
+                                        <div id="repliTierAll" style="width: 200px; margin: 2px">
+                                            <button onclick="repliTierReset()" id="repliTier" class="whiteText font" style="height: 100px; width: 200px; font-size: 10px; margin: 2px">
+                                                <span style="font-size: 12px;"><b>Replitier <span id="repliTierAmount"></span></b></span><br>
+                                                <br>
+                                                Reset prior progress to increase tier point gain from <span id="repliTierEff"></span> and increase replicator speed by 20&times;.<br>
+                                                Requires: <span id="repliTierCost"></span>
+                                            </button>
+                                        </div>
+                                        <div id="tierPointBuyList" style="align-items: center; margin: 2px; margin-right: 4px;" class="flex-horizontal"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -513,6 +535,7 @@
                         <div id="MilestoneTransTab">
                             <div class="flex-vertical">
                                 <span class="whiteText font" style="font-size: 12px; text-align: center; margin-top: 12px;" id="transUpgDesc">Every successful transcension reset (>1.000e2,400 points) will decrease milestone requirements by half!</span>
+                                <span class="whiteText font" style="font-size: 12px; text-align: center; margin-top: 12px;" id="transUpgDesc">Hold shift to see when you will get the milestone.</span>
                                 <div class="flex-vertical" id="transMilestoneList"></div>
                             </div>
                         </div>
@@ -542,6 +565,11 @@
                                     Some prior resources will have softcaps/scalings applied to them. You can see some of these in Statistics -> Factors.<br><br>
                                     You will gain anticap power depending on how far you get in Softcap Hell.
                                 </button>
+                                <br>
+                                <span class="whiteText font" style="font-size: 15px;" id="anticapBuyableScaling">All anticap buyables scale 1% faster per purchase.</span>
+                                <div class="flex-horizontal" id="anticapBuyableList"></div>
+                                <!-- 1082px to try to align the thing to the buyables manually (at least when you first unlock it) idk im lazy -->
+                                <div class="flex-horizontal" style="background-color: #40404080; border: 3px solid #808080; width: 1082px; height: 120px; overflow-x: auto; overflow-y: hidden; justify-content: normal;" id="anticapUpgradeList"></div>
                             </div>
                         </div>
                     </div>
