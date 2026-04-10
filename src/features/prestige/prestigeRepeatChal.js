@@ -6,11 +6,12 @@ const PRESTIGE_CHALLENGES_REPEAT = [
             return true;
         },
         goal(comp) {
-            // tl;dr: req starts at 4e42, multiplied by 2e6 per comp, but then that multiplier also gets multiplied by 2 per comp
+            // fuck you
             let goal = linearAdd(comp, Math.log10(2e6), Math.log10(2), false).pow10().mul(4e42);
             return goal;
         },
         target(essence) {
+            // fuck you too
             let target = linearAdd(Decimal.div(essence, 4e42).max(1).log10(), Math.log10(2e6), Math.log10(2), true);
             return target;
         },
@@ -135,12 +136,12 @@ const PRESTIGE_CHALLENGES_REPEAT = [
             return Decimal.gte(player.prestigeChallengeRepCompleted[3], 1);
         },
         goal(comp) {
-            // tl;dr: req starts at 1e30, multiplied by 2000 per comp, but then that multiplier also gets multiplied by 5 per comp
-            let goal = linearAdd(comp, Math.log10(2000), Math.log10(5), false).pow10().mul(1e30);
+            // tl;dr: req starts at 1e30, multiplied by 2000 per comp, but then that multiplier also gets multiplied by 10 per comp
+            let goal = linearAdd(comp, Math.log10(2000), 1, false).pow10().mul(1e30);
             return goal;
         },
         target(essence) {
-            let target = linearAdd(Decimal.div(essence, 1e30).max(1).log10(), Math.log10(2000), Math.log10(5), true);
+            let target = linearAdd(Decimal.div(essence, 1e30).max(1).log10(), Math.log10(2000), 1, true);
             return target;
         },
         name: "Transcension Translation",

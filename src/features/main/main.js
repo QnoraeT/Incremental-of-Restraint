@@ -551,15 +551,16 @@ function updateGame_main() {
             }
 
             if (tmp.prestigeChal[10].depth.gt(0)) {
-                tmp.buyables[i].genEffect = Decimal.sub(2, tmp.buyables[i].genEffect).max(0);
-            }
+                // make it some really low number so higher values don't softlock you out of completing PC11
+                tmp.buyables[i].genEffect = Decimal.sub(2, tmp.buyables[i].genEffect).max('e-1000');
+            } else {
+                if (player.transcendUpgrades.includes('point4')) {
+                    tmp.buyables[i].genEffect = tmp.buyables[i].genEffect.max(0).add(1).log10().add(1).pow(1.25).sub(1).pow10().sub(1);
+                }
 
-            if (player.transcendUpgrades.includes('point4')) {
-                tmp.buyables[i].genEffect = tmp.buyables[i].genEffect.max(0).add(1).log10().add(1).pow(1.25).sub(1).pow10().sub(1);
-            }
-
-            if (!tmp.inAnyChallenge) {
-                tmp.buyables[i].genEffect = tmp.buyables[i].genEffect.max(0).add(1).log10().add(1).pow(tmp.anticap.buyables[4].eff.add(1)).sub(1).pow10().sub(1);
+                if (!tmp.inAnyChallenge) {
+                    tmp.buyables[i].genEffect = tmp.buyables[i].genEffect.max(0).add(1).log10().add(1).pow(tmp.anticap.buyables[4].eff.add(1)).sub(1).pow10().sub(1);
+                }
             }
 
             tmp.buyables[i].effectBase = [D(1.0), D(0.5), D(0.25), D(0.1), D(0.05), D(0.01)][i];

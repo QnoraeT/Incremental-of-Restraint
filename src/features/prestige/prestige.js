@@ -334,6 +334,7 @@ function updateGame_prestige() {
         if (Decimal.gte(player.prestigeChallengeRepCompleted[0], 1)) {
             upgGen = Decimal.gt(player.prestigeUpgrades[i], 0) ? Decimal.pow(tmp.prestigeRepeatChal[0].rewardEffs.exponent, player.prestigeUpgrades[i]) : D(0);
         }
+        upgGen = cheatDilateBoost(upgGen);
         player.prestigeBuyablePoints[i] = Decimal.add(player.prestigeBuyablePoints[i], upgGen.mul(delta).mul(tmp.timeSpeedTiers[1]))
 
         tmp.prestigeUpgLevels[i] = prestigeBuyGenFunc(player.prestigeBuyablePoints[i], true, i).floor().max(1);
@@ -384,11 +385,16 @@ function updateGame_prestige() {
         tmp.peGain = anticapSoftcap(tmp.peGain, "prestigeEssence", "prestigeEssence", false);
     }
 
-    if (!hasSetbackUpgrade('b7')) {
-        tmp.peGain = tmp.peGain.sub(player.prestigeEssence);
-        addStatFactor('prestigeEssence', `Current P. Essence`, `-`, player.prestigeEssence, tmp.peGain.sub(player.prestigeEssence).max(0));
+    tmp.peGain = cheatDilateBoost(tmp.peGain);
+    if (player.cheats.dilate) {
+        addStatFactor('prestigeEssence', `Cheats`, `...`, null, tmp.peGain);
     }
-    tmp.peGain = tmp.peGain.floor().max(0);
+
+    if (!hasSetbackUpgrade('b7')) {
+        tmp.peGain = tmp.peGain.sub(player.prestigeEssence).max(0);
+        addStatFactor('prestigeEssence', `Current P. Essence`, `-`, player.prestigeEssence, tmp.peGain);
+    }
+    tmp.peGain = tmp.peGain.floor();
 
 
     tmp.peNext = tmp.peGain;
@@ -555,10 +561,14 @@ function updateGame_prestige() {
         addStatFactor('prestige', `Cheats`, `...`, null, tmp.prestigePointGain);
     }
 
-    addStatFactor('prestige', `Current P. Points`, `-`, player.prestige, tmp.prestigePointGain.sub(player.prestige).max(0));
-    tmp.prestigePointGain = tmp.prestigePointGain.sub(player.prestige).floor().max(0);
+    if (!hasSetbackUpgrade('b10')) {
+        tmp.prestigePointGain = tmp.prestigePointGain.sub(player.prestige).max(0);
+        addStatFactor('prestige', `Current P. Points`, `-`, player.prestige, tmp.prestigePointGain);
+    }
 
-    tmp.prestigePointNext = tmp.prestigePointGain.add(player.prestige).add(1);
+    tmp.prestigePointGain = tmp.prestigePointGain.floor();
+
+    tmp.prestigePointNext = tmp.prestigePointGain.add(hasSetbackUpgrade('b10') ? D(0) : player.prestige).add(1);
     if (player.transcendInSpecialReq === "prest4" && Decimal.gte(player.prestigeCountInTrans, 1)) {
         tmp.prestigePointNext = new Decimal(Infinity);
     }
@@ -610,7 +620,11 @@ function updateGame_prestige() {
     // auto-prestige
     tmp.autoPrestige = player.cheats.autoPrestige || (Decimal.gte(player.hinderanceScore[2], HINDERANCES[2].start) && player.transcendInSpecialReq !== "prest4");
     if (tmp.autoPrestige) {
-        player.prestige = Decimal.add(player.prestige, tmp.prestigePointGain);
+        if (hasSetbackUpgrade('b10')) {
+            player.prestige = Decimal.max(player.prestige, tmp.prestigePointGain).add(tmp.prestigePointGain.mul(delta).mul(tmp.timeSpeedTiers[1]));;
+        } else {
+            player.prestige = Decimal.add(player.prestige, tmp.prestigePointGain);
+        }
 
         if (hasSetbackUpgrade('b7')) {
             player.prestigeEssence = Decimal.max(player.prestigeEssence, tmp.peGain).add(tmp.peGain.mul(delta).mul(tmp.timeSpeedTiers[1]));
@@ -795,9 +809,9 @@ function updateHTML_prestige() {
 function prestigeBuyGenFunc(xp, inv, i) {
     let eff;
     if (inv) {
-        eff = linearAdd(Decimal.max(xp, 1).log10(), 1, 1, true);
+        eff = Decimal.eq(xp, 0) ? D(0) : Decimal.log10(xp).add(1).log2();
     } else {
-        eff = linearAdd(xp, 1, 1, false).pow10();
+        eff = Decimal.pow(2, xp).sub(1).pow10();
     }
     return eff;
 }

@@ -208,13 +208,16 @@ const UPDATE_LOG = [
             "Nerfed Ascension Buyables #9-12's effects, but increased their cap and slowed down their cost scalings.",
             "Setback upgrades R1-10 and G1-10 are changed into being additive, and no longer have a cap.",
             "Nerfed Hinderance 1's completion from being multiplicative to being additive.",
-            "Nerfed point4 from ▲1.4 to ▲1.25."
+            "Nerfed point4 from ▲1.4 to ▲1.25. You could get more points being in PC13 than outside of it.",
+            "Nerfed Prestige Generators by increasing their scaling from 10^x^2 to 10^2^x. It inflated with higher PRC1 completions.",
         ],
         features: [
-            "Added anticap."
+            "Added anticap.",
+            "Added new transcension upgrades and replicator tiers."
         ],
         bugfixes: [
             "Fixed Setback in the Textbook not having a colored border. I hate CSS for this, but oh well.",
+            "PC11 is very annoying. I made generators have a minimum effect of 1.000e-1,000, so that you could still push through PC11 if you're far enough.",
             "Fixed an exploit that likely made several challenges trivial via 1 tick of extra PBs not being discarded after a reset.",
             "Fixed tiers having 1 extra level of effect.",
             "Fixed hinderance2's effect on dimensions not working at all.",

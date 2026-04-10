@@ -1,4 +1,5 @@
 "use strict";
+
 const SETBACK_UPGRADES = [
     [
         ...(() => {
@@ -82,10 +83,10 @@ const SETBACK_UPGRADES = [
             id: "r14",
             cost: D('e6.25e6'),
             get desc() {
-                return `Red Energy's effect also affects all basic buyable bases at a reduced rate. Currently: ^0.25 → ×${format(this.eff, 2)}`;
+                return `Red Energy's effect also affects all basic buyable bases at a reduced rate. Currently: ×${format(this.eff, 2)}`;
             },
             get eff() {
-                return tmp.energyEffs[0].pow(0.25);
+                return tmp.energyEffs[0];
             }
         },
         {
@@ -256,7 +257,7 @@ const SETBACK_UPGRADES = [
         {
             id: "b10",
             cost: D('e12800'),
-            desc: `[UNIMPLEMENTED] Prestige point requirements are removed, allowing you to generate prestige points over time. Prestige points' minimum value is 1 second of generation. (Uses Tier 2 time speed!)`
+            desc: `Prestige point requirements are removed, allowing you to generate prestige points over time. Prestige points' minimum value is 1 second of generation. (Uses Tier 2 time speed!)`
         },
     ],
     [
@@ -642,8 +643,8 @@ function initHTML_setback() {
                         <span style="font-size: 14px;" id="setbackPrio${capsColor}amount"></span><br>
                         <br>
                         Boosting effect by ^<span style="color: ${colorChange(tmp.quarkColors[i], 1.0, 0.5)}" id="setbackPrio${capsColor}baseEff"></span>.<br>
-                        Increase for <span id="setbackPrio${capsColor}cost"></span><br>
-                        Next: <span id="setbackPrio${capsColor}costNext"></span>
+                        <span id="setbackPrio${capsColor}cost"></span><br>
+                        <span id="setbackPrio${capsColor}costNext"></span>
                     </button>
                 </div>
                 <div id="setbackPrio${capsColor}Decall" style="width: 225px; margin-top: 4px; margin-bottom: 4px;">
@@ -839,9 +840,18 @@ function updateGame_setbackResources() {
         tmp.setbackPriorityData[i].plus1 = baseEffect.pow(SETBACK_PRIO.prioScoreEff(tmp.setbackPriorityData[i].effPrio.add(1))).pow(SETBACK_PRIO.prioBoost(Decimal.add(player.setbackPriority[i], 1)));
         tmp.setbackPriorityData[i].minus1 = baseEffect.pow(SETBACK_PRIO.prioScoreEff(tmp.setbackPriorityData[i].effPrio.sub(0.5))).pow(SETBACK_PRIO.prioBoost(player.setbackPriority[i]));
 
-        tmp.setbackPriorityData[i].cost = Decimal.lt(player.setbackPriority[i], player.bestSetbackPriority[i]) ? D(0) : SETBACK_PRIO.prioReq[i](player.setbackPriority[i], false)
-        tmp.setbackPriorityData[i].nextCost = Decimal.add(player.setbackPriority[i], 1).lt(player.bestSetbackPriority[i]) ? D(0) : SETBACK_PRIO.prioReq[i](Decimal.add(player.setbackPriority[i], 1), false)
-        tmp.setbackPriorityData[i].target = SETBACK_PRIO.prioReq[i](player.setbackEnergy[i], true).max(player.bestSetbackPriority[i])
+        tmp.setbackPriorityData[i].cost = Decimal.gte(player.setbackPriority[i], SETBACK_PRIO.cap)
+            ? D(Infinity)
+            : (Decimal.lt(player.setbackPriority[i], player.bestSetbackPriority[i]) 
+                ? D(0) 
+                : SETBACK_PRIO.prioReq[i](player.setbackPriority[i], false));
+        tmp.setbackPriorityData[i].nextCost = Decimal.gte(Decimal.add(player.setbackPriority[i], 1), SETBACK_PRIO.cap)
+            ? D(Infinity)
+            : (Decimal.lt(Decimal.add(player.setbackPriority[i], 1), player.bestSetbackPriority[i]) 
+                ? D(0) 
+                : SETBACK_PRIO.prioReq[i](Decimal.add(player.setbackPriority[i], 1), false));
+
+        tmp.setbackPriorityData[i].target = SETBACK_PRIO.prioReq[i](player.setbackEnergy[i], true).max(player.bestSetbackPriority[i]).min(SETBACK_PRIO.cap);
 
         for (let j = 0; j < player.setbackLoadout.length; j++) {
             if (player.setbackLoadout[j][i] === undefined) {
@@ -1266,15 +1276,19 @@ function updateHTML_setback() {
                     html[`setbackPrio${capsColor}Decbutton`].changeStyle('background-color', `${tmp.quarkColorsCalc[i][Decimal.gt(player.setbackPriority[i], 0) ? 'yes' : 'no'].bg}`);
                     html[`setbackPrio${capsColor}Decbutton`].changeStyle('border', `3px solid ${tmp.quarkColorsCalc[i][Decimal.gt(player.setbackPriority[i], 0) ? 'yes' : 'no'].border}`);
                     html[`setbackPrio${capsColor}Decbutton`].changeStyle('cursor', Decimal.gt(player.setbackPriority[i], 0) ? 'pointer' : 'not-allowed');
-                    
+
                     html[`setbackPrio${capsColor}button`].changeStyle('background-color', `${tmp.quarkColorsCalc[i][Decimal.gte(player.setbackEnergy[i], tmp.setbackPriorityData[i].cost) ? 'yes' : 'no'].bg}`);
                     html[`setbackPrio${capsColor}button`].changeStyle('border', `3px solid ${tmp.quarkColorsCalc[i][Decimal.gte(player.setbackEnergy[i], tmp.setbackPriorityData[i].cost) ? 'yes' : 'no'].border}`);
                     html[`setbackPrio${capsColor}button`].changeStyle('cursor', Decimal.gte(player.setbackEnergy[i], tmp.setbackPriorityData[i].cost) ? 'pointer' : 'not-allowed');
 
-                    html[`setbackPrio${capsColor}amount`].setTxt(`Base Priority: ${format(player.setbackPriority[i])} (Max: ${format(player.bestSetbackPriority[i])})`);
+                    html[`setbackPrio${capsColor}amount`].setTxt(`Base Priority: ${format(player.setbackPriority[i])} (Max: ${format(player.bestSetbackPriority[i])}/${format(SETBACK_PRIO.cap)})`);
                     html[`setbackPrio${capsColor}baseEff`].setTxt(format(SETBACK_PRIO.prioBoost(player.setbackPriority[i]), 2))
-                    html[`setbackPrio${capsColor}cost`].setTxt(`${format(tmp.setbackPriorityData[i].cost)} ${color} energy`);
-                    html[`setbackPrio${capsColor}costNext`].setTxt(`${format(tmp.setbackPriorityData[i].nextCost)} ${color} energy`);
+                    html[`setbackPrio${capsColor}cost`].setTxt(Decimal.isFinite(tmp.setbackPriorityData[i].cost) 
+                        ? `Increase for ${format(tmp.setbackPriorityData[i].cost)} ${color} energy`
+                        : 'You have maxed this priority!');
+                    html[`setbackPrio${capsColor}costNext`].setTxt(Decimal.isFinite(tmp.setbackPriorityData[i].nextCost) 
+                        ? `Next: ${format(tmp.setbackPriorityData[i].nextCost)} ${color} energy` 
+                        : '');
                 }
             }
         }

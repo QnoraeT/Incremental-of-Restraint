@@ -1,4 +1,5 @@
 "use strict";
+
 const ASCENSION_UPGRADES = [
     {
         show: true,
@@ -85,7 +86,7 @@ const ASCENSION_UPGRADES = [
             if (player.transcendInSpecialReq === "point4") {
                 cost = cost.mul(1000);
             }
-            cost = cost.div(scale).exp().sub(1).mul(scale).pow_base(2.5).mul(50);
+            cost = increasingExpCostScaling(cost, scale.recip(), false).pow_base(2.5).mul(50);
             return cost;
         },
         target(resource) {
@@ -94,7 +95,7 @@ const ASCENSION_UPGRADES = [
                 scale = scale.mul(tmp.prestigeRepeatChal[2].rewardEffs.ascendCost);
             }
 
-            let target = Decimal.div(resource, 50).max(1).log(2.5).div(scale).add(1).ln().mul(scale);
+            let target = increasingExpCostScaling(Decimal.div(resource, 50).max(1).log(2.5), scale, true);
             if (player.transcendInSpecialReq === "point4") {
                 target = target.div(1000);
             }
@@ -165,7 +166,7 @@ const ASCENSION_UPGRADES = [
             if (hasSetbackUpgrade(`g13`)) {
                 scale = scale.mul(SETBACK_UPGRADES[1][12].eff);
             }
-            cost = cost.div(scale).exp().sub(1).mul(scale).pow_base(3).mul(10);
+            cost = increasingExpCostScaling(cost, scale.recip()).pow_base(3).mul(10);
             return cost
         },
         target(resource) {
@@ -174,7 +175,7 @@ const ASCENSION_UPGRADES = [
                 scale = scale.mul(SETBACK_UPGRADES[1][12].eff);
             }
 
-            let target = Decimal.div(resource, 10).max(1).log(3).div(scale).add(1).ln().mul(scale);
+            let target = increasingExpCostScaling(Decimal.div(resource, 10).max(1).log(3), scale.recip(), true);
             if (player.transcendInSpecialReq === "point4") {
                 target = target.div(1000);
             }

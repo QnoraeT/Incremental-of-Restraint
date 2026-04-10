@@ -1,3 +1,5 @@
+"use strict";
+
 let popupID = 0;
 const popupList = [];
 

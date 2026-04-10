@@ -33,7 +33,7 @@ const PRESTIGE_FLUID = {
         if (Decimal.lt(resource, this.costArr[i])) {
             return D(0);
         }
-        return Decimal.log2(resource).add(1).log10().div(this.costArr[i]);
+        return Decimal.div(resource, this.costArr[i]).log10().add(1).log2();
     }
 }
 
@@ -161,7 +161,6 @@ function buyPrestigeFluidUpg(i) {
         return;
     }
 
-    let resource = player.prestigeFluid;
     if (shiftDown) {
         player.prestigeFluidUpgs[i] = tmp.pfUpgData[i].target.max(player.prestigeFluidUpgs[i]).ceil();
     } else {

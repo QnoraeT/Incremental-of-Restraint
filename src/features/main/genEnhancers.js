@@ -12,7 +12,7 @@ const GEN_ENH_BUYABLES = [
             }
 
             let cost = D(bought);
-            cost = cost.pow_base(scale.add(1)).sub(1).div(scale).pow_base(2);
+            cost = increasingExpCostScaling(cost, scale).pow_base(2);
             return cost.floor();
         },
         target(resource) {
@@ -22,7 +22,7 @@ const GEN_ENH_BUYABLES = [
             }
 
             let target = D(resource).ceil();
-            target = target.max(1).log(2).mul(scale).add(1).log(scale.add(1));
+            target = increasingExpCostScaling(target.max(1).log(2), scale, true);
             return target;
         },
         eff(bought) {
@@ -43,12 +43,12 @@ const GEN_ENH_BUYABLES = [
         },
         cost(bought) {
             let cost = D(bought);
-            cost = cost.pow_base(1.02).sub(1).div(0.02).pow_base(3).mul(5);
+            cost = increasingExpCostScaling(cost, 0.02).pow_base(3).mul(5);
             return cost.floor();
         },
         target(resource) {
             let target = D(resource).ceil();
-            target = target.div(5).max(1).log(3).mul(0.02).add(1).log(1.02);
+            target = increasingExpCostScaling(target.div(5).max(1).log(3), 0.02, true);
             return target;
         },
         eff(bought) {
@@ -100,7 +100,6 @@ const GEN_ENH_BUYABLES = [
         get show() {
             return player.transcendUpgrades.includes('exp3');
         },
-        // TODO: make scale something else that doesn't fuck up at very low scaling due to floating point (<0.000000001)
         cost(bought) {
             let scale = D(0.03);
             if (hasSetbackUpgrade('c13')) {
@@ -108,7 +107,7 @@ const GEN_ENH_BUYABLES = [
             }
 
             let cost = D(bought);
-            cost = cost.pow_base(scale.add(1)).sub(1).div(scale).pow_base(3).mul(2500);
+            cost = increasingExpCostScaling(cost, scale).pow_base(3).mul(2500);
             return cost.floor();
         },
         target(resource) {
@@ -118,7 +117,7 @@ const GEN_ENH_BUYABLES = [
             }
 
             let target = D(resource).ceil();
-            target = target.div(1000).max(1).log(3).mul(scale).add(1).log(scale.add(1));
+            target = increasingExpCostScaling(target.div(1000).max(1).log(3), scale, true);
             return target;
         },
         eff(bought) {
@@ -139,12 +138,12 @@ const GEN_ENH_BUYABLES = [
         },
         cost(bought) {
             let cost = D(bought);
-            cost = cost.pow_base(1.01).sub(1).div(0.01).pow_base(1e25).mul(1e100);
+            cost = increasingExpCostScaling(cost, 0.01).pow_base(1e25).mul(1e100);
             return cost.floor();
         },
         target(resource) {
             let target = D(resource).ceil();
-            target = target.div(1e100).max(1).log(1e25).mul(0.01).add(1).log(1.01);
+            target = increasingExpCostScaling(target.div(1e100).max(1).log(1e25), 0.01, true);
             return target;
         },
         eff(bought) {
@@ -334,8 +333,8 @@ function updateGame_genEnhancers() {
         decay = decay.mul(100);
     }
     decay = decay.mul(tmp.anticap.energyEffs[3]);
-    
-    tmp.generatorFeatures.enhancerEff = Decimal.max(player.generatorFeatures.totalEnh, 1).log10().div(decay).add(1).ln().mul(decay.mul(5)).pow10();
+
+    tmp.generatorFeatures.enhancerEff = powLogSlowDown(Decimal.max(player.generatorFeatures.totalEnh, 0).add(1), decay, false).pow(5);
     if (colorAmountTotal(3).gt(0)) {
         tmp.generatorFeatures.enhancerEff = D(1);
     }

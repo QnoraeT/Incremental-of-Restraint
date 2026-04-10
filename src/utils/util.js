@@ -79,6 +79,37 @@ function linearAdd(num, base, growth, inverse) {
         : Decimal.sub(num, 1).mul(growth).add(Decimal.mul(base, 2)).mul(num).div(2);
 };
 
+function powLogSlowDown(val, decay, inverse) {
+    if (inverse) {
+        // not get fucked by floating point
+        if (Decimal.log10(val).div(decay).lt(1e-7)) {
+            return D(val);
+        }
+        return Decimal.log10(val).div(decay).exp().sub(1).mul(decay).pow10();
+    } else {
+        // not get fucked by floating point
+        if (Decimal.log10(val).div(decay).lt(1e-7)) {
+            return D(val);
+        }
+        return Decimal.log10(val).div(decay).add(1).ln().mul(decay).pow10();
+    }
+}
+
+// exp = 0.01 = it scales 1% faster per purchase
+function increasingExpCostScaling(val, exp, inverse = false) {
+    if (inverse) {
+        if (Decimal.mul(val, exp).lt(1e-7)) {
+            return val;
+        }
+        return Decimal.mul(val, exp).add(1).ln().div(exp);
+    } else {
+        if (Decimal.mul(val, exp).lt(1e-7)) {
+            return val;
+        }
+        return Decimal.mul(val, exp).exp().sub(1).div(exp);
+    }
+}
+
 function strikeThrough(bool, text) {
     if (bool) {
         return `<span style='text-decoration: line-through'>${text}</span>`;

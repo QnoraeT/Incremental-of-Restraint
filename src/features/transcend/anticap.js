@@ -201,6 +201,16 @@ const ANTICAP = {
                 { start: D("ee10"), pow: D(1) }
             ];
             return arr;
+        },
+        t1timeSpeed() {
+            const arr = [
+                { start: D(1e10), pow: D(1) },
+                { start: D(1e40), pow: D(1) },
+                { start: D(1e120), pow: D(1) },
+                { start: D("e500"), pow: D(1) },
+                { start: D("e20000"), pow: D(1) }
+            ];
+            return arr;
         }
     },
     scalings: {
@@ -330,7 +340,7 @@ const ANTICAP = {
                 return `Add to anticap energy's exponent. +${format(eff, 2)} → +${format(effNext, 2)}`;
             }
         },
-       {
+        {
             enabled() { return true; },
             cost(bought) {
                 return Decimal.pow(2, bought).pow10().mul(10000);
@@ -473,7 +483,7 @@ const ANTICAP = {
         {
             cost: D(2e19),
             desc(eff) {
-                return `Basic Buyable automators now have instant speed. Ascension Buyables #5-8 and #15-16 now boost the buyables' effects at a reduced rate.`;
+                return `Basic Buyable automators now have instant speed. A.Buyables #5-8 and #15-16 now boost basic buyables at a reduced rate.`;
             },
             eff() {
                 return null;
@@ -509,7 +519,7 @@ const ANTICAP = {
         {
             cost: D(1e28),
             desc(eff) {
-                return `Cyan autobuyers are unlocked. Keep Cyan upgrades #1-10. Transcension Milestone 15 is upgraded to a (10, 10, 10, 10) setback.`;
+                return `Cyan autobuyers are unlocked. Keep Cyan upgrades #1-10. Trans. Milestone 15 is upgraded to a (10, 10, 10, 10) setback.`;
             },
             eff() {
                 return null;
@@ -634,14 +644,16 @@ function updateGame_anticapResources() {
         let effPlus1 = eff.add(1);
 
         tmp.anticap.buyables[i].eff = ANTICAP.buyables[i].eff(ANTICAP.buyables[i].enabled() ? eff : 0);
-        
+
         tmp.anticap.buyables[i].desc = ANTICAP.buyables[i].desc(tmp.anticap.buyables[i].eff, ANTICAP.buyables[i].eff(effPlus1))
     }
 
     tmp.anticap.powerGain = Decimal.gte(player.anticap.bestPoints, 1e100) ? inverseFact(Decimal.max(player.anticap.bestPoints, 1).log(1e100)).sub(1).pow_base(2).sub(1).pow10().floor() : D(0);
+    tmp.anticap.powerGain = cheatDilateBoost(tmp.anticap.powerGain);
     tmp.anticap.powerGain = tmp.anticap.powerGain.sub(player.anticap.power).max(0);
 
     tmp.anticap.powerNext = tmp.anticap.powerGain.add(player.anticap.power).add(1);
+    tmp.anticap.powerNext = cheatDilateBoost(tmp.anticap.powerNext, true);
     tmp.anticap.powerNext = tmp.anticap.powerNext.log10().add(1).log2().add(1).factorial().pow_base(1e100);
 
     tmp.anticap.energyExp = D(1);
@@ -649,6 +661,7 @@ function updateGame_anticapResources() {
 
     tmp.anticap.energyGain = Decimal.max(player.anticap.power, 0);
     tmp.anticap.energyGain = tmp.anticap.energyGain.mul(tmp.anticap.buyables[0].eff);
+    tmp.anticap.energyGain = cheatDilateBoost(tmp.anticap.energyGain);
 
     let prev = Decimal.max(player.anticap.energy, 0);
     player.anticap.energy = Decimal.root(player.anticap.energy, tmp.anticap.energyExp).add(tmp.anticap.energyGain.mul(delta).mul(tmp.timeSpeedTiers[1])).pow(tmp.anticap.energyExp);
@@ -677,8 +690,10 @@ function updateGame_anticapResources() {
         ? Decimal.max(player.anticap.bestEnergy, 1e33).log10().div(33).mul(Decimal.max(player.anticap.power, 1e33).log10().div(33)).sub(1).mul(10).add(1).pow(energyStrength)
         : D(1);
 
+    // literally a point mult with the same log level as points that bypasses softcaps, fuck me
+    // nerf time
     tmp.anticap.energyEffs[4] = Decimal.gte(player.anticap.bestEnergy, 1e100)
-        ? Decimal.max(player.anticap.bestEnergy, 1e100).div(1e100).log10().add(1).pow(0.5).sub(1).pow10().pow(Decimal.max(player.anticap.power, 1e100).log(1e100).ln().add(1)).pow(energyStrength)
+        ? powLogSlowDown(Decimal.max(player.anticap.bestEnergy, 1e100).div(1e100).log10().add(1).pow(0.5), 100).sub(1).pow10().pow(Decimal.max(player.anticap.power, 1e100).log(1e100).ln().add(1)).pow(energyStrength)
         : D(1);
 }
 

@@ -1,4 +1,5 @@
 "use strict";
+
 // ! Ultimate Goal:
 // ! Make inflation hard to do -- To test all currencies, try raising the third exponent by 2 (dilate true, dilateStage 2, dilateValue 2) to see what happens, it should stay stable
 // ! Challenge: try to not use any softcaps/scalings!
@@ -289,6 +290,8 @@ function initTmp() {
         repliRankEffect: D(0),
         repliRankBuyables: resetRepliRankBuyables(),
         repliTierPointGen: D(0),
+        repliTierPointEff: D(0),
+        repliTierPointEff2: D(0),
         repliTierReq: D(Infinity),
         repliTierTarget: D(0),
         repliTierEffect: D(0),
@@ -942,7 +945,7 @@ const drawing = () => {
 }
 
 function doGameLoopTicksLol() {
-    gameTick = setInterval(gameLoop, 50);
+    gameTick = setInterval(gameLoop, 20);
 }
 
 function doOfflineTime() {
@@ -1248,6 +1251,9 @@ function calcTimeSpeed() {
     if (tmp.prestigeChal[11].depth.gt(0)) {
         tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].div(tmp.prestigeChal[11].effects.timeSpeed);
         addStatFactor('tier1Time', `PC12`, `/`, tmp.prestigeChal[11].effects.timeSpeed, tmp.timeSpeedTiers[0]);
+    }
+    if (player.anticap.active) {
+        tmp.timeSpeedTiers[0] = anticapSoftcap(tmp.timeSpeedTiers[0], "t1timeSpeed", "tier1Time", false);
     }
 
     if (player.cheats.dilate) {

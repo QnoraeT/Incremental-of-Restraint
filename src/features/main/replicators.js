@@ -119,7 +119,7 @@ const REPLITIER_DATA = {
     gain(tier) {
         if (Decimal.eq(tier, 0)) { return D(0); }
         let gain = D(tier);
-        gain = linearAdd(gain, 1, 1, false).pow10();
+        gain = gain.pow(2).pow10();
         return gain;
     },
     cost(tier) {
@@ -303,6 +303,7 @@ function initHTML_replicators() {
     toHTMLvar('tierPointDisp');
     toHTMLvar('tierPointGenDisp');
     toHTMLvar('tierPointEffectDisp');
+    toHTMLvar('tierPointEffect2Disp');
     toHTMLvar('tierPointShow');
     toHTMLvar('tierPointBuyList');
     toHTMLvar('repliTierUpgsAll')
@@ -368,9 +369,11 @@ function updateGame_replicators() {
 
         player.replitierPoints = Decimal.add(player.replitierPoints, tmp.repliTierPointGen.mul(delta));
         if (player.anticap.active) {
-            tmp.replitierPointEff = D(0);
+            tmp.repliTierPointEff = D(0);
+            tmp.repliTierPointEff2 = D(1);
         } else {
-            tmp.replitierPointEff = Decimal.max(player.replitierPoints, 1).log10().div(100).add(1).ln().mul(100).mul(10);
+            tmp.repliTierPointEff = Decimal.max(player.replitierPoints, 1).log10().div(100).add(1).ln().mul(100).mul(10);
+            tmp.repliTierPointEff2 = Decimal.max(player.replitierPoints, 0).add(1);
         }
 
         for (let i = REPLIRANK_DATA.buyables.length - 1; i >= 0; i--) {
@@ -393,6 +396,7 @@ function updateGame_replicators() {
         tmp.repliRankPointGen = D(0);
         tmp.repliRankPointGen = tmp.repliRankEffect;
         tmp.repliRankPointGen = tmp.repliRankPointGen.mul(tmp.repliRankBuyables[1].eff);
+        tmp.repliRankPointGen = tmp.repliRankPointGen.mul(tmp.repliTierPointEff2);
         tmp.repliRankPointGen = tmp.repliRankPointGen.mul(tmp.repliTierBuyables[1].eff);
 
         if (player.cheats.dilate) {
@@ -426,7 +430,7 @@ function updateGame_replicators() {
         }
 
         tmp.replicatorStrength = D(100); // ! player.replicators CANNOT be placed in this without .log10() without runaway inflation
-        tmp.replicatorStrength = tmp.replicatorStrength.add(tmp.replitierPointEff);
+        tmp.replicatorStrength = tmp.replicatorStrength.add(tmp.repliTierPointEff);
 
         tmp.replicatorTrueSpdDisp2 = player.replicators;
         player.replicators = Decimal.max(player.replicators, 1).root(tmp.replicatorStrength).sub(1).mul(tmp.replicatorStrength).exp().mul(tmp.replicatorSpd.pow(delta)).ln().div(tmp.replicatorStrength).add(1).pow(tmp.replicatorStrength);
@@ -439,7 +443,7 @@ function updateGame_replicators() {
             tmp.replicatorEff = D(1);
         } else {
             tmp.replicatorEff = Decimal.max(player.replirank, 0).mul(0.05).add(1);
-            tmp.replicatorEff = Decimal.max(player.bestReplicators, 1).floor().log10().div(100).add(1).ln().mul(1000).pow10().pow(tmp.replicatorEff);
+            tmp.replicatorEff = Decimal.max(player.bestReplicators, 1).floor().pow(10).pow(tmp.replicatorEff);
         }
     }
 }
@@ -493,7 +497,8 @@ function updateHTML_replicators() {
         if (player.transcendUpgrades.includes("repli1")) {
             html['tierPointDisp'].setTxt(format(player.replitierPoints));
             html['tierPointGenDisp'].setTxt(`${format(tmp.repliTierPointGen)}/s`);
-            html['tierPointEffectDisp'].setTxt(`+${format(tmp.replitierPointEff, 1)} replicator strength`);
+            html['tierPointEffectDisp'].setTxt(`+${format(tmp.repliTierPointEff, 1)} replicator strength`);
+            html['tierPointEffect2Disp'].setTxt(`×${format(tmp.repliTierPointEff2)} rank points`);
 
             canBuy = Decimal.gte(player.replirank, tmp.repliTierReq);
             html[`repliTierEff`].setTxt(`${format(REPLITIER_DATA.gain(player.replitier))}/s → ${format(REPLITIER_DATA.gain(Decimal.add(player.replitier, 1)))}/s`);

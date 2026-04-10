@@ -1,3 +1,5 @@
+"use strict";
+
 const TEXTBOOK = [
     {
         show: true,

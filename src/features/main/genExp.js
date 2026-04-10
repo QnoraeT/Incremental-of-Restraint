@@ -1,4 +1,5 @@
 "use strict";
+
 const GEN_XP_BUYABLES = [
     {
         show: true,
@@ -15,7 +16,7 @@ const GEN_XP_BUYABLES = [
             if (hasSetbackUpgrade('c11')) {
                 cost = cost.div(SETBACK_UPGRADES[3][10].eff);
             }
-            cost = cost.pow_base(scale.add(1)).sub(1).div(scale).pow_base(3);
+            cost = increasingExpCostScaling(cost, scale).pow_base(3);
             return cost.floor();
         },
         target(resource) {
@@ -28,7 +29,7 @@ const GEN_XP_BUYABLES = [
             }
 
             let target = D(resource).ceil();
-            target = target.max(1).log(3).mul(scale).add(1).log(scale.add(1));
+            target = increasingExpCostScaling(target.max(1).log(3), scale, true);
             if (hasSetbackUpgrade('c11')) {
                 target = target.mul(SETBACK_UPGRADES[3][10].eff);
             }
@@ -56,12 +57,12 @@ const GEN_XP_BUYABLES = [
                 cost = cost.div(SETBACK_UPGRADES[3][10].eff);
             }
 
-            cost = cost.pow_base(1.007).sub(1).div(0.007).pow_base(20).mul(250);
+            cost = increasingExpCostScaling(cost, 0.007).pow_base(20).mul(250);
             return cost.floor();
         },
         target(resource) {
             let target = D(resource).ceil();
-            target = target.div(250).max(1).log(20).mul(0.007).add(1).log(1.007);
+            target = increasingExpCostScaling(target.div(250).max(1).log(20), 0.007, true);
             if (hasSetbackUpgrade('c11')) {
                 target = target.mul(SETBACK_UPGRADES[3][10].eff);
             }
@@ -93,12 +94,12 @@ const GEN_XP_BUYABLES = [
             if (hasSetbackUpgrade('c11')) {
                 cost = cost.div(SETBACK_UPGRADES[3][10].eff)
             }
-            cost = cost.pow_base(1.02).sub(1).div(0.02).pow_base(1e25).mul(1e100);
+            cost = increasingExpCostScaling(cost, 0.02).pow_base(1e25).mul(1e100);
             return cost;
         },
         target(resource) {
             let target = D(resource).ceil();
-            target = target.div(1e100).max(1).log(1e25).mul(0.02).add(1).log(1.02);
+            target = increasingExpCostScaling(target.div(1e100).max(1).log(1e25), 0.02, true);
             if (hasSetbackUpgrade('c11')) {
                 target = target.mul(SETBACK_UPGRADES[3][10].eff);
             }

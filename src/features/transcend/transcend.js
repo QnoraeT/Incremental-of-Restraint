@@ -1,4 +1,5 @@
 "use strict";
+
 /*
 TODO: add transgender :3
 (idk if i will, i'm just scared i'll accidentally offend :c)
@@ -975,8 +976,7 @@ function updateGame_transcend() {
 function transcendPtsEff(points) {
     let decay = D(50);
     decay = decay.mul(tmp.anticap.energyEffs[3]);
-
-    return Decimal.max(points, 0).add(1).log10().div(decay).add(1).ln().mul(decay.mul(2)).pow10();
+    return powLogSlowDown(Decimal.max(points, 0).add(1), decay, false).pow(2);
 }
 
 function updateHTML_transcend() {
