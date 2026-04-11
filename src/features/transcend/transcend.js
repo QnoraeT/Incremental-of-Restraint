@@ -222,7 +222,7 @@ const TRANSCENSION_UPGRADES = [
             },
             name: "Cap Extender",
             get desc() {
-                return `Increase the cap of Ascension Buyables 3 and 9-12 by 5 purchases.`
+                return `Increase the cap of Ascension Buyable #3 by 1 purchase, and and #9-12 by 5 purchases.`
             },
             eff: null
         },
@@ -976,7 +976,11 @@ function updateGame_transcend() {
 function transcendPtsEff(points) {
     let decay = D(50);
     decay = decay.mul(tmp.anticap.energyEffs[3]);
-    return powLogSlowDown(Decimal.max(points, 0).add(1), decay, false).pow(2);
+    let eff = powLogSlowDown(Decimal.max(points, 0).add(1), decay, false).pow(2);
+    if (player.anticap.upgrades.includes(12)) {
+        eff = eff.log10().mul(4).add(1).pow(1.25).sub(1).pow10()
+    }
+    return eff;
 }
 
 function updateHTML_transcend() {
@@ -1008,7 +1012,7 @@ function updateHTML_transcend() {
         if (tmp.transTab === 0) {
             for (let i = 0; i < TRANSCENSION_MILESTONES.length; i++) {
                 if (i > 0) {
-                    html[`transcendMilestone${i}`].setDisplay(willGetTM(i - 1));
+                    html[`transcendMilestone${i}`].setDisplay(willGetTM(i - 1) || hasTranscendMilestone(i - 1) || hasTranscendMilestone(i));
                 }
                 html[`transcendMilestone${i}`].changeStyle('background-color', hasTranscendMilestone(i) 
                     ? '#8000FF80' 
@@ -1022,9 +1026,9 @@ function updateHTML_transcend() {
                         : '3px solid #400080'));
                 html[`transcendMilestone${i}req`].setHTML(shiftDown
                         ? (hasTranscendMilestone(i)
-                            ? 'This milestone is already achieved! :3'
+                            ? 'This milestone is already achieved.'
                             : (willGetTM(i)
-                                ? 'You are guaranteed to gain this milestone next transcension reset for transcend points!'
+                                ? 'You are guaranteed to gain this milestone next transcension reset for transcend points! :D'
                                 : `You will either need to gain ${format(getTranscendMilestoneReq(i).div(2).sub(Decimal.add(player.transcendPointTotal, tmp.transcendAmount)).ceil())} more TP or reset ~${format(getTranscendMilestoneReq(i).div(Decimal.add(player.transcendPointTotal, tmp.transcendAmount)).log2().ceil())} more times.`))
                         : `Requirement: ${willGetTM(i) && !hasTranscendMilestone(i) ? '<b>' : ''}${format(player.transcendPointTotal)} (+${format(tmp.transcendAmount)}) / ${format(getTranscendMilestoneReq(i).ceil())}${willGetTM(i) && !hasTranscendMilestone(i) ? '</b>' : ''} total transcension points`);
             }
@@ -1183,6 +1187,11 @@ function doTranscendReset(doAnyway = false) {
         PROTECTED_T_UPGRADES.push("point1");
         PROTECTED_T_UPGRADES.push("prest1");
         PROTECTED_T_UPGRADES.push("ascend1");
+    }
+    if (player.anticap.upgrades.includes(13)) {
+        PROTECTED_T_UPGRADES.push("point2");
+        PROTECTED_T_UPGRADES.push("prest2");
+        PROTECTED_T_UPGRADES.push("ascend2");
     }
 
     player.transcendUpgrades = player.transcendUpgrades.filter((value) => { return !PROTECTED_T_UPGRADES.includes(value) });

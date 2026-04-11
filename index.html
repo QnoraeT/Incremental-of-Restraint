@@ -98,9 +98,10 @@
                                 <div class="flex-vertical whiteText font" style="width: 400px; background-color: #00408080; border: 3px solid #0080ff; margin: 4px; font-size: 12px; padding: 2px" id="prestigeEssenceFactors"></div>
                                 <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80400080; border: 3px solid #ff8000; margin: 4px; font-size: 12px; padding: 2px" id="genXPFactors"></div>
                                 <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80400080; border: 3px solid #ffff00; margin: 4px; font-size: 12px; padding: 2px" id="genEnhFactors"></div>
-                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80400080; border: 3px solid #ffa000; margin: 4px; font-size: 12px; padding: 2px" id="tierFactors"></div>
-                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80808080; border: 3px solid #ffffff; margin: 4px; font-size: 12px; padding: 2px" id="tier1timeFactors"></div>
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80400080; border: 3px solid #ffa000; margin: 4px; font-size: 12px; padding: 2px" id="tierFactors"></div>                                
                                 <div class="flex-vertical whiteText font" style="width: 400px; background-color: #40008080; border: 3px solid #8000ff; margin: 4px; font-size: 12px; padding: 2px" id="transcendFactors"></div>
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80808080; border: 3px solid #ffffff; margin: 4px; font-size: 12px; padding: 2px" id="tier1timeFactors"></div>
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80808080; border: 3px solid #ffffff; margin: 4px; font-size: 12px; padding: 2px" id="tier2timeFactors"></div>
                             </div>
                         </div>
                     </div>
@@ -260,7 +261,7 @@
                                             <button onclick="repliTierReset()" id="repliTier" class="whiteText font" style="height: 100px; width: 200px; font-size: 10px; margin: 2px">
                                                 <span style="font-size: 12px;"><b>Replitier <span id="repliTierAmount"></span></b></span><br>
                                                 <br>
-                                                Reset prior progress to increase tier point gain from <span id="repliTierEff"></span> and increase replicator speed by 20&times;.<br>
+                                                Reset prior progress to increase tier point gain from <span id="repliTierEff"></span> and increase replicator strength by +25.<br>
                                                 Requires: <span id="repliTierCost"></span>
                                             </button>
                                         </div>
@@ -547,6 +548,7 @@
                                         <span class="font" style="font-size: 24px; color: #c0c0c0" id="anticapPower"></span><span class="font" style="font-size: 12px; color: #c0c0c0">anticap power</span>
                                         <span class="font" style="font-size: 12px; color: #c0c0c0" id="anticapPowerGain"></span>
                                         <span class="font" style="font-size: 12px; color: #c0c0c0" id="anticapPowerEffect"></span>
+                                        <span class="font" style="font-size: 12px; color: #c0c0c0" id="anticapPowerEffectNext"></span>
                                     </div>
                                     <div style="margin: 4px" class="flex-vertical">
                                         <span class="font" style="font-size: 24px; color: #c0c0c0" id="anticapEnergy"></span><span class="font" style="font-size: 12px; color: #c0c0c0">anticap energy<sup id="anticapEnergyExp"></sup></span>

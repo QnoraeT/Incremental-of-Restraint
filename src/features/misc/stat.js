@@ -17,8 +17,9 @@ function initHTML_stats() {
     toHTMLvar('genXPFactors');
     toHTMLvar('genEnhFactors');
     toHTMLvar('tierFactors');
-    toHTMLvar('tier1timeFactors');
     toHTMLvar('transcendFactors');
+    toHTMLvar('tier1timeFactors');
+    toHTMLvar('tier2timeFactors');
 
     html['statTab'].setDisplay(false);
     html['buyableStat'].setDisplay(false);
@@ -168,6 +169,16 @@ function updateHTML_stats() {
                 html['tierFactors'].setHTML(txt);
             }
 
+            html['transcendFactors'].setDisplay(Decimal.gte(player.transcendResetCount, 1));
+            if (Decimal.gte(player.transcendResetCount, 1)) {
+                txt = `<b style="font-size: 14px">Transcension Points</b>`;
+                for (let i = 0; i < tmp.factors.transcend.length; i++) {
+                    txt += `<span>${tmp.factors.transcend[i]}</span>`;
+                }
+                txt += `<b style="font-size: 14px">Final: ${format(tmp.transcendAmount)}</b>`;
+                html['transcendFactors'].setHTML(txt);
+            }
+
             html['tier1timeFactors'].setDisplay(Decimal.gte(player.ascendUpgrades[13], 3));
             if (Decimal.gte(player.ascendUpgrades[13], 3)) {
                 txt = `<b style="font-size: 14px">Tier 1 Time Speed</b>`;
@@ -178,14 +189,14 @@ function updateHTML_stats() {
                 html['tier1timeFactors'].setHTML(txt);;
             }
 
-            html['transcendFactors'].setDisplay(Decimal.gte(player.transcendResetCount, 1));
-            if (Decimal.gte(player.transcendResetCount, 1)) {
-                txt = `<b style="font-size: 14px">Transcension Points</b>`;
-                for (let i = 0; i < tmp.factors.transcend.length; i++) {
-                    txt += `<span>${tmp.factors.transcend[i]}</span>`;
+            html['tier2timeFactors'].setDisplay(tmp.timeSpeedTiers[1].neq(1));
+            if (tmp.timeSpeedTiers[1].neq(1)) {
+                txt = `<b style="font-size: 14px">Tier 2 Time Speed</b>`;
+                for (let i = 0; i < tmp.factors.tier2Time.length; i++) {
+                    txt += `<span>${tmp.factors.tier2Time[i]}</span>`;
                 }
-                txt += `<b style="font-size: 14px">Final: ${format(tmp.transcendAmount)}</b>`;
-                html['transcendFactors'].setHTML(txt);
+                txt += `<b style="font-size: 14px">Final: ${format(tmp.timeSpeedTiers[1])}</b>`;
+                html['tier2timeFactors'].setHTML(txt);;
             }
         }
     }

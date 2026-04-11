@@ -127,6 +127,9 @@ const ANTICAP = {
                 arr[0].pow = arr[0].pow.div(tmp.anticap.upgrades[2].eff.sc1);
                 arr[1].start = arr[1].start.mul(tmp.anticap.upgrades[2].eff.sc2);
             }
+            if (tmp.anticap.upgrades[14].eff != null && player.anticap.upgrades.includes(14)) {
+                arr[1].pow = arr[1].pow.div(tmp.anticap.upgrades[14].eff);
+            }
             return arr;
         },
         prestigePts() {
@@ -139,6 +142,9 @@ const ANTICAP = {
             ];
             if (player.anticap.upgrades.includes(6)) {
                 arr[0].pow = arr[0].pow.mul(0.5);
+            }
+            if (tmp.anticap.upgrades[14].eff != null && player.anticap.upgrades.includes(14)) {
+                arr[1].pow = arr[1].pow.div(tmp.anticap.upgrades[14].eff);
             }
             return arr;
         },
@@ -519,10 +525,121 @@ const ANTICAP = {
         {
             cost: D(1e28),
             desc(eff) {
-                return `Cyan autobuyers are unlocked. Keep Cyan upgrades #1-10. Trans. Milestone 15 is upgraded to a (10, 10, 10, 10) setback.`;
+                return `Red-Cyan autobuyers are unlocked at min. 20/s. Keep Cyan upgrades #1-10. Trans. Milestone 15 is upgraded to (10, 10, 10, 10).`;
             },
             eff() {
                 return null;
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D(1e31),
+            desc(eff) {
+                return `Transcension Points' multiplier is drastically improved. (^4.00, then ▲1.25)`;
+            },
+            eff() {
+                return null;
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D(1e35),
+            desc(eff) {
+                return `Start transcensions with transcend upgrades "point2", "prest2", and "ascend2" already bought.`;
+            },
+            eff() {
+                return null;
+            },
+            onBought() {
+                const SAFE_UPGRADES = ["point2", "prest2", "ascend2"];
+
+                player.transcendUpgrades = player.transcendUpgrades.filter((value) => { return !SAFE_UPGRADES.includes(value) });
+                player.transcendUpgrades.push(...SAFE_UPGRADES);
+            }
+        },
+        {
+            cost: D(1e37),
+            desc(eff) {
+                return `Points and Prestige Points' second softcap are weaker based on transcension resets. Currently: -${formatPerc(eff, 3)}`;
+            },
+            eff() {
+                return Decimal.max(player.transcendResetCount, 0).div(5).sqrt().add(1);
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D(1e40),
+            desc(eff) {
+                return `Tier 2 Time speed is 3× faster.`;
+            },
+            eff() {
+                return null;
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D(1e44),
+            desc(eff) {
+                return `[unimp.] Prestige buyable cap is increased by +10.0. Prestige Essence also affects Ascension Gem gain.`;
+            },
+            eff() {
+                return null;
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D(1e48),
+            desc(eff) {
+                return `[unimp.] Transcension Points and Transcension Resets (if eligible) are automatically generated at a rate of 1% per second, using T2 time speed.`;
+            },
+            eff() {
+                return null;
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D(1e52),
+            desc(eff) {
+                return `[unimp.] Prestige points boost prestige essence gain at a reduced rate. Currently: ${format(eff, 2)}×`;
+            },
+            eff() {
+                return Decimal.max(player.prestige, 0).add(1).root(6);
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D(1e56),
+            desc(eff) {
+                return `[unimp.] All trans. upgrades before and at hinderance2 no longer have a requirement. Start with 1,000 TP upon a trans. chal. reset.`;
+            },
+            eff() {
+                return null;
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D(1e60),
+            desc(eff) {
+                return `[unimp.] Generator Advances raise Generator Enhancer and Generator XP gain. Currently: ^${format(eff, 3)}`;
+            },
+            eff() {
+                return Decimal.max(player.generatorFeatures.totalAdv, 0).mul(0.03).add(1);
             },
             onBought() {
                 return null;
@@ -540,6 +657,7 @@ function initHTML_anticap() {
     toHTMLvar('anticapPower');
     toHTMLvar('anticapPowerGain');
     toHTMLvar('anticapPowerEffect');
+    toHTMLvar('anticapPowerEffectNext');
 
     toHTMLvar('anticapEnergy');
     toHTMLvar('anticapEnergyExp');
@@ -659,42 +777,71 @@ function updateGame_anticapResources() {
     tmp.anticap.energyExp = D(1);
     tmp.anticap.energyExp = tmp.anticap.energyExp.add(tmp.anticap.buyables[2].eff);
 
-    tmp.anticap.energyGain = Decimal.max(player.anticap.power, 0);
-    tmp.anticap.energyGain = tmp.anticap.energyGain.mul(tmp.anticap.buyables[0].eff);
-    tmp.anticap.energyGain = cheatDilateBoost(tmp.anticap.energyGain);
+    tmp.anticap.energyGain = getAnticapEnergyGain(player.anticap.power);
 
-    let prev = Decimal.max(player.anticap.energy, 0);
-    player.anticap.energy = Decimal.root(player.anticap.energy, tmp.anticap.energyExp).add(tmp.anticap.energyGain.mul(delta).mul(tmp.timeSpeedTiers[1])).pow(tmp.anticap.energyExp);
-    tmp.anticap.energyGain = Decimal.ln(player.anticap.energy).sub(prev.ln()).eq_tolerance(0)
-        ? tmp.anticap.energyGain.pow(tmp.anticap.energyExp)
-        : Decimal.sub(player.anticap.energy, prev).div(delta);
-
+    player.anticap.energy = Decimal.add(player.anticap.energy, tmp.anticap.energyGain.mul(delta));
+    if (player.anticap.active) {
+        tmp.anticap.energyGainNext = getAnticapEnergyGain(Decimal.add(player.anticap.power, tmp.anticap.powerGain));
+    }
+    
     player.anticap.bestEnergy = Decimal.max(player.anticap.bestEnergy, player.anticap.energy);
 
+    for (let i = 0; i < tmp.anticap.energyEffs.length; i++) {
+        tmp.anticap.energyEffs[i] = getAnticapEnergyEffects(i, player.anticap.power);
+        if (player.anticap.active) {
+            tmp.anticap.energyEffsNext[i] = getAnticapEnergyEffects(i, Decimal.add(player.anticap.power, tmp.anticap.powerGain));            
+        }
+    }
+}
+
+function getAnticapEnergyGain(power) {
+    let gain = Decimal.max(power, 0);
+    gain = gain.mul(tmp.anticap.buyables[0].eff);
+    gain = cheatDilateBoost(gain);
+
+    let prev = Decimal.max(player.anticap.energy, 0);
+    let newEnergy = Decimal.root(player.anticap.energy, tmp.anticap.energyExp).add(gain.mul(delta).mul(tmp.timeSpeedTiers[1])).pow(tmp.anticap.energyExp);
+    gain = Decimal.ln(newEnergy).sub(prev.ln()).eq_tolerance(0)
+        ? gain.pow(tmp.anticap.energyExp)
+        : Decimal.sub(newEnergy, prev).div(delta);
+    return gain;
+}
+
+function getAnticapEnergyEffects(i, power) {
     let energyStrength = D(1);
     energyStrength = energyStrength.add(tmp.anticap.buyables[3].eff);
 
-    tmp.anticap.energyEffs[0] = Decimal.gte(player.anticap.bestEnergy, 1)
-        ? Decimal.max(player.anticap.bestEnergy, 10).log10().log10().mul(0.1).mul(Decimal.max(player.anticap.power, 1).log10().add(1).log10().mul(0.25).add(1)).mul(energyStrength).add(1)
-        : D(1);
-
-    tmp.anticap.energyEffs[1] = Decimal.gte(player.anticap.bestEnergy, 1e3)
-        ? Decimal.max(player.anticap.bestEnergy, 1e3).log10().log(3).log10().mul(0.1).mul(Decimal.max(player.anticap.power, 1e3).log10().log(3).log10().mul(0.5).add(1)).mul(energyStrength).add(1).recip()
-        : D(1);
-
-    tmp.anticap.energyEffs[2] = Decimal.gte(player.anticap.bestEnergy, 1e10)
-        ? Decimal.max(player.anticap.bestEnergy, 1e10).log10().log10().log10().mul(2).mul(Decimal.max(player.anticap.power, 1e10).log10().log10().log10().add(1)).mul(energyStrength)
-        : D(0);
-
-    tmp.anticap.energyEffs[3] = Decimal.gte(player.anticap.bestEnergy, 1e33)
-        ? Decimal.max(player.anticap.bestEnergy, 1e33).log10().div(33).mul(Decimal.max(player.anticap.power, 1e33).log10().div(33)).sub(1).mul(10).add(1).pow(energyStrength)
-        : D(1);
-
-    // literally a point mult with the same log level as points that bypasses softcaps, fuck me
-    // nerf time
-    tmp.anticap.energyEffs[4] = Decimal.gte(player.anticap.bestEnergy, 1e100)
-        ? powLogSlowDown(Decimal.max(player.anticap.bestEnergy, 1e100).div(1e100).log10().add(1).pow(0.5), 100).sub(1).pow10().pow(Decimal.max(player.anticap.power, 1e100).log(1e100).ln().add(1)).pow(energyStrength)
-        : D(1);
+    let eff;
+    switch (i) {
+        case 0:
+            eff = Decimal.gte(player.anticap.bestEnergy, 1)
+                ? Decimal.max(player.anticap.bestEnergy, 10).log10().log10().mul(0.1).mul(Decimal.max(power, 1).log10().add(1).log10().mul(0.25).add(1)).mul(energyStrength).add(1)
+                : D(1);
+            break;
+        case 1:
+            eff = Decimal.gte(player.anticap.bestEnergy, 1e3)
+                ? Decimal.max(player.anticap.bestEnergy, 1e3).log10().log(3).log10().mul(0.1).mul(Decimal.max(power, 1e3).log10().log(3).log10().mul(0.5).add(1)).mul(energyStrength).add(1).recip()
+                : D(1);
+            break;
+        case 2:
+            eff = Decimal.gte(player.anticap.bestEnergy, 1e10)
+                ? Decimal.max(player.anticap.bestEnergy, 1e10).log10().log10().log10().mul(2).mul(Decimal.max(power, 1e10).log10().log10().log10().add(1)).mul(energyStrength)
+                : D(0);
+            break;
+        case 3:
+            eff = Decimal.gte(player.anticap.bestEnergy, 1e33)
+                ? Decimal.max(player.anticap.bestEnergy, 1e33).log10().div(33).mul(Decimal.max(power, 1e33).log10().div(33)).sub(1).mul(10).add(1).pow(energyStrength)
+                : D(1);
+            break;
+        case 4:
+            eff = Decimal.gte(player.anticap.bestEnergy, 1e100)
+                ? powLogSlowDown(Decimal.max(player.anticap.bestEnergy, 1e100).div(1e100).log10().add(1).pow(0.5), 100).sub(1).pow10().pow(Decimal.max(power, 1e100).log(1e100).ln().add(1)).pow(energyStrength)
+                : D(1);
+            break;
+        default:
+            throw new Error(`effect ${i} of anticap energy doesn't exist`)
+    }
+    return eff;
 }
 
 function updateHTML_anticap() {
@@ -704,6 +851,8 @@ function updateHTML_anticap() {
         html['AnticapTransTab'].setDisplay(tmp.transTab === 2);
 
         if (tmp.transTab === 2) {
+            let isGaining = player.anticap.active && Decimal.gt(tmp.anticap.powerGain, 0);
+
             html['anticapPower'].setTxt(format(player.anticap.power));
             html['anticapPowerGain'].setTxt(tmp.anticap.powerGain.gt(0) 
                 ? tmp.anticap.powerGain.gt(100) 
@@ -711,25 +860,33 @@ function updateHTML_anticap() {
                     : `+${format(tmp.anticap.powerGain)}, next at ${format(tmp.anticap.powerNext)}`
                 : `Reach ${format(tmp.anticap.powerNext)} points in Softcap Hell`);
             html['anticapPowerEffect'].setTxt(`Producing ${format(tmp.anticap.energyGain)} energy per second`);
+            html['anticapPowerEffectNext'].setTxt(isGaining
+                ? `Will produce ${format(tmp.anticap.energyGainNext)} energy per second`
+                : '');
 
             html['anticapEnergy'].setTxt(format(player.anticap.energy));
             html['anticapEnergyExp'].setTxt(format(tmp.anticap.energyExp, 2));
-            html['anticapEnergyEffect1'].setTxt(`Boost point gain by ^${format(tmp.anticap.energyEffs[0], 3)}`);
+
+            html['anticapEnergyEffect1'].setTxt(`Boost point gain by ^${format(tmp.anticap.energyEffs[0], 3)} ${isGaining ? '→ ^' + format(tmp.anticap.energyEffsNext[0], 3) : ''}`);
+
             html['anticapEnergyEffect2'].setTxt(Decimal.gte(player.anticap.energy, 1e3)
-                ? `Decrease generator and tier scaling by ^${format(tmp.anticap.energyEffs[1], 4)}`
+                ? `Decrease generator and tier scaling by ^${format(tmp.anticap.energyEffs[1], 4)} ${isGaining ? '→ ^' + format(tmp.anticap.energyEffsNext[1], 4) : ''}`
                 : `Reach 1,000 energy to unlock a new effect.`);
+
             html['anticapEnergyEffect3'].setTxt(Decimal.gte(player.anticap.energy, 1e10)
-                ? `Add ${format(tmp.anticap.energyEffs[2], 3)} free levels to PB1-15, and enable them`
+                ? `Add ${format(tmp.anticap.energyEffs[2], 3)} ${isGaining ? '→ ' + format(tmp.anticap.energyEffsNext[2], 3) : ''} free levels to PB1-15, and enable them`
                 : Decimal.gte(player.anticap.energy, 1e3)
                     ? `Reach 10.000 B energy to unlock a new effect`
                     : ``);
+
             html['anticapEnergyEffect4'].setTxt(Decimal.gte(player.anticap.energy, 1e33)
-                ? `Weaken Gen. Enh. and Trans. Pts. effects' slowdowns by ${format(tmp.anticap.energyEffs[3], 2)}×`
+                ? `Weaken Gen. Enh. and Trans. Pts. effects' slowdowns by ${format(tmp.anticap.energyEffs[3], 2)}× ${isGaining ? '→ ' + format(tmp.anticap.energyEffsNext[3], 2) + '×' : ''}`
                 : Decimal.gte(player.anticap.energy, 1e10)
                     ? `Reach 1.000 Dc energy to unlock a new effect`
                     : ``);
+
             html['anticapEnergyEffect5'].setTxt(Decimal.gte(player.anticap.energy, 1e100)
-                ? `Multiply T1 time speed by ${format(tmp.anticap.energyEffs[4], 2)}×`
+                ? `Multiply T1 time speed by ${format(tmp.anticap.energyEffs[4], 2)}× ${isGaining ? '→ ' + format(tmp.anticap.energyEffsNext[4], 2) + '×' : ''}`
                 : Decimal.gte(player.anticap.energy, 1e33)
                     ? `Reach 1.000e100 energy to unlock a new effect`
                     : ``);

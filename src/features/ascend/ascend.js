@@ -95,7 +95,7 @@ const ASCENSION_UPGRADES = [
                 scale = scale.mul(tmp.prestigeRepeatChal[2].rewardEffs.ascendCost);
             }
 
-            let target = increasingExpCostScaling(Decimal.div(resource, 50).max(1).log(2.5), scale, true);
+            let target = increasingExpCostScaling(Decimal.div(resource, 50).max(1).log(2.5), scale.recip(), true);
             if (player.transcendInSpecialReq === "point4") {
                 target = target.div(1000);
             }
@@ -147,8 +147,8 @@ const ASCENSION_UPGRADES = [
             return Decimal.eq(player.ascendUpgrades[2], 0)
                 ? `Buyable 1's effect is raised to the ^${format(tmp.ascendBuyables[2].eff, 2)} Currently: None.`
                 : Decimal.eq(player.ascendUpgrades[2], 1)
-                    ? `Buyable ${format(Decimal.add(player.ascendUpgrades[2], 1))}'s effect is raised to the ^${format(tmp.ascendBuyables[2].eff, 2)} Currently: Buyable 1.`
-                    : `Buyable ${format(Decimal.add(player.ascendUpgrades[2], 1))}'s effect is raised to the ^${format(tmp.ascendBuyables[2].eff, 2)} Currently: Buyables 1-${format(player.ascendUpgrades[2])}.`
+                    ? `Buyable ${format(Decimal.floor(player.ascendUpgrades[2]).add(1))}'s effect is raised to the ^${format(tmp.ascendBuyables[2].eff, 2)} Currently: Buyable 1.`
+                    : `Buyable ${format(Decimal.floor(player.ascendUpgrades[2]).add(1))}'s effect is raised to the ^${format(tmp.ascendBuyables[2].eff, 2)} Currently: Buyables 1-${format(player.ascendUpgrades[2])}.`
         } 
     },
     {
@@ -606,6 +606,9 @@ function updateGame_ascend() {
 function getAscendEff(ascend) {
     let eff = D(ascend);
     eff = eff.mul(tmp.ascendBuyables[3].eff);
+    if (player.anticap.upgrades.includes(16)) {
+        eff = eff.mul(tmp.peEffect);
+    }
     eff = eff.pow(tmp.repliTierBuyables[3].eff);
     if (tmp.hinderances[4].depth.gt(0)) {
         eff = eff.pow(tmp.hinderances[4].effects.resource);

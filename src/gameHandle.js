@@ -302,8 +302,10 @@ function initTmp() {
             powerGain: D(0),
             powerNext: D(0),
             energyGain: D(0),
+            energyGainNext: D(0),
             energyExp: D(1),
             energyEffs: [D(1), D(1), D(0), D(1), D(1)],
+            energyEffsNext: [D(1), D(1), D(0), D(1), D(1)],
             buyables: resetAnticapBuyables(),
             upgrades: resetAnticapUpgs()
         }
@@ -1223,6 +1225,13 @@ function calcTimeSpeed() {
 
     tmp.factors.tier2Time = [];
     tmp.timeSpeedTiers[1] = D(1);
+    addStatFactor('tier2Time', `Base`, `×`, 1, tmp.timeSpeedTiers[1]);
+
+    if (player.anticap.upgrades.includes(15)) {
+        tmp.timeSpeedTiers[1] = tmp.timeSpeedTiers[1].mul(3);
+        addStatFactor('tier2Time', `Anticap Upgrade #16`, `×`, 3, tmp.timeSpeedTiers[1]);
+    }
+
     if (player.cheats.dilate) {
         tmp.timeSpeedTiers[1] = cheatDilateBoost(tmp.timeSpeedTiers[1]);
         addStatFactor('tier2Time', `Cheats`, `...`, null, tmp.timeSpeedTiers[1]);

@@ -91,7 +91,7 @@ const SETBACK_UPGRADES = [
         },
         {
             id: "r15",
-            cost: D('e4e9'),
+            cost: D('e8e8'),
             desc: `[UNIMPLEMENTED] Add an alternative to "generator experience" using Tiers instead of Generator Levels, called "tier experience." (This feature persists on transcension-level resets.)`
         },
     ],
@@ -901,7 +901,7 @@ function updateGame_setbackResources() {
                 }
             }
             if (player.anticap.upgrades.includes(11)) {
-                tmp.quarkDimAutoData[i][j] = D(20);
+                tmp.quarkDimAutoData[i][j] = Decimal.max(tmp.quarkDimAutoData[i][j], 20);
             }
 
             tmp.quarkDimAutoData[i][j] = tmp.quarkDimAutoData[i][j].mul(tmp.timeSpeedTiers[0]);

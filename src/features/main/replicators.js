@@ -363,6 +363,7 @@ function updateGame_replicators() {
         if (player.cheats.dilate) {
             tmp.repliTierPointGen = cheatDilateBoost(tmp.repliTierPointGen);
         }
+        tmp.repliTierPointGen = tmp.repliTierPointGen.mul(tmp.timeSpeedTiers[1]);
         if (player.anticap.active) {
             tmp.repliTierPointGen = D(0);
         }
@@ -412,7 +413,7 @@ function updateGame_replicators() {
 
         tmp.replicatorSpd = D(1); // ! player.replicators can be placed in this even with trilate and no runaway inflation as long as no .pow10()
         tmp.replicatorSpd = tmp.replicatorSpd.mul(tmp.repliRankBuyables[0].eff);
-        tmp.replicatorSpd = tmp.replicatorSpd.mul(Decimal.pow(20, player.replitier));
+        
         tmp.replicatorSpd = tmp.replicatorSpd.mul(tmp.repliTierBuyables[0].eff);
         if (player.transcendUpgrades.includes("repli1")) {
             tmp.replicatorSpd = tmp.replicatorSpd.mul(tmp.transEffs[12][1]);
@@ -422,8 +423,6 @@ function updateGame_replicators() {
             tmp.replicatorSpd = cheatDilateBoost(tmp.replicatorSpd);
         }
 
-        tmp.replicatorSpd = tmp.replicatorSpd.mul(tmp.timeSpeedTiers[1]);
-
         tmp.replicatorSpd = tmp.replicatorSpd.div(60).add(1); // adjusted to "per minute"
         if (player.anticap.active) {
             tmp.replicatorSpd = D(1);
@@ -431,9 +430,10 @@ function updateGame_replicators() {
 
         tmp.replicatorStrength = D(100); // ! player.replicators CANNOT be placed in this without .log10() without runaway inflation
         tmp.replicatorStrength = tmp.replicatorStrength.add(tmp.repliTierPointEff);
+        tmp.replicatorStrength = tmp.replicatorStrength.add(Decimal.mul(25, player.replitier));
 
         tmp.replicatorTrueSpdDisp2 = player.replicators;
-        player.replicators = Decimal.max(player.replicators, 1).root(tmp.replicatorStrength).sub(1).mul(tmp.replicatorStrength).exp().mul(tmp.replicatorSpd.pow(delta)).ln().div(tmp.replicatorStrength).add(1).pow(tmp.replicatorStrength);
+        player.replicators = Decimal.max(player.replicators, 1).root(tmp.replicatorStrength).sub(1).mul(tmp.replicatorStrength).exp().mul(tmp.replicatorSpd.pow(tmp.timeSpeedTiers[1].mul(delta))).ln().div(tmp.replicatorStrength).add(1).pow(tmp.replicatorStrength);
         tmp.replicatorTrueSpdDisp2 = player.replicators.div(tmp.replicatorTrueSpdDisp2).root(delta); // replicators get auto turned into a decimal before this
         tmp.replicatorTrueSpdDisp1 = tmp.replicatorTrueSpdDisp2.eq(1) ? D(Infinity) : Decimal.log(2, tmp.replicatorTrueSpdDisp2);
 
@@ -469,8 +469,10 @@ function updateHTML_replicators() {
 
         canBuy = Decimal.gte(player.replicators, tmp.repliRankReq);
         html[`repliRankEff`].setTxt(`${format(REPLIRANK_DATA.gain(player.replirank))}/s → ${format(REPLIRANK_DATA.gain(Decimal.add(player.replirank, 1)))}/s`);
-        html[`repliRankCost`].setTxt(shiftDown && !canBuy
-            ? `~${formatTime(tmp.repliRankReq.root(tmp.replicatorStrength).sub(1).mul(tmp.replicatorStrength).div(tmp.replicatorSpd.ln()).sub(Decimal.root(player.replicators, tmp.replicatorStrength).sub(1).mul(tmp.replicatorStrength).div(tmp.replicatorSpd.ln())), 2)}`
+        html[`repliRankCost`].setTxt(shiftDown 
+            ? (canBuy
+                ? 'You can replirank up! :3'
+                : `~${formatTime(tmp.repliRankReq.root(tmp.replicatorStrength).sub(1).mul(tmp.replicatorStrength).div(tmp.replicatorSpd.ln()).sub(Decimal.root(player.replicators, tmp.replicatorStrength).sub(1).mul(tmp.replicatorStrength).div(tmp.replicatorSpd.ln())).div(tmp.timeSpeedTiers[1]), 2)}`)
             : `${format(tmp.repliRankReq)} replicators`);
         html[`repliRankAmount`].setTxt(`${format(player.replirank)} → ${format(Decimal.add(player.replirank, 1))}`);
 

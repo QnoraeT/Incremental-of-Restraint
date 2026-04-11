@@ -466,6 +466,9 @@ function updateGame_prestige() {
     if (Decimal.gte(player.hinderanceScore[1], HINDERANCES[1].start)) {
         tmp.prestigeUpgCap = tmp.prestigeUpgCap.add(2);
     }
+    if (player.anticap.upgrades.includes(16)) {
+        tmp.prestigeUpgCap = tmp.prestigeUpgCap.add(10);
+    }
 
     tmp.prestigeIsUpg = !player.transcendUpgrades.includes('prest4');
     tmp.prestigePointsUsed = D(0);
@@ -594,7 +597,7 @@ function updateGame_prestige() {
         tmp.prestigePointNext = tmp.prestigePointNext.mul(tmp.setbackEffects[1][0]);
     }
 
-    tmp.prestigePointGain = tmp.prestigePointGain.root(tmp.repliTierBuyables[4].eff);
+    tmp.prestigePointNext = tmp.prestigePointNext.root(tmp.repliTierBuyables[4].eff);
     if (player.anticap.upgrades.includes(6)) {
         tmp.prestigePointNext = tmp.prestigePointNext.div(tmp.anticap.upgrades[6].eff);
     }
@@ -717,7 +720,9 @@ function updateHTML_prestige() {
         html['prestigeEssenceDisp'].setDisplay(hasSetbackUpgrade(`b1`));
         if (hasSetbackUpgrade(`b1`)) {
             html['prestigeEssence'].setTxt(format(player.prestigeEssence));
-            html['prestigeEssenceEffect'].setTxt(`Boosting points by ×${format(tmp.peEffect, 2)}`);
+            html['prestigeEssenceEffect'].setTxt(player.anticap.upgrades.includes(16)
+                ? `Boosting points and ascension gems by ×${format(tmp.peEffect, 2)}`
+                : `Boosting points by ×${format(tmp.peEffect, 2)}`);
 
             html['prestigeEssenceEffectNext'].setDisplay(!tmp.autoPrestige);
             if (!tmp.autoPrestige) {
