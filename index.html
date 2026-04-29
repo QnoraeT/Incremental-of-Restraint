@@ -15,6 +15,8 @@
         <script src="src/features/transcend/anticap.js"></script>
         <script src="src/features/transcend/transcend.js"></script>
         <script src="src/features/main/replicators.js"></script>
+        <script src="src/features/main/tierEnhancers.js"></script>
+        <script src="src/features/main/tierExp.js"></script>
         <script src="src/features/main/genAdvances.js"></script>
         <script src="src/features/main/genEnhancers.js"></script>
         <script src="src/features/main/genExp.js"></script>
@@ -29,11 +31,13 @@
         <script src="src/features/misc/stat.js"></script>
         <script src="src/features/misc/textbook.js"></script>
         <script src="src/features/misc/popups.js"></script>
+
         <script src="src/gameHandle.js"></script>
     </head>
     <body style="background-color: #000000;" onload="loadGame()">
         <canvas id="draw" style="height: 100vh; width: 100vw; position: absolute; top: 0px; left: 0px; z-index: -2; position: fixed"></canvas>
         <div style="height: 100vh; width: 100vw; margin: 0px; padding: 0px;">
+            <div id="popup-container" class="popup-container"></div>
             <div id="offlineTime">
                 <div class="flex-vertical">
                     <span class="whiteText font" style="font-size: 12px">You are in offline time.</span>
@@ -49,7 +53,6 @@
 
             </div>
             <div id="inGame">
-                <div id="popup-container" class="popup-container"></div>
                 <div class="flex-vertical">
                     <span class="whiteText font" style="font-size: 24px;" id="points"></span><span class="whiteText font" style="font-size: 12px;">points</span><span class="font" style="font-size: 12px; color: #ffffff" id="pointsPerSecond"></span>
                     <span class="whiteText font" style="font-size: 12px; text-align: center;" id="chalList"></span>
@@ -93,12 +96,14 @@
                             <div class="flex-horizontal" style="flex-wrap: wrap; width: 1400px">
                                 <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80808080; border: 3px solid #ffffff; margin: 4px; font-size: 12px; padding: 2px" id="pointFactors"></div>
                                 <div class="flex-vertical whiteText font" style="width: 400px; background-color: #00408080; border: 3px solid #0080ff; margin: 4px; font-size: 12px; padding: 2px" id="prestigeFactors"></div>
-                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #00804080; border: 3px solid #00ff80; margin: 4px; font-size: 12px; padding: 2px" id="generatorFactors"></div>
-                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #00800080; border: 3px solid #00ff00; margin: 4px; font-size: 12px; padding: 2px" id="ascendFactors"></div>
                                 <div class="flex-vertical whiteText font" style="width: 400px; background-color: #00408080; border: 3px solid #0080ff; margin: 4px; font-size: 12px; padding: 2px" id="prestigeEssenceFactors"></div>
-                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80400080; border: 3px solid #ff8000; margin: 4px; font-size: 12px; padding: 2px" id="genXPFactors"></div>
-                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80400080; border: 3px solid #ffff00; margin: 4px; font-size: 12px; padding: 2px" id="genEnhFactors"></div>
-                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80400080; border: 3px solid #ffa000; margin: 4px; font-size: 12px; padding: 2px" id="tierFactors"></div>                                
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #00804080; border: 3px solid #00ff80; margin: 4px; font-size: 12px; padding: 2px" id="generatorFactors"></div>
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #00802080; border: 3px solid #00ff40; margin: 4px; font-size: 12px; padding: 2px" id="genXPFactors"></div>
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #00806080; border: 3px solid #00ffc0; margin: 4px; font-size: 12px; padding: 2px" id="genEnhFactors"></div>
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80400080; border: 3px solid #ff8000; margin: 4px; font-size: 12px; padding: 2px" id="tierFactors"></div>
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80600080; border: 3px solid #ffb000; margin: 4px; font-size: 12px; padding: 2px" id="tierXPFactors"></div>
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80800080; border: 3px solid #ffff00; margin: 4px; font-size: 12px; padding: 2px" id="tierEnhFactors"></div>
+                                <div class="flex-vertical whiteText font" style="width: 400px; background-color: #00800080; border: 3px solid #00ff00; margin: 4px; font-size: 12px; padding: 2px" id="ascendFactors"></div>
                                 <div class="flex-vertical whiteText font" style="width: 400px; background-color: #40008080; border: 3px solid #8000ff; margin: 4px; font-size: 12px; padding: 2px" id="transcendFactors"></div>
                                 <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80808080; border: 3px solid #ffffff; margin: 4px; font-size: 12px; padding: 2px" id="tier1timeFactors"></div>
                                 <div class="flex-vertical whiteText font" style="width: 400px; background-color: #80808080; border: 3px solid #ffffff; margin: 4px; font-size: 12px; padding: 2px" id="tier2timeFactors"></div>
@@ -117,8 +122,11 @@
                         <button onclick="tmp.mainTab = 2" id="specialMainTabButton" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Special
                         </button>
-                        <button onclick="tmp.mainTab = 1" id="generatorMainTabButton" class="whiteText font" style="background-color: #80400080; border: 3px solid #ff8000; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                        <button onclick="tmp.mainTab = 1" id="generatorMainTabButton" class="whiteText font" style="background-color: #00802080; border: 3px solid #00ff40; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Generator
+                        </button>
+                        <button onclick="tmp.mainTab = 4" id="tierMainTabButton" class="whiteText font" style="background-color: #80580080; border: 3px solid #ffb000; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
+                            Tiers
                         </button>
                         <button onclick="tmp.mainTab = 3" id="replicatorMainTabButton" class="whiteText font" style="background-color: #80000080; border: 3px solid #ff0000; height: 35px; width: 100px; font-size: 12px; margin: 2px; cursor: pointer">
                             Replicators
@@ -128,7 +136,7 @@
                         <div class="flex-vertical">
                             <span class="whiteText font" style="font-size: 12px">Every <b><span id="upgradeScalingInterval"></span></b> purchases of a basic buyable, <span id="upgradeScalingBoostExist">the buyable's effect<span id="upgradeScalingPC1"></span> is boosted by <b><span id="upgradeScalingBoost"></span>&times;</b> but </span>the buyable scales <b><span id="upgradeScalingSpeed"></span>&times;</b> faster.</span>
                             <span class="whiteText font" style="font-size: 12px" id="upgradePC1Desc">Every generator level increases the buyable's effect by <b><span id="genEffPerMain"></span></b>.</span>
-                            <span class="whiteText font" style="font-size: 12px" id="tierMainDesc">Every tier <span id="tierEffPerMain"></span>.</span>
+                            <span class="whiteText font" style="font-size: 12px" id="tierMainDesc">Every tier <span id="tierEffPerMain"></span>, capped at 10.000 B levels.</span>
                             <span class="font" style="color: #0080ff; font-size: 12px" id="prestigeChallengeEffs"></span>
                             <span class="font" style="color: #ff404c; font-size: 12px" id="hinderanceEffs"></span>
                             <span class="whiteText font" style="font-size: 12px" id="upgradeInSetback"></span>
@@ -156,11 +164,11 @@
                     <div id="specialMain">
                         <div class="flex-vertical">
                             <div class="flex-horizontal">
-                                <div id="spBuy1all" style="width: 175px; margin: 2px">
-                                    <button onclick="toggleUpgradeAutobuy(0)" id="spBuy1auto" class="whiteText font" style="height: 20px; width: 175px; font-size: 10px; margin: 2px">
+                                <div id="spBuy1all" style="width: 185px; margin: 2px">
+                                    <button onclick="toggleUpgradeAutobuy(0)" id="spBuy1auto" class="whiteText font" style="height: 20px; width: 185px; font-size: 10px; margin: 2px">
                                         Autobuyer: <span id="spBuy1autoStatus"></span>
                                     </button>
-                                    <button onclick="buySpecialBuyable(0)" id="spBuy1" class="whiteText font" style="height: 70px; width: 175px; font-size: 10px; margin: 2px">
+                                    <button onclick="buySpecialBuyable(0)" id="spBuy1" class="whiteText font" style="height: 75px; width: 185px; font-size: 10px; margin: 2px">
                                         Special Buyable 1 ×<span id="spBuy1amount"></span><br>
                                         <br>
                                         Effect: <span id="spBuy1eff"></span><br>
@@ -180,7 +188,7 @@
                             <div class="flex-horizontal" style="flex-wrap: wrap;">
                                 <div id="genMainArea">
                                     <div class="flex-vertical">
-                                        <span class="font" style="font-size: 24px; color: #ffa000" id="genXP"></span><span class="font" style="font-size: 12px; color: #ffa000">generator experience</span>
+                                        <span class="font" style="font-size: 24px; color: #00ff40" id="genXP"></span><span class="font" style="font-size: 12px; color: #00ff40">generator experience</span>
                                         <span class="font" style="font-size: 11px; color: #ffffff">You have a total of <b><span id="genLvTotal"></span></b> (Best: <b><span id="genLvTotalBest"></span></b>) generator levels.</span>
                                         <span class="font" style="font-size: 11px; color: #ffffff">You are gaining <b><span id="genXPGain"></span></b>/s due to your total generator levels.</span>
                                         <span class="font" style="font-size: 11px; color: #ffffff">Generator XP is boosting generator speed by ^<b><span id="genXPSpdEff"></span></b>.</span>
@@ -190,15 +198,15 @@
                                 </div>
                                 <div id="genEnhArea">
                                     <div class="flex-vertical">
-                                        <span class="font" style="font-size: 24px; color: #ffff00" id="genEnhance"></span><span class="font" style="font-size: 12px; color: #ffff00">enhancers</span>
-                                        <span class="font" style="font-size: 11px; color: #ffffff">Enhancers are increasing generator XP by &times;<b><span id="genEnhXPEff"></span></b>.</span>
-                                        <span class="font" style="font-size: 11px; color: #ffffff" id="genEnhDispEff2">Enhancers are also increasing points by ^<b><span id="genEnhXPEff2"></span></b> via Trans. Upgrade <b>exp2</b>.</span>
+                                        <span class="font" style="font-size: 24px; color: #00ffc0" id="genEnhance"></span><span class="font" style="font-size: 12px; color: #00ffc0">generator enhancers</span>
+                                        <span class="font" style="font-size: 11px; color: #ffffff">Generator Enhancers are increasing Generator XP by &times;<b><span id="genEnhXPEff"></span></b>.</span>
+                                        <span class="font" style="font-size: 11px; color: #ffffff" id="genEnhDispEff2">Generator Enhancers are also increasing points by ^<b><span id="genEnhXPEff2"></span></b> via Trans. Upgrade <b>exp2</b>.</span>
                                         <div class="flex-horizontal" style="width: 525px; flex-wrap: wrap" id="genEnhUpgList"></div><br>
                                     </div>
                                 </div>
                                 <div id="genAdvArea">
                                     <div class="flex-vertical">
-                                        <span class="font" style="font-size: 24px; color: #00ffff" id="genAdvance"></span><span class="font" style="font-size: 12px; color: #00ffff">advances</span>
+                                        <span class="font" style="font-size: 24px; color: #00ffff" id="genAdvance"></span><span class="font" style="font-size: 12px; color: #00ffff">generator advances</span>
                                         <span class="font" style="font-size: 11px; color: #ffffff">Total advances are increasing prestige point gain by &times;<b><span id="genAdvEff"></span></b>.</span>
                                         <span class="font" style="font-size: 11px; color: #ffffff">Disabling/enabling an advancement automatically does a transcension reset!</span>
                                         <span class="font" style="font-size: 11px; color: #ffff00">If an advancement is disabled, you will get no boosts from it!</span>
@@ -206,13 +214,40 @@
                                     </div>
                                 </div>
                             </div>                            
-                            <button onclick="doGenEnhReset()" id="generatorEnhance" class="whiteText font" style="background-color: #80800080; border: 3px solid #ffff00; height: 70px; width: 325px; font-size: 12px; margin: 2px">
+                            <button onclick="doGenEnhReset()" id="generatorEnhance" class="whiteText font" style="background-color: #00806080; border: 3px solid #00ffc0; height: 70px; width: 325px; font-size: 12px; margin: 2px">
                                 Do an ascension reset for <b><span id="enhAmount"></span></b> enhancers.<br>
                                 <span id="enhNext"></span>
                             </button>
                             <button onclick="doGenAdvReset()" id="generatorAdvance" class="whiteText font" style="background-color: #00808080; border: 3px solid #00ffff; height: 70px; width: 325px; font-size: 12px; margin: 2px">
                                 Do a transcension reset for <b><span id="advAmount"></span></b> advances.<br>
                                 <span id="advNext"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="tierMain">
+                        <div class="flex-vertical">
+                            <div class="flex-horizontal" style="flex-wrap: wrap;">
+                                <div id="tierMainArea">
+                                    <div class="flex-vertical">
+                                        <span class="font" style="font-size: 24px; color: #ffa000" id="tierXP"></span><span class="font" style="font-size: 12px; color: #ffa000">tier experience</span>
+                                        <span class="font" style="font-size: 11px; color: #ffffff">You have a total of <b><span id="tierLvTotal"></span></b> (Best: <b><span id="tierLvTotalBest"></span></b>) tier levels.</span>
+                                        <span class="font" style="font-size: 11px; color: #ffffff">You are gaining <b><span id="tierXPGain"></span></b>/s due to your total tier levels.</span>
+                                        <span class="font" style="font-size: 11px; color: #ffffff">Tier XP is boosting tier speed by ^<b><span id="tierXPSpdEff"></span></b>.</span>
+                                        <span class="font" style="font-size: 11px; color: #ffffff">Tier XP and tier levels are boosting your points by ^<b><span id="tierXPPtsEff"></span></b>.</span>
+                                        <div class="flex-horizontal" style="width: 525px; flex-wrap: wrap" id="tierXPUpgList"></div><br>
+                                    </div>
+                                </div>
+                                <div id="tierEnhArea">
+                                    <div class="flex-vertical">
+                                        <span class="font" style="font-size: 24px; color: #ffff00" id="tierEnhance"></span><span class="font" style="font-size: 12px; color: #ffff00">tier enhancers</span>
+                                        <span class="font" style="font-size: 11px; color: #ffffff">Enhancers are increasing tier XP by &times;<b><span id="tierEnhXPEff"></span></b>.</span>
+                                        <div class="flex-horizontal" style="width: 525px; flex-wrap: wrap" id="tierEnhUpgList"></div><br>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="doTierEnhReset()" id="tierEnhanceReset" class="whiteText font" style="background-color: #80800080; border: 3px solid #ffff00; height: 70px; width: 325px; font-size: 12px; margin: 2px">
+                                Do an transcension reset for <b><span id="tierEnhAmount"></span></b> enhancers.<br>
+                                <span id="tierEnhNext"></span>
                             </button>
                         </div>
                     </div>
@@ -225,18 +260,27 @@
                                     <span class="font" style="font-size: 12px; color: #ff80a0" id="replicatorEffectDisp"></span>
                                 </div>
                                 <div style="margin: 4px" class="flex-vertical" id="rankPointShow">
-                                    <span class="font" style="font-size: 24px; color: #ff80c0" id="rankPointDisp"></span><span class="font" style="font-size: 12px; color: #ff80c0">rank points</span>
+                                    <span class="font" style="font-size: 24px; color: #ff80c0" id="rankPointDisp"></span><span class="font" style="font-size: 12px; color: #ff80c0">replirank points</span>
                                     <span class="font" style="font-size: 12px; color: #ff80c0" id="rankPointGenDisp"></span>
+                                    <span class="font" style="font-size: 12px; color: #ff80c0" id="rankPointEffDisp"></span>
                                 </div>
                                 <div style="margin: 4px" class="flex-vertical" id="tierPointShow">
-                                    <span class="font" style="font-size: 24px; color: #ff80e0" id="tierPointDisp"></span><span class="font" style="font-size: 12px; color: #ff80e0">tier points</span>
+                                    <span class="font" style="font-size: 24px; color: #ff80e0" id="tierPointDisp"></span><span class="font" style="font-size: 12px; color: #ff80e0">replitier points</span>
                                     <span class="font" style="font-size: 12px; color: #ff80e0" id="tierPointGenDisp"></span>
                                     <span class="font" style="font-size: 12px; color: #ff80e0" id="tierPointEffectDisp"></span>
                                     <span class="font" style="font-size: 12px; color: #ff80e0" id="tierPointEffect2Disp"></span>
+                                    <span class="font" style="font-size: 12px; color: #ff80e0">Allows for bulk repliranks >0</span>
+                                </div>
+                                <div style="margin: 4px" class="flex-vertical" id="tetrPointShow">
+                                    <span class="font" style="font-size: 24px; color: #ff80ff" id="tetrPointDisp"></span><span class="font" style="font-size: 12px; color: #ff80ff">replitetr points</span>
+                                    <span class="font" style="font-size: 12px; color: #ff80ff" id="tetrPointGenDisp"></span>
+                                    <span class="font" style="font-size: 12px; color: #ff80ff" id="tetrPointEffectDisp"></span>
+                                    <span class="font" style="font-size: 12px; color: #ff80ff" id="tetrPointEffect2Disp"></span>
+                                    <span class="font" style="font-size: 12px; color: #ff80ff">Allows for auto repliranks and bulk replitiers >0</span>
                                 </div>
                             </div>
-                            <span style="font-size: 12px;">Your replicator strength is <b><span id="replicatorStrengthDisp1"></span></b>, meaning that every <span id="replicatorStrengthDisp2"></span> OoMs of replicators slow down replicator speed by 10√.</span>
-                            <span style="font-size: 12px;">Your replicators have slowed down by <b><span id="replicatorStrengthEffect"></span></b>√ due to overcrowding.</span>
+                            <span style="font-size: 12px;">Your replicator strength is <b><span id="replicatorStrengthDisp1"></span></b>, meaning that every <span id="replicatorStrengthDisp2"></span> OoMs of replicators slow down replicator speed by roughly 10√.</span>
+                            <span style="font-size: 12px;">Your replicators have slowed down by roughly <b><span id="replicatorStrengthEffect"></span></b>√ due to overcrowding.</span>
                             <span style="font-size: 12px;">Your replicators will double in <b><span id="replicatorTrueSpeed"></span></b>. (<span id="replicatorTrueSpeed2"></span>&times;/s.)</span>
                             <span style="font-size: 12px; color: #ffff00">Replicators use Tier 2 Time Speed!</span>
                             <div id="repliRankUpgsAll">
@@ -266,6 +310,21 @@
                                             </button>
                                         </div>
                                         <div id="tierPointBuyList" style="align-items: center; margin: 2px; margin-right: 4px;" class="flex-horizontal"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="repliTetrUpgsAll">
+                                <div class="flex-vertical">
+                                    <div style="border: 2px solid #ff00ff; background-color: #80008080; margin: 2px;" class="flex-horizontal">
+                                        <div id="repliTetrAll" style="width: 200px; margin: 2px">
+                                            <button onclick="repliTetrReset()" id="repliTetr" class="whiteText font" style="height: 100px; width: 200px; font-size: 10px; margin: 2px">
+                                                <span style="font-size: 12px;"><b>Replitetr <span id="repliTetrAmount"></span></b></span><br>
+                                                <br>
+                                                Reset prior progress to increase tetr point gain from <span id="repliTetrEff"></span> and increase rank point gain by ^1.1.<br>
+                                                Requires: <span id="repliTetrCost"></span>
+                                            </button>
+                                        </div>
+                                        <div id="tetrPointBuyList" style="align-items: center; margin: 2px; margin-right: 4px;" class="flex-horizontal"></div>
                                     </div>
                                 </div>
                             </div>
@@ -466,6 +525,7 @@
                                         <br>
                                         <span class="whiteText font" style="font-size: 12px;">A setback upgrade is unlocked by reaching +1, +2, +3, +5, and +8 in the color. (+1 red = A new red setback upgrade)</span>
                                         <span class="whiteText font" style="font-size: 12px;">Upgrades from setback priorities do not reset, even if respecced!</span>
+                                        <b><span class="whiteText font" style="font-size: 12px;">Capping out Red to Cyan priorities out will give an extra bonus: all priorities will no longer get reduced by other colors!</span></b>
                                         <br>
                                         <button onclick="respecSetbackPriority()" id="priorityRespec" class="whiteText font" style="cursor: pointer; height: 40px; width: 200px; font-size: 12px; margin: 2px; background-color: #80808080; border: 3px solid #ffffff">
                                             Respec all setback priorities.
@@ -571,8 +631,8 @@
                                 <br>
                                 <span class="whiteText font" style="font-size: 15px;" id="anticapBuyableScaling">All anticap buyables scale 1% faster per purchase.</span>
                                 <div class="flex-horizontal" id="anticapBuyableList"></div>
-                                <!-- 1082px to try to align the thing to the buyables manually (at least when you first unlock it) idk im lazy -->
-                                <div class="flex-horizontal" style="background-color: #40404080; border: 3px solid #808080; width: 1082px; height: 120px; overflow-x: auto; overflow-y: hidden; justify-content: normal;" id="anticapUpgradeList"></div>
+                                <!-- 1102px to try to align the thing to the buyables manually (at least when you first unlock it) idk im lazy -->
+                                <div class="flex-horizontal" style="background-color: #40404080; border: 3px solid #808080; width: 1102px; height: 130px; overflow-x: auto; overflow-y: hidden; justify-content: normal;" id="anticapUpgradeList"></div>
                             </div>
                         </div>
                     </div>

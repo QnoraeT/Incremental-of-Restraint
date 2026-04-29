@@ -16,7 +16,11 @@ const GEN_XP_BUYABLES = [
             if (hasSetbackUpgrade('c11')) {
                 cost = cost.div(SETBACK_UPGRADES[3][10].eff);
             }
-            cost = increasingExpCostScaling(cost, scale).pow_base(3);
+            if (player.anticap.upgrades.includes(24)) {
+                cost = increasingExpCostScaling(cost.root(2), scale).pow(2).pow_base(3);
+            } else {
+                cost = increasingExpCostScaling(cost, scale).pow_base(3);
+            }
             return cost.floor();
         },
         target(resource) {
@@ -29,7 +33,11 @@ const GEN_XP_BUYABLES = [
             }
 
             let target = D(resource).ceil();
-            target = increasingExpCostScaling(target.max(1).log(3), scale, true);
+            if (player.anticap.upgrades.includes(24)) {
+                target = increasingExpCostScaling(target.max(1).log(3).root(2), scale, true).pow(2);
+            } else {
+                target = increasingExpCostScaling(target.max(1).log(3), scale, true);
+            }
             if (hasSetbackUpgrade('c11')) {
                 target = target.mul(SETBACK_UPGRADES[3][10].eff);
             }
@@ -58,10 +66,16 @@ const GEN_XP_BUYABLES = [
             }
 
             cost = increasingExpCostScaling(cost, 0.007).pow_base(20).mul(250);
+            if (hasHinderanceMilestone(4, 0)) {
+                cost = cost.div(250);
+            }
             return cost.floor();
         },
         target(resource) {
             let target = D(resource).ceil();
+            if (hasHinderanceMilestone(4, 0)) {
+                target = target.mul(250);
+            }
             target = increasingExpCostScaling(target.div(250).max(1).log(20), 0.007, true);
             if (hasSetbackUpgrade('c11')) {
                 target = target.mul(SETBACK_UPGRADES[3][10].eff);
@@ -94,12 +108,18 @@ const GEN_XP_BUYABLES = [
             if (hasSetbackUpgrade('c11')) {
                 cost = cost.div(SETBACK_UPGRADES[3][10].eff)
             }
-            cost = increasingExpCostScaling(cost, 0.02).pow_base(1e25).mul(1e100);
+            cost = increasingExpCostScaling(cost, player.transcendUpgrades.includes('enhancer3') ? 0 : 0.02).pow_base(1e25).mul(1e100);
+            if (hasHinderanceMilestone(4, 0)) {
+                cost = cost.div(1e100);
+            }
             return cost;
         },
         target(resource) {
             let target = D(resource).ceil();
-            target = increasingExpCostScaling(target.div(1e100).max(1).log(1e25), 0.02, true);
+            if (hasHinderanceMilestone(4, 0)) {
+                target = target.mul(1e100);
+            }
+            target = increasingExpCostScaling(target.div(1e100).max(1).log(1e25), player.transcendUpgrades.includes('enhancer3') ? 0 : 0.02, true);
             if (hasSetbackUpgrade('c11')) {
                 target = target.mul(SETBACK_UPGRADES[3][10].eff);
             }
@@ -117,24 +137,139 @@ const GEN_XP_BUYABLES = [
         get desc() {
             return `XP's effect to generator speed's multiplier is increased by +×${format(tmp.generatorFeatures.genXPBuyables[2].eff, 3)}.`;
         }
+    },
+    {
+        get show() {
+            return hasSetbackUpgrade('c14');
+        },
+        cost(bought) {
+            let scale = D(0.1);
+
+            let cost = D(bought);
+            cost = increasingExpCostScaling(cost, scale).pow_base(1.5).pow_base('ee4');
+            if (hasHinderanceMilestone(4, 0)) {
+                cost = cost.div('ee4');
+            }
+            return cost.floor();
+        },
+        target(resource) {
+            if (Decimal.lt(resource, hasHinderanceMilestone(4, 0) ? 1 : 'ee4')) {
+                return D(0);
+            }
+            let scale = D(0.1);
+
+            let target = D(resource).ceil();
+            if (hasHinderanceMilestone(4, 0)) {
+                target = target.mul('ee4');
+            }
+            target = increasingExpCostScaling(target.max(1).log('ee4').log(1.5), scale, true);
+            return target;
+        },
+        eff(bought) {
+            if (player.transcendInSpecialReq === "ascend5") {
+                return D(1);
+            }
+            let eff = Decimal.max(player.timeInTranscension, 0).div(86400).add(1).ln().add(1).ln().mul(0.01);
+            eff = eff.mul(bought);
+            return eff;
+        },
+        get desc() {
+            return `Generator XP gain is increased over time since transcension by +^${format(tmp.generatorFeatures.genXPBuyables[3].eff, 3)}.`;
+        }
+    },
+    {
+        get show() {
+            return hasSetbackUpgrade('c14');
+        },
+        cost(bought) {
+            let scale = D(0.04);
+
+            let cost = D(bought);
+            cost = increasingExpCostScaling(cost, scale).pow_base(1.1).pow_base('e2e4');
+            if (hasHinderanceMilestone(4, 0)) {
+                cost = cost.div('e2e4');
+            }
+            return cost.floor();
+        },
+        target(resource) {
+            if (Decimal.lt(resource, hasHinderanceMilestone(4, 0) ? 1 : 'e2e4')) {
+                return D(0);
+            }
+            let scale = D(0.04);
+
+            let target = D(resource).ceil();
+            if (hasHinderanceMilestone(4, 0)) {
+                target = target.mul('e2e4');
+            }
+            target = increasingExpCostScaling(target.max(1).log('e2e4').log(1.1), scale, true);
+            return target;
+        },
+        eff(bought) {
+            if (player.transcendInSpecialReq === "ascend5") {
+                return D(1);
+            }
+            let eff = passiveLogSlowdown(Decimal.max(player.generatorFeatures.xp, 0).add(1).log10().add(1), 6, false).pow10();
+            eff = eff.pow(bought);
+            return eff;
+        },
+        get desc() {
+            return `Point gain is increased by Generator XP by ×${format(tmp.generatorFeatures.genXPBuyables[4].eff, 3)}.`;
+        }
+    },
+    {
+        get show() {
+            return hasSetbackUpgrade('c14');
+        },
+        cost(bought) {
+            let scale = D(0.05);
+
+            let cost = D(bought);
+            cost = increasingExpCostScaling(cost, scale).pow_base(1.1).pow_base('e5e4');
+            if (hasHinderanceMilestone(4, 0)) {
+                cost = cost.div('e5e4');
+            }
+            return cost.floor();
+        },
+        target(resource) {
+            if (Decimal.lt(resource, hasHinderanceMilestone(4, 0) ? 1 : 'e5e4')) {
+                return D(0);
+            }
+            let scale = D(0.05);
+
+            let target = D(resource).ceil();
+            if (hasHinderanceMilestone(4, 0)) {
+                target = target.mul('e5e4');
+            }
+            target = increasingExpCostScaling(target.max(1).log('e5e4').log(1.1), scale, true);
+            return target;
+        },
+        eff(bought) {
+            let eff = Decimal.max(player.timeInAscend, 0)
+            eff = Decimal.div(eff, 30).add(1).ln().pow_base(1.01);
+            eff = eff.pow(bought);
+            return eff;
+        },
+        get desc() {
+            return `Time since ascension boosts tiers by ×${format(tmp.generatorFeatures.genXPBuyables[5].eff, 1)}.`;
+        }
     }
 ]
 
 
 
 function initHTML_genXP() {
-    toHTMLvar('generatorMainTabButton')
-    toHTMLvar('generatorMain')
+    toHTMLvar('generatorMainTabButton');
+    toHTMLvar('generatorMain');
 
-    toHTMLvar('genMainArea')
-    toHTMLvar('genXP')
-    toHTMLvar('genLvTotal')
-    toHTMLvar('genLvTotalBest')
-    toHTMLvar('genXPGain')
-    toHTMLvar('genXPSpdEff')
-    toHTMLvar('genXPPtsEff')
-    toHTMLvar('genXPAuto')
-    toHTMLvar('genXPUpgList')
+    toHTMLvar('genMainArea');
+    toHTMLvar('genXP');
+    toHTMLvar('genLvTotal');
+    toHTMLvar('genLvTotalBest');
+    toHTMLvar('genXPGain');
+    toHTMLvar('genXPSpdEff');
+    toHTMLvar('genXPPtsEff');
+    toHTMLvar('genXPAuto');
+    toHTMLvar('genXPUpgList');
 
     let txt = ``;
     for (let i = 0; i < GEN_XP_BUYABLES.length; i++) {
@@ -163,6 +298,12 @@ function updateGame_genXP() {
             if (player.anticap.active) {
                 cost = anticapScaling(cost, "genXPBuyables", false);
             }
+            if (player.setbackUpgrades.includes('c15')) {
+                cost = cost.div(SETBACK_UPGRADES[3][14].eff);
+            }
+            if (player.transcendUpgrades.includes('enhancer2')) {
+                cost = cost.div(2);
+            }
             tmp.generatorFeatures.genXPBuyables[i].cost = GEN_XP_BUYABLES[i].cost(cost);
 
             if (tmp.hinderances[4].depth.gt(0) && i != 0) {
@@ -171,6 +312,12 @@ function updateGame_genXP() {
                 resource = player.generatorFeatures.xp;
             }
             tmp.generatorFeatures.genXPBuyables[i].target = GEN_XP_BUYABLES[i].target(resource);
+            if (player.transcendUpgrades.includes('enhancer2')) {
+                tmp.generatorFeatures.genXPBuyables[i].target = tmp.generatorFeatures.genXPBuyables[i].target.mul(2);
+            }
+            if (player.setbackUpgrades.includes('c15')) {
+                tmp.generatorFeatures.genXPBuyables[i].target = tmp.generatorFeatures.genXPBuyables[i].target.mul(SETBACK_UPGRADES[3][14].eff);
+            }
             if (player.anticap.active) {
                 tmp.generatorFeatures.genXPBuyables[i].target = anticapScaling(tmp.generatorFeatures.genXPBuyables[i].target, "genXPBuyables", true);
             }
@@ -187,7 +334,9 @@ function updateGame_genXP() {
                 }
             }
 
-            tmp.generatorFeatures.genXPBuyables[i].eff = GEN_XP_BUYABLES[i].eff(Decimal.floor(player.generatorFeatures.buyable[i]));
+            tmp.generatorFeatures.genXPBuyables[i].eff = GEN_XP_BUYABLES[i].eff(tmp.prestigeRepeatChal[5].depth.gt(0)
+                ? D(0)
+                : Decimal.floor(player.generatorFeatures.buyable[i]));
             tmp.generatorFeatures.genXPBuyables[i].canBuy = Decimal.gte(resource, tmp.generatorFeatures.genXPBuyables[i].cost);
         }
 
@@ -209,21 +358,21 @@ function updateGame_genXP() {
         }
         if (player.inSetback) {
             totalGain = totalGain.div(tmp.setbackEffects[3][0]);
-            addStatFactor('points', `Setback Cyan Effect`, `/`, tmp.setbackEffects[3][0], totalGain);
+            addStatFactor('genXP', `Setback Cyan Effect`, `/`, tmp.setbackEffects[3][0], totalGain);
         }
 
-        tmp.generatorFeatures.gain = totalGain.mul(totalGain.pow10()).div(1e6)
+        tmp.generatorFeatures.gain = totalGain.mul(totalGain.pow10()).div(1e6);
         addStatFactor('genXP', `Final Base`, `(${format(totalGain)}×10<sup>${format(totalGain)}</sup>)/${format(1e6)}`, null, tmp.generatorFeatures.gain);
 
         tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.mul(tmp.generatorFeatures.genXPBuyables[0].eff);
         addStatFactor('genXP', `Generator XP Buyable #1`, `×`, tmp.generatorFeatures.genXPBuyables[0].eff, tmp.generatorFeatures.gain);
 
-        if (tmp.generatorFeatures.enhancerEff.neq(1)) {
+        if (!player.anticap.upgrades.includes(23) && tmp.generatorFeatures.enhancerEff.neq(1)) {
             tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.mul(tmp.generatorFeatures.enhancerEff);
             addStatFactor('genXP', `Gen. Enhancer Effect`, `×`, tmp.generatorFeatures.enhancerEff, tmp.generatorFeatures.gain);
         }
         
-        if (tmp.setbackTotalStacks.length === 0) {
+        if (Decimal.gt(tmp.energyEffs[3], 1)) {
             tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.mul(tmp.energyEffs[3]);
             addStatFactor('genXP', `Cyan Energy`, `×`, tmp.energyEffs[3], tmp.generatorFeatures.gain);
         }
@@ -231,6 +380,38 @@ function updateGame_genXP() {
         if (hasSetbackUpgrade('r11')) {
             tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.mul(SETBACK_UPGRADES[0][10].eff);
             addStatFactor('genXP', `Red S. Upgrade 11`, `×`, SETBACK_UPGRADES[0][10].eff, tmp.generatorFeatures.gain);
+        }
+
+        if (tmp.prestigeRepeatChal[2].depth.lte(0)) {            
+            if (tmp.generatorFeatures.genXPBuyables[3].eff.gt(0)) {
+                tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.pow(tmp.generatorFeatures.genXPBuyables[3].eff.add(1));
+                addStatFactor('genXP', `Generator XP Buyable #4`, `^`, tmp.generatorFeatures.genXPBuyables[3].eff.add(1), tmp.generatorFeatures.gain);
+            }
+
+            if (player.anticap.upgrades.includes(23) && tmp.generatorFeatures.enhancerEff.neq(1)) {
+                tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.pow(tmp.generatorFeatures.enhancerEff);
+                addStatFactor('genXP', `Gen. Enhancer Effect`, `^`, tmp.generatorFeatures.enhancerEff, tmp.generatorFeatures.gain);
+            }
+    
+            if (player.anticap.upgrades.includes(20)) {
+                tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.pow(tmp.anticap.upgrades[20].eff);
+                addStatFactor('genXP', `Anticap Upgrade #21`, `^`, tmp.anticap.upgrades[20].eff, tmp.generatorFeatures.gain);
+            }
+
+            if (Decimal.gt(player.tierFeatures.buyable[1], 0)) {
+                tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.pow(tmp.tierFeatures.xpBuy[1].eff.add(1));
+                addStatFactor('genXP', `Tier XP Buyable #2`, `^`, tmp.tierFeatures.xpBuy[1].eff.add(1), tmp.generatorFeatures.gain);
+            }
+
+            if (hasHinderanceMilestone(2, 3) && Decimal.gte(player.hinderanceScore[2], HINDERANCES[2].start)) {
+                tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.pow(HINDERANCES[2].eff);
+                addStatFactor('genXP', `Hinderance 3 PB via Milestone 4`, `^`, HINDERANCES[2].eff, tmp.generatorFeatures.gain);
+            }
+
+            if (Decimal.gt(player.tierFeatures.enhancerBuyables[4], 0)) {
+                tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.add(1).log10().add(1).pow(tmp.tierFeatures.enhancerBuyables[4].eff.add(1)).sub(1).pow10().sub(1);
+                addStatFactor('genXP', `Tier Enh. Buyable #5`, `▲`, tmp.tierFeatures.enhancerBuyables[4].eff.add(1), tmp.generatorFeatures.gain);
+            }
         }
 
         // challenges/nerfs
@@ -263,10 +444,13 @@ function updateGame_genXP() {
         tmp.generatorFeatures.xpEffGenerators = D(0.05);
         tmp.generatorFeatures.xpEffGenerators = tmp.generatorFeatures.xpEffGenerators.add(tmp.generatorFeatures.genXPBuyables[2].eff);
         tmp.generatorFeatures.xpEffGenerators = player.generatorFeatures.xp.add(1).log10().mul(tmp.generatorFeatures.xpEffGenerators).add(1).ln().add(1);
-        if (player.transcendInSpecialReq === "exp4") {
+        if (player.transcendUpgrades.includes('enhancer3')) {
+            tmp.generatorFeatures.xpEffGenerators = tmp.generatorFeatures.xpEffGenerators.pow(2);
+        }
+        if (player.transcendInSpecialReq === "exp4" || tmp.prestigeRepeatChal[5].depth.gt(0)) {
             tmp.generatorFeatures.xpEffGenerators = D(1);
         }
-
+        
         // outside of any challenge
         if (hasSetbackUpgrade('c8') && !tmp.inAnyChallenge) {
             tmp.generatorFeatures.xpEffPoints = D(0.055);
@@ -278,51 +462,54 @@ function updateGame_genXP() {
             total = Decimal.max(total, player.buyablePoints.reduce((accumulator, current) => Decimal.mul(accumulator, Decimal.max(current, 1)), player.buyablePoints[0]).max(1).log10())
         }
         tmp.generatorFeatures.xpEffPoints = player.generatorFeatures.xp.add(1).log10().add(1).log10().mul(total.max(1).log2()).mul(tmp.generatorFeatures.xpEffPoints).add(1);
+        if (player.transcendUpgrades.includes('enhancer3')) {
+            tmp.generatorFeatures.xpEffPoints = tmp.generatorFeatures.xpEffPoints.pow(2);
+        }
         if (tmp.hinderances[3].depth.gt(0)) {
             tmp.generatorFeatures.xpEffPoints = tmp.generatorFeatures.xpEffPoints.pow(tmp.hinderances[3].effects.pts);
         }
-        if (player.transcendInSpecialReq === "exp4") {
+        if (player.transcendInSpecialReq === "exp4" || tmp.prestigeRepeatChal[5].depth.gt(0)) {
             tmp.generatorFeatures.xpEffPoints = D(1);
         }
     }
 }
 
 function updateHTML_genXP() {
-    html['generatorMainTabButton'].setDisplay(hasSetbackUpgrade(`r10`))
-    html['generatorMain'].setDisplay(tmp.mainTab === 1)
+    html['generatorMainTabButton'].setDisplay(hasSetbackUpgrade(`r10`));
+    html['generatorMain'].setDisplay(tmp.mainTab === 1);
 
     if (tmp.mainTab === 1) {
-        html['genXPAuto'].setDisplay(hasTranscendMilestone(10))
+        html['genXPAuto'].setDisplay(hasTranscendMilestone(10));
         if (hasTranscendMilestone(10)) {
-            html[`genXPAuto`].changeStyle('background-color', player.genXPAuto ? '#80400080' : '#80000080')
-            html[`genXPAuto`].changeStyle('border', `3px solid #${player.genXPAuto ? 'ff8000' : 'ff0000'}`)
-            html[`genXPAuto`].setTxt(player.genXPAuto ? `Auto: ${format(tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer : D(Infinity))}/s` : 'Auto: Off')
+            html[`genXPAuto`].changeStyle('background-color', player.genXPAuto ? '#00802080' : '#80000080');
+            html[`genXPAuto`].changeStyle('border', `3px solid #${player.genXPAuto ? '00ff40' : 'ff0000'}`);
+            html[`genXPAuto`].setTxt(player.genXPAuto ? `Auto: ${format(tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer : D(Infinity))}/s` : 'Auto: Off');
         }
 
-        html['genXP'].setTxt(format(player.generatorFeatures.xp, 2))
-        html['genXPGain'].setTxt(format(tmp.generatorFeatures.gain, 2))
-        html['genXPSpdEff'].setTxt(format(tmp.generatorFeatures.xpEffGenerators, 3))
-        html['genXPPtsEff'].setTxt(format(tmp.generatorFeatures.xpEffPoints, 3))
-        html['genLvTotal'].setTxt(format(tmp.buyables.reduce((accumulator, current) => Decimal.add(accumulator, current.genLevels), tmp.buyables[0])))
-        html['genLvTotalBest'].setTxt(format(player.bestTotalGenLvs))
+        html['genXP'].setTxt(format(player.generatorFeatures.xp, 2));
+        html['genXPGain'].setTxt(format(tmp.generatorFeatures.gain, 2));
+        html['genXPSpdEff'].setTxt(format(tmp.generatorFeatures.xpEffGenerators, 3));
+        html['genXPPtsEff'].setTxt(format(tmp.generatorFeatures.xpEffPoints, 3));
+        html['genLvTotal'].setTxt(format(tmp.buyables.reduce((accumulator, current) => Decimal.add(accumulator, current.genLevels), tmp.buyables[0])));
+        html['genLvTotalBest'].setTxt(format(player.bestTotalGenLvs));
 
-        let canBuy
+        let canBuy;
         for (let i = 0; i < GEN_XP_BUYABLES.length; i++) {
-            html[`genXPBuy${i}`].setDisplay(GEN_XP_BUYABLES[i].show)
+            html[`genXPBuy${i}`].setDisplay(GEN_XP_BUYABLES[i].show);
             if (GEN_XP_BUYABLES[i].show) {
-                canBuy = tmp.generatorFeatures.genXPBuyables[i].canBuy
-                html[`genXPBuy${i}eff`].setTxt(GEN_XP_BUYABLES[i].desc)
+                canBuy = tmp.generatorFeatures.genXPBuyables[i].canBuy;
+                html[`genXPBuy${i}eff`].setTxt(GEN_XP_BUYABLES[i].desc);
                 if (tmp.hinderances[4].depth.gt(0) && i != 0) {
-                    html[`genXPBuy${i}cost`].setTxt(`Cost: ${format(tmp.generatorFeatures.genXPBuyables[i].cost)} Gen. XP B. ${i}`)
+                    html[`genXPBuy${i}cost`].setTxt(`Cost: ${format(tmp.generatorFeatures.genXPBuyables[i].cost)} Gen. XP B. ${i}`);
                 } else {
-                    html[`genXPBuy${i}cost`].setTxt(`Cost: ${format(tmp.generatorFeatures.genXPBuyables[i].cost)} generator experience`)
+                    html[`genXPBuy${i}cost`].setTxt(`Cost: ${format(tmp.generatorFeatures.genXPBuyables[i].cost)} generator experience`);
                 }
                 
-                html[`genXPBuy${i}amount`].setTxt(`Gen. XP Buyable #${i+1}: ×${format(player.generatorFeatures.buyable[i])}`)
+                html[`genXPBuy${i}amount`].setTxt(`Gen. XP Buyable #${i+1}: ×${format(Decimal.floor(player.generatorFeatures.buyable[i]))}`);
 
-                html[`genXPBuy${i}`].changeStyle('background-color', canBuy ? '#C0780080' : '#40280080')
-                html[`genXPBuy${i}`].changeStyle('border', `3px solid ${canBuy ? '#FFA000' : '#805000'}`)
-                html[`genXPBuy${i}`].changeStyle('cursor', canBuy ? 'pointer' : 'not-allowed')
+                html[`genXPBuy${i}`].changeStyle('background-color', canBuy ? '#00802080' : '#00401080');
+                html[`genXPBuy${i}`].changeStyle('border', `3px solid ${canBuy ? '#00FF40' : '#008020'}`);
+                html[`genXPBuy${i}`].changeStyle('cursor', canBuy ? 'pointer' : 'not-allowed');
             }
         }
     }
@@ -332,10 +519,10 @@ function buyGenXPBuy(i) {
     if (!tmp.generatorFeatures.genXPBuyables[i].canBuy) {
         return;
     }
-    player.generatorFeatures.xp = Decimal.sub(player.generatorFeatures.xp, GEN_XP_BUYABLES[i].cost)
+    player.generatorFeatures.xp = Decimal.sub(player.generatorFeatures.xp, tmp.generatorFeatures.genXPBuyables[i].cost);
     if (shiftDown) {
-        player.generatorFeatures.buyable[i] = Decimal.max(player.generatorFeatures.buyable[i], tmp.generatorFeatures.genXPBuyables[i].target.ceil())
+        player.generatorFeatures.buyable[i] = Decimal.max(player.generatorFeatures.buyable[i], tmp.generatorFeatures.genXPBuyables[i].target.ceil());
     } else {
-        player.generatorFeatures.buyable[i] = Decimal.add(player.generatorFeatures.buyable[i], 1)
+        player.generatorFeatures.buyable[i] = Decimal.add(player.generatorFeatures.buyable[i], 1);
     }
 }

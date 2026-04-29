@@ -11,12 +11,14 @@ function initHTML_stats() {
 
     toHTMLvar('pointFactors');
     toHTMLvar('prestigeFactors');
-    toHTMLvar('generatorFactors');
-    toHTMLvar('ascendFactors');
     toHTMLvar('prestigeEssenceFactors');
+    toHTMLvar('generatorFactors');
     toHTMLvar('genXPFactors');
     toHTMLvar('genEnhFactors');
     toHTMLvar('tierFactors');
+    toHTMLvar('tierXPFactors');
+    toHTMLvar('tierEnhFactors');
+    toHTMLvar('ascendFactors');
     toHTMLvar('transcendFactors');
     toHTMLvar('tier1timeFactors');
     toHTMLvar('tier2timeFactors');
@@ -28,11 +30,11 @@ function initHTML_stats() {
     let txt = ``;
     for (let i = 0; i < player.buyables.length; i++) {
         txt += `
-            <div id="statUpgrade${i}all" style="width: 175px; margin: 2px">
-                <button id="statUpgrade${i}auto" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 20px; width: 175px; font-size: 10px; margin: 2px">
+            <div id="statUpgrade${i}all" style="width: 185px; margin: 2px">
+                <button id="statUpgrade${i}auto" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 20px; width: 185px; font-size: 10px; margin: 2px">
                     <span id="statUpgrade${i}autoStatus"></span>/s
                 </button>
-                <button id="statUpgrade${i}" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 70px; width: 175px; font-size: 10px; margin: 2px">
+                <button id="statUpgrade${i}" class="whiteText font" style="background-color: #80808080; border: 3px solid #ffffff; height: 75px; width: 185px; font-size: 10px; margin: 2px">
                     Effect Base: +<span id="statUpgrade${i}eff"></span><br>
                     Cost Growth: <span id="statUpgrade${i}cost"></span>.
                 </button>
@@ -109,26 +111,6 @@ function updateHTML_stats() {
             txt += `<b style="font-size: 14px">Final: ${format(tmp.prestigePointGain)}</b>`;
             html['prestigeFactors'].setHTML(txt);
 
-            html['generatorFactors'].setDisplay(player.prestigeChallengeCompleted.includes(0));
-            if (player.prestigeChallengeCompleted.includes(0)) {
-                txt = `<b style="font-size: 14px">Generator Speed</b>`;
-                for (let i = 0; i < tmp.factors.generator.length; i++) {
-                    txt += `<span>${tmp.factors.generator[i]}</span>`;
-                }
-                txt += `<b style="font-size: 14px">Final: ${format(tmp.generatorSpeed)}</b>`;
-                html['generatorFactors'].setHTML(txt);
-            }
-
-            html['ascendFactors'].setDisplay(Decimal.gte(player.bestPointsInAscend, tmp.ascendReq.div(1e3)) || Decimal.gt(player.ascend, 0));
-            if (Decimal.gte(player.bestPointsInAscend, tmp.ascendReq.div(1e3)) || Decimal.gt(player.ascend, 0)) {
-                txt = `<b style="font-size: 14px">Ascend Point Gain</b>`;
-                for (let i = 0; i < tmp.factors.ascend.length; i++) {
-                    txt += `<span>${tmp.factors.ascend[i]}</span>`;
-                }
-                txt += `<b style="font-size: 14px">Final: ${format(tmp.ascendPointGain)}</b>`;
-                html['ascendFactors'].setHTML(txt);
-            }
-
             html['prestigeEssenceFactors'].setDisplay(hasSetbackUpgrade('b1'));
             if (hasSetbackUpgrade('b1')) {
                 txt = `<b style="font-size: 14px">P. Essence Gain</b>`;
@@ -138,7 +120,17 @@ function updateHTML_stats() {
                 txt += `<b style="font-size: 14px">Final: ${format(tmp.peGain)}</b>`;
                 html['prestigeEssenceFactors'].setHTML(txt);
             }
-
+            
+            html['generatorFactors'].setDisplay(player.prestigeChallengeCompleted.includes(0));
+            if (player.prestigeChallengeCompleted.includes(0)) {
+                txt = `<b style="font-size: 14px">Generator Speed</b>`;
+                for (let i = 0; i < tmp.factors.generator.length; i++) {
+                    txt += `<span>${tmp.factors.generator[i]}</span>`;
+                }
+                txt += `<b style="font-size: 14px">Final: ${format(tmp.generatorSpeed)}</b>`;
+                html['generatorFactors'].setHTML(txt);
+            }
+            
             html['genXPFactors'].setDisplay(hasSetbackUpgrade(`r10`));
             if (hasSetbackUpgrade(`r10`)) {
                 txt = `<b style="font-size: 14px">Generator XP Gain</b>`;
@@ -158,7 +150,7 @@ function updateHTML_stats() {
                 txt += `<b style="font-size: 14px">Final: ${format(tmp.generatorFeatures.enhancerGain)}</b>`;
                 html['genEnhFactors'].setHTML(txt);
             }
-
+            
             html['tierFactors'].setDisplay(Decimal.gte(tmp.generatorFeatures.genEnhBuyables[2].eff, 1));
             if (Decimal.gte(tmp.generatorFeatures.genEnhBuyables[2].eff, 1)) {
                 txt = `<b style="font-size: 14px">Tier Speed</b>`;
@@ -167,6 +159,36 @@ function updateHTML_stats() {
                 }
                 txt += `<b style="font-size: 14px">Final: ${format(tmp.tierSpeed)}</b>`;
                 html['tierFactors'].setHTML(txt);
+            }
+            
+            html['tierXPFactors'].setDisplay(hasSetbackUpgrade(`r15`));
+            if (hasSetbackUpgrade(`r15`)) {
+                txt = `<b style="font-size: 14px">Tier XP Gain</b>`;
+                for (let i = 0; i < tmp.factors.tierXP.length; i++) {
+                    txt += `<span>${tmp.factors.tierXP[i]}</span>`;
+                }
+                txt += `<b style="font-size: 14px">Final: ${format(tmp.tierFeatures.gain)}</b>`;
+                html['tierXPFactors'].setHTML(txt);
+            }
+
+            html['tierEnhFactors'].setDisplay(hasSetbackUpgrade(`r15`));
+            if (hasSetbackUpgrade(`r15`)) {
+                txt = `<b style="font-size: 14px">Tier Enhancers Gain</b>`;
+                for (let i = 0; i < tmp.factors.tierEnh.length; i++) {
+                    txt += `<span>${tmp.factors.tierEnh[i]}</span>`;
+                }
+                txt += `<b style="font-size: 14px">Final: ${format(tmp.tierFeatures.enhancerGain)}</b>`;
+                html['tierEnhFactors'].setHTML(txt);
+            }
+            
+            html['ascendFactors'].setDisplay(Decimal.gte(player.bestPointsInAscend, tmp.ascendReq.div(1e3)) || Decimal.gt(player.ascend, 0));
+            if (Decimal.gte(player.bestPointsInAscend, tmp.ascendReq.div(1e3)) || Decimal.gt(player.ascend, 0)) {
+                txt = `<b style="font-size: 14px">Ascend Point Gain</b>`;
+                for (let i = 0; i < tmp.factors.ascend.length; i++) {
+                    txt += `<span>${tmp.factors.ascend[i]}</span>`;
+                }
+                txt += `<b style="font-size: 14px">Final: ${format(tmp.ascendPointGain)}</b>`;
+                html['ascendFactors'].setHTML(txt);
             }
 
             html['transcendFactors'].setDisplay(Decimal.gte(player.transcendResetCount, 1));

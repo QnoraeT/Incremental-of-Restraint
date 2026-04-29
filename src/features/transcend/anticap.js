@@ -27,18 +27,19 @@ function getAnticapSCValue(num, varUsed, scaleNum, inverse = false, showFactor =
             }
             return result;
         case 4:
+            let realPow = data.effPow.recip();
             // double checks for floating point because really high effPow messes with floating point (.div(BIG).add(1) loses precision)
             // even if so, a 1e-7 or lower result, results in a negligible decrease because ln(x) = 1+x for small enough x
-            if (Decimal.log(num, data.start).ln().div(data.effPow).lt(1e-7)) {
+            if (Decimal.log(num, data.start).ln().div(realPow).lt(1e-7)) {
                 result = num;
             } else {
                 result = inverse
-                    ? Decimal.log(num, data.start).root(data.effPow).sub(1).mul(data.effPow).exp().pow_base(data.start)
-                    : Decimal.log(num, data.start).ln().div(data.effPow).add(1).pow(data.effPow).pow_base(data.start);
+                    ? Decimal.log(num, data.start).root(realPow).sub(1).mul(realPow).exp().pow_base(data.start)
+                    : Decimal.log(num, data.start).ln().div(realPow).add(1).pow(realPow).pow_base(data.start);
             }
 
             if (!(inverse || showFactor === null)) {
-                addStatFactor(showFactor, `SH Softcap @${format(data.start)}`, `log(x)^`, data.effPow, result);
+                addStatFactor(showFactor, `SH Softcap @${format(data.start)}`, `log(x)^`, realPow, result);
             }
             return result;
         default:
@@ -130,6 +131,17 @@ const ANTICAP = {
             if (tmp.anticap.upgrades[14].eff != null && player.anticap.upgrades.includes(14)) {
                 arr[1].pow = arr[1].pow.div(tmp.anticap.upgrades[14].eff);
             }
+            if (player.anticap.upgrades.includes(27)) {
+                arr[0].start = D(Infinity);
+                arr[1].start = D(Infinity);
+                arr[2].start = D(Infinity);
+            }
+            if (tmp.anticap.upgrades[30].eff != null && player.anticap.upgrades.includes(30)) {
+                arr[4].pow = arr[4].pow.mul(tmp.anticap.upgrades[30].eff);
+            }
+            if (tmp.anticap.upgrades[35].eff != null && player.anticap.upgrades.includes(35)) {
+                arr[4].pow = arr[4].pow.mul(tmp.anticap.upgrades[35].eff.sc);
+            }
             return arr;
         },
         prestigePts() {
@@ -146,6 +158,19 @@ const ANTICAP = {
             if (tmp.anticap.upgrades[14].eff != null && player.anticap.upgrades.includes(14)) {
                 arr[1].pow = arr[1].pow.div(tmp.anticap.upgrades[14].eff);
             }
+            if (tmp.anticap.upgrades[22].eff != null && player.anticap.upgrades.includes(22)) {
+                arr[0].pow = arr[0].pow.div(tmp.anticap.upgrades[22].eff);
+                arr[1].pow = arr[1].pow.div(tmp.anticap.upgrades[22].eff);
+                arr[2].pow = arr[2].pow.div(tmp.anticap.upgrades[22].eff);
+            }
+            if (player.anticap.upgrades.includes(27)) {
+                arr[0].start = D(Infinity);
+                arr[1].start = D(Infinity);
+                arr[2].start = D(Infinity);
+            }
+            if (tmp.anticap.upgrades[30].eff != null && player.anticap.upgrades.includes(30)) {
+                arr[4].pow = arr[4].pow.mul(tmp.anticap.upgrades[30].eff);
+            }
             return arr;
         },
         prestigeEssence() {
@@ -156,6 +181,11 @@ const ANTICAP = {
                 { start: D(1e20), pow: D(1) },
                 { start: D(1e50), pow: D(1) }
             ];
+            if (tmp.anticap.upgrades[22].eff != null && player.anticap.upgrades.includes(22)) {
+                arr[0].pow = arr[0].pow.div(tmp.anticap.upgrades[22].eff);
+                arr[1].pow = arr[1].pow.div(tmp.anticap.upgrades[22].eff);
+                arr[2].pow = arr[2].pow.div(tmp.anticap.upgrades[22].eff);
+            }
             return arr;
         },
         ascendPoints() {
@@ -169,6 +199,9 @@ const ANTICAP = {
             return arr;
         },
         quarkDimMult() {
+            if (player.anticap.upgrades.includes(27)) {
+                return [];
+            }
             const arr = [
                 { start: D(1e10), pow: D(1) },
                 { start: D(1e100), pow: D(1) },
@@ -186,6 +219,12 @@ const ANTICAP = {
                 { start: D("ee5"), pow: D(1) },
                 { start: D("ee7"), pow: D(1) }
             ];
+            if (player.anticap.upgrades.includes(31)) {
+                arr[0].start = D(Infinity);
+                arr[1].start = D(Infinity);
+                arr[2].start = D(Infinity);
+                arr[3].start = D(Infinity);
+            }
             return arr;
         },
         genEnh() {
@@ -196,6 +235,12 @@ const ANTICAP = {
                 { start: D("ee5"), pow: D(1) },
                 { start: D("ee7"), pow: D(1) }
             ];
+            if (player.anticap.upgrades.includes(31)) {
+                arr[0].start = D(Infinity);
+                arr[1].start = D(Infinity);
+                arr[2].start = D(Infinity);
+                arr[3].start = D(Infinity);
+            }
             return arr;
         },
         transcendPoints() {
@@ -221,6 +266,9 @@ const ANTICAP = {
     },
     scalings: {
         basicBuyables() {
+            if (player.anticap.upgrades.includes(26)) {
+                return [];
+            }
             const arr = [
                 { start: D(10), pow: D(1) },
                 { start: D(100), pow: D(1) },
@@ -238,6 +286,9 @@ const ANTICAP = {
                 { start: D(1e60), pow: D(1) },
                 { start: D(1e200), pow: D(1) }
             ];
+            if (player.anticap.upgrades.includes(27)) {
+                arr[0].start = D(Infinity);
+            }
             return arr;
         },
         tierLevels() {
@@ -248,9 +299,15 @@ const ANTICAP = {
                 { start: D(1e12), pow: D(1) },
                 { start: D(1e25), pow: D(1) }
             ];
+            if (player.anticap.upgrades.includes(27)) {
+                arr[0].start = D(Infinity);
+            }
             return arr;
         },
         ascendBuyables() {
+            if (player.anticap.upgrades.includes(26)) {
+                return [];
+            }
             const arr = [
                 { start: D(40), pow: D(1) },
                 { start: D(200), pow: D(1) },
@@ -261,6 +318,9 @@ const ANTICAP = {
             return arr;
         },
         setbackDims() {
+            if (player.anticap.upgrades.includes(27)) {
+                return [];
+            }
             const arr = [
                 { start: D(40), pow: D(1) },
                 { start: D(200), pow: D(1) },
@@ -523,7 +583,7 @@ const ANTICAP = {
             }
         },
         {
-            cost: D(1e28),
+            cost: D(1e30),
             desc(eff) {
                 return `Red-Cyan autobuyers are unlocked at min. 20/s. Keep Cyan upgrades #1-10. Trans. Milestone 15 is upgraded to (10, 10, 10, 10).`;
             },
@@ -535,7 +595,7 @@ const ANTICAP = {
             }
         },
         {
-            cost: D(1e31),
+            cost: D(1e34),
             desc(eff) {
                 return `Transcension Points' multiplier is drastically improved. (^4.00, then ▲1.25)`;
             },
@@ -547,7 +607,7 @@ const ANTICAP = {
             }
         },
         {
-            cost: D(1e35),
+            cost: D(1e38),
             desc(eff) {
                 return `Start transcensions with transcend upgrades "point2", "prest2", and "ascend2" already bought.`;
             },
@@ -562,7 +622,7 @@ const ANTICAP = {
             }
         },
         {
-            cost: D(1e37),
+            cost: D(1e43),
             desc(eff) {
                 return `Points and Prestige Points' second softcap are weaker based on transcension resets. Currently: -${formatPerc(eff, 3)}`;
             },
@@ -574,7 +634,7 @@ const ANTICAP = {
             }
         },
         {
-            cost: D(1e40),
+            cost: D(1e48),
             desc(eff) {
                 return `Tier 2 Time speed is 3× faster.`;
             },
@@ -586,45 +646,9 @@ const ANTICAP = {
             }
         },
         {
-            cost: D(1e44),
+            cost: D(1e54),
             desc(eff) {
-                return `[unimp.] Prestige buyable cap is increased by +10.0. Prestige Essence also affects Ascension Gem gain.`;
-            },
-            eff() {
-                return null;
-            },
-            onBought() {
-                return null;
-            }
-        },
-        {
-            cost: D(1e48),
-            desc(eff) {
-                return `[unimp.] Transcension Points and Transcension Resets (if eligible) are automatically generated at a rate of 1% per second, using T2 time speed.`;
-            },
-            eff() {
-                return null;
-            },
-            onBought() {
-                return null;
-            }
-        },
-        {
-            cost: D(1e52),
-            desc(eff) {
-                return `[unimp.] Prestige points boost prestige essence gain at a reduced rate. Currently: ${format(eff, 2)}×`;
-            },
-            eff() {
-                return Decimal.max(player.prestige, 0).add(1).root(6);
-            },
-            onBought() {
-                return null;
-            }
-        },
-        {
-            cost: D(1e56),
-            desc(eff) {
-                return `[unimp.] All trans. upgrades before and at hinderance2 no longer have a requirement. Start with 1,000 TP upon a trans. chal. reset.`;
+                return `Prestige buyable cap is increased by +10.0. Prestige Essence also affects Ascension Gem gain.`;
             },
             eff() {
                 return null;
@@ -636,10 +660,238 @@ const ANTICAP = {
         {
             cost: D(1e60),
             desc(eff) {
-                return `[unimp.] Generator Advances raise Generator Enhancer and Generator XP gain. Currently: ^${format(eff, 3)}`;
+                return `Transcension points and resets (if eligible) are automatically generated at a rate of 1% per second, using T2 time speed.`;
+            },
+            eff() {
+                return null;
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D(1e70),
+            desc(eff) {
+                return `Prestige points boost prestige essence gain at a reduced rate. Currently: ${format(eff, 2)}×`;
+            },
+            eff() {
+                return passiveLogSlowdown(Decimal.max(player.prestige, 0).add(1).log10(), 10, false).root(4).pow10();
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D(1e85),
+            desc(eff) {
+                return `All trans. upgrades before and at hinderance2 no longer have a requirement. Start with 1,000 TP upon a trans. chal. reset.`;
+            },
+            eff() {
+                return null;
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D(1e100),
+            desc(eff) {
+                return `Generator Advances raise Generator Enhancer and Generator XP gain. Currently: ^${format(eff, 3)}`;
             },
             eff() {
                 return Decimal.max(player.generatorFeatures.totalAdv, 0).mul(0.03).add(1);
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D(1e200),
+            desc(eff) {
+                return `Reenable replicators and their effects in anticap, and replicator strength is boosted by anticap power. Currently: +${format(eff, 1)}`;
+            },
+            eff() {
+                return Decimal.max(player.anticap.power, 1e100).log(1e100).ln().mul(250);
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D(Number.MAX_VALUE),
+            desc(eff) {
+                return `The first three softcaps to prestige gain and essence are weaker based on replicators. Currently: -${formatPerc(eff, 2)}`;
+            },
+            eff() {
+                return Decimal.max(player.replicators, 0).add(1).log(Number.MAX_VALUE).add(1).ln().add(1);
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D('e500'),
+            desc(eff) {
+                return `Start transcensions with all transcend upgrades before and at hinderance2. Gen. Enh. effect is changed into raising Gen. XP.`;
+            },
+            eff() {
+                return null;
+            },
+            onBought() {
+                const SAFE_UPGRADES = ["point3", "prest3", "ascend3", "hinderance1", "gen1", "exp1", "ascend4", "gen2", "exp2", "prest4", "gen3", "exp3", "point4", "hinderance2"];
+
+                player.transcendUpgrades = player.transcendUpgrades.filter((value) => { return !SAFE_UPGRADES.includes(value) });
+                player.transcendUpgrades.push(...SAFE_UPGRADES);
+            }
+        },
+        {
+            cost: D('e750'),
+            desc(eff) {
+                return `Disable Gen. Enh. B. #1's inc. cost scaling, and Gen. XP B. #1's inc. cost scaling is slower the more you have. Currently: ~${formatPerc(eff, 2)}`;
+            },
+            // this is only demonstrative as there is no eff used
+            eff() {
+                return Decimal.max(player.generatorFeatures.buyable[0], 0).add(1).floor();
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D('e2500'),
+            desc(eff) {
+                return `Raise Basic Buyable 6's effect by ▲1.333.`;
+            },
+            eff() {
+                return null;
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D('e5000'),
+            desc(eff) {
+                return `Remove all basic buyable and ascension buyable scaling. Also, remove A.B. #9-12's point requirements.`;
+            },
+            eff() {
+                return null;
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D('e7500'),
+            desc(eff) {
+                return `Remove all softcaps and scalings from quark dimensions. The first 3 point and prestige point softcaps are removed.`;
+            },
+            eff() {
+                return null;
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D('e10000'),
+            desc(eff) {
+                return `Tier 2 Time speed is multiplied based on your anticap power. (after >1.000e1,000) Currently: ${format(eff, 2)}×`;
+            },
+            eff() {
+                return Decimal.gte(player.anticap.power, 'ee3') ? Decimal.log10(player.anticap.power).log10().sub(2).pow_base(2) : D(1);
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D('e15000'),
+            desc(eff) {
+                return `Start transcensions with all transcend upgrades before and at anticap1.`;
+            },
+            eff() {
+                return null;
+            },
+            onBought() {
+                const SAFE_UPGRADES = ["setback1", "enhancer1", "ascend5", "prest5", "point5", "gen4"];
+
+                player.transcendUpgrades = player.transcendUpgrades.filter((value) => { return !SAFE_UPGRADES.includes(value) });
+                player.transcendUpgrades.push(...SAFE_UPGRADES);
+            }
+        },
+        {
+            cost: D('e25000'),
+            desc(eff) {
+                return `T2 time in transcension weakens 5th point and prestige point softcaps. Remove 1st gen. level and tier level scaling. Currently: ${formatPerc(eff, 2)}`;
+            },
+            eff() {
+                return Decimal.div(player.time2ndInTranscend, 3600).add(1).ln().add(1).root(3);
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D('e40000'),
+            desc(eff) {
+                return `Remove Gen. XP and Gen. Enh. first four softcaps. Tier Enh. Buyable #6 is ^5 stronger, but slightly weaken PG gain to compensate.`;
+            },
+            eff() {
+                return null;
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D('e60000'),
+            desc(eff) {
+                return `Remove Tier Enh. Buyable #1's increasing cost scaling. Gen. Enh. Buyable #3's cost scaling is weaker based on Gen. Adv. Currently: -${formatPerc(eff)}`;
+            },
+            eff() {
+                return Decimal.div(player.generatorFeatures.totalAdv, 100).add(1).pow(3);
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D('e80000'),
+            desc(eff) {
+                return `Outside of any challenge, generator effect to buyables is increased by ■1.5. (Power to 2nd exp.) (Equiv. to ~▲${format(eff, 2)})`;
+            },
+            // only demonstrative
+            eff() {
+                let newEff = tmp.buyables[0].genEffect.add(1).log10().add(1).log10().add(1).pow(1.5).sub(1).pow10().sub(1).pow10().sub(1);
+                return newEff.log10().log(tmp.buyables[0].genEffect.max(1e10).log10());
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D('e100000'),
+            desc(eff) {
+                return `Replicators' effect is based off total* replicanti. *This "total" is increased based off of your total growth. Replicanti strength is multiplied by 1.25×`;
+            },
+            eff() {
+                return null;
+            },
+            onBought() {
+                return null;
+            }
+        },
+        {
+            cost: D('e150000'),
+            desc(eff) {
+                return `Replicanti strength is multiplied based on anticap energy. Points' 5th softcap is weaker based on total* replicators. Currently: ${format(eff.repli, 2)}×, -${formatPerc(eff.sc, 2)}`;
+            },
+            eff() {
+                return {
+                    repli: Decimal.max(player.anticap.energy, 10).log10().log10().mul(0.025).add(1).pow(2),
+                    sc: Decimal.max(player.bestReplicators, 1).log10().root(50)
+                };
             },
             onBought() {
                 return null;
@@ -695,8 +947,8 @@ function initHTML_anticap() {
     txt = ``;
     for (let i = 0; i < ANTICAP.upgrades.length; i++) {
         txt += `
-            <div id="anticapUpgCate${i}" class="flex-vertical" style="margin-top: -3px; margin-left: -3px; height: 100%; min-width: 215px; border: 3px dashed #80808080; justify-content: center;">
-                <button id="anticapUpg${i}" onclick="buyAnticapUpg(${i})" class="whiteText font" style="margin: 4px; cursor: pointer; height: 100px; width: 200px; font-size: 10px;">
+            <div id="anticapUpgCate${i}" class="flex-vertical" style="margin-top: -3px; margin-left: -3px; height: 100%; min-width: 225px; border: 3px dashed #80808080; justify-content: center;">
+                <button id="anticapUpg${i}" onclick="buyAnticapUpg(${i})" class="whiteText font" style="margin: 4px; cursor: pointer; height: 105px; width: 210px; font-size: 10px;">
                     Anticap Upgrade #${i+1}<br>
                     <br>
                     <span id="anticapUpg${i}eff"></span><br>
@@ -745,6 +997,13 @@ function updateGame_anticap() {
 
 function updateGame_anticapResources() {
     tmp.anticap.buyableScaling = D(1);
+    if (player.transcendUpgrades.includes('anticap2')) {
+        tmp.anticap.buyableScaling = tmp.anticap.buyableScaling.mul(2);
+    }
+    if (player.transcendUpgrades.includes('anticap3')) {
+        tmp.anticap.buyableScaling = tmp.anticap.buyableScaling.mul(2);
+    }
+    
     for (let i = 0; i < ANTICAP.buyables.length; i++) {
         let cost = Decimal.floor(player.anticap.buyables[i]);
         cost = smoothExp(cost.div(tmp.anticap.buyableScaling), 1.01, false).mul(tmp.anticap.buyableScaling);
@@ -776,6 +1035,9 @@ function updateGame_anticapResources() {
 
     tmp.anticap.energyExp = D(1);
     tmp.anticap.energyExp = tmp.anticap.energyExp.add(tmp.anticap.buyables[2].eff);
+    if (Decimal.gte(player.prestigeChallengeRepCompleted[5], 1)) {
+        tmp.anticap.energyExp = tmp.anticap.energyExp.mul(tmp.prestigeRepeatChal[5].rewardEffs.exp);
+    }
 
     tmp.anticap.energyGain = getAnticapEnergyGain(player.anticap.power);
 
@@ -810,12 +1072,19 @@ function getAnticapEnergyGain(power) {
 function getAnticapEnergyEffects(i, power) {
     let energyStrength = D(1);
     energyStrength = energyStrength.add(tmp.anticap.buyables[3].eff);
+    if (player.transcendUpgrades.includes('anticap2')) {
+        energyStrength = energyStrength.mul(1.25);
+    }
+    if (player.transcendUpgrades.includes('anticap3')) {
+        energyStrength = energyStrength.mul(1.25);
+    }
 
     let eff;
     switch (i) {
         case 0:
             eff = Decimal.gte(player.anticap.bestEnergy, 1)
-                ? Decimal.max(player.anticap.bestEnergy, 10).log10().log10().mul(0.1).mul(Decimal.max(power, 1).log10().add(1).log10().mul(0.25).add(1)).mul(energyStrength).add(1)
+                ? Decimal.max(player.anticap.bestEnergy, 10).log10().log10().mul(Decimal.max(power, 1).log10().add(1).log10().add(1)).pow_base(1.1).pow(energyStrength)
+                // ? Decimal.max(player.anticap.bestEnergy, 10).log10().log10().mul(0.1).mul(Decimal.max(power, 1).log10().add(1).log10().mul(0.25).add(1)).mul(energyStrength).add(1)
                 : D(1);
             break;
         case 1:
@@ -835,7 +1104,7 @@ function getAnticapEnergyEffects(i, power) {
             break;
         case 4:
             eff = Decimal.gte(player.anticap.bestEnergy, 1e100)
-                ? powLogSlowDown(Decimal.max(player.anticap.bestEnergy, 1e100).div(1e100).log10().add(1).pow(0.5), 100).sub(1).pow10().pow(Decimal.max(power, 1e100).log(1e100).ln().add(1)).pow(energyStrength)
+                ? passiveLogSlowdown(Decimal.max(player.anticap.bestEnergy, 1e100).div(1e100).log10().add(1).pow(0.5), 100).sub(1).pow10().pow(Decimal.max(power, 1e100).log(1e100).ln().add(1)).pow(energyStrength)
                 : D(1);
             break;
         default:
@@ -894,6 +1163,8 @@ function updateHTML_anticap() {
             html['anticapToggle'].changeStyle('background-color', player.anticap.active ? '#40404080' : '#20202080');
             html['anticapToggle'].changeStyle('border', '3px solid ' + (player.anticap.active ? '#ffffff' : '#404040'));
 
+            html['anticapBuyableScaling'].setTxt(`All anticap buyables scale ${format(tmp.anticap.buyableScaling.recip(), 1)}% faster per purchase.`)
+
             for (let i = 0; i < ANTICAP.buyables.length; i++) {
                 html[`anticapBuy${i}`].setDisplay(ANTICAP.buyables[i].enabled());
                 if (ANTICAP.buyables[i].enabled()) {
@@ -938,6 +1209,10 @@ function toggleAnticap() {
 
         player.transcendPoints = D(0);
         player.transcendPointTotal = D(0);
+        if (player.anticap.upgrades.includes(19)) {
+            player.transcendPoints = D(1000);
+            player.transcendPointTotal = D(1000);
+        }
         player.transcendResetCount = D(0);
         player.transcendUpgrades = player.transcendUpgrades.filter((value) => { return !UNSAFE_UPGRADES.includes(value) });
 

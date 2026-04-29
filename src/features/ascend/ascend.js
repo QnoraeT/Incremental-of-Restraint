@@ -25,9 +25,9 @@ const ASCENSION_UPGRADES = [
                 // to not get fucked by floating point
                 // the increasing cost scaling is supposed to be part of the formula, should not be considered a softcap
                 if (cost.add(1).log10().div(scaleInterval).gt(1e-7)) {
-                    cost = cost.add(1).log10().div(scaleInterval).pow_base(scaleExp).sub(1).mul(scaleInterval).div(Decimal.ln(scaleExp)).pow10();
+                    cost = cost.log10().div(scaleInterval).pow_base(scaleExp).sub(1).mul(scaleInterval).div(Decimal.ln(scaleExp)).pow10();
                 }
-                cost = cost.pow(2).mul(10);
+                cost = cost.add(1).pow(2).mul(10);
             } else {
                 cost = cost.div(100).exp().sub(1).mul(100).pow_base(2).mul(10);
             }
@@ -44,9 +44,9 @@ const ASCENSION_UPGRADES = [
                 let scaleExp = D(2);
                 let scaleInterval = D(308.254);
 
-                target = Decimal.div(target, 10).root(2);
+                target = Decimal.div(target, 10).root(2).sub(1);
                 if (target.log10().mul(Decimal.ln(scaleExp)).div(scaleInterval).gt(1e-7)) {
-                    target = target.log10().mul(Decimal.ln(scaleExp)).div(scaleInterval).add(1).log(scaleExp).mul(scaleInterval).pow10().sub(1);
+                    target = target.log10().mul(Decimal.ln(scaleExp)).div(scaleInterval).add(1).log(scaleExp).mul(scaleInterval).pow10();
                 }
             } else {
                 target = Decimal.div(target, 10).max(1).log2().div(100).add(1).ln().mul(100);
@@ -118,6 +118,9 @@ const ASCENSION_UPGRADES = [
             if (player.transcendUpgrades.includes('ascend2')) {
                 cap = cap.add(1);
             }
+            if (hasHinderanceMilestone(4, 1)) {
+                cap = D(Infinity);
+            }
             return cap;
         },
         req(bought) { return true; },
@@ -127,11 +130,13 @@ const ASCENSION_UPGRADES = [
             if (player.transcendInSpecialReq === "point4") {
                 cost = cost.mul(1000);
             }
+            cost = cost.mul(cost.div(5).pow_base(2));
             cost = cost.pow_base(40).mul(250);
             return cost;
         },
         target(resource) {
             let target = Decimal.div(resource, 250).max(1).log(40);
+            target = target.mul(0.6931471806).div(5).lambertw().mul(5).div(0.6931471806);
             if (player.transcendInSpecialReq === "point4") {
                 target = target.div(1000);
             }
@@ -141,14 +146,19 @@ const ASCENSION_UPGRADES = [
             if (player.transcendInSpecialReq === "ascend5") {
                 return D(1);
             }
+            if (player.transcendUpgrades.includes('ascend6')) {
+                return Decimal.div(bought, 6).ceil().mul(0.1).add(1);
+            }
             return D(1.1);
         },
         get desc() {
             return Decimal.eq(player.ascendUpgrades[2], 0)
-                ? `Buyable 1's effect is raised to the ^${format(tmp.ascendBuyables[2].eff, 2)} Currently: None.`
+                ? `Basic Buyable 1's effect is raised by +^${format(tmp.ascendBuyables[2].eff.sub(1), 2)} Currently: None.`
                 : Decimal.eq(player.ascendUpgrades[2], 1)
-                    ? `Buyable ${format(Decimal.floor(player.ascendUpgrades[2]).add(1))}'s effect is raised to the ^${format(tmp.ascendBuyables[2].eff, 2)} Currently: Buyable 1.`
-                    : `Buyable ${format(Decimal.floor(player.ascendUpgrades[2]).add(1))}'s effect is raised to the ^${format(tmp.ascendBuyables[2].eff, 2)} Currently: Buyables 1-${format(player.ascendUpgrades[2])}.`
+                    ? `Basic Buyable ${format(Decimal.floor(player.ascendUpgrades[2]).add(1))}'s effect is raised by +^${format(tmp.ascendBuyables[2].eff.sub(1), 2)} Currently: Basic Buyable 1.`
+                    : player.transcendUpgrades.includes('ascend6')
+                        ? `Basic Buyable 1-6's effect is raised by +^${format(0.1, 2)} Currently: ^${format(tmp.ascendBuyables[2].eff.sub(1), 2)}.`
+                        : `Basic Buyable ${format(Decimal.floor(player.ascendUpgrades[2]).add(1))}'s effect is raised by +^${format(tmp.ascendBuyables[2].eff.sub(1), 2)} Currently: Buyables 1-${format(player.ascendUpgrades[2])}.`
         } 
     },
     {
@@ -208,12 +218,20 @@ const ASCENSION_UPGRADES = [
                     if (player.transcendInSpecialReq === "point4") {
                         cost = cost.mul(1000);
                     }
-                    cost = cost.div(9).add(1).pow(1.5).sub(1).exp().sub(1).mul(6).pow(2).mul(2).pow_base(i + 2).mul(100 * (2 ** i));
+                    cost = cost.div(9);
+                    if (!player.transcendUpgrades.includes('ascend6')) {
+                        cost = cost.add(1).pow(1.5).sub(1);
+                    }
+                    cost = cost.exp().sub(1).mul(6).pow(2).mul(2).pow_base(i + 2).mul(100 * (2 ** i));
                     return cost;
                 },
                 target(resource) {
                     let target = D(resource);
-                    target = target.div(100 * (2 ** i)).max(1).log(i + 2).div(2).root(2).div(6).add(1).ln().add(1).root(1.5).sub(1).mul(9);
+                    target = target.div(100 * (2 ** i)).max(1).log(i + 2).div(2).root(2).div(6).add(1).ln();
+                    if (!player.transcendUpgrades.includes('ascend6')) {
+                        target = target.add(1).root(1.5).sub(1);
+                    }
+                    target = target.mul(9);
                     if (player.transcendInSpecialReq === "point4") {
                         target = target.div(1000);
                     }
@@ -231,7 +249,7 @@ const ASCENSION_UPGRADES = [
                 },
                 get desc() {
                     return player.anticap.upgrades.includes(8)
-                        ? `Increase Basic Buyable ${i+1}'s effect by ^${format(tmp.ascendBuyables[i + 4].eff, 3)}.`
+                        ? `Increase Basic Buyable ${i+1}'s effect by +^0.002. Currently: ^${format(tmp.ascendBuyables[i + 4].eff, 3)}.`
                         : `Automate Basic Buyable ${i+1}. This autobuyer can buy up to ${format(tmp.ascendBuyables[i + 4].eff)}/s.`;
                 } 
             });
@@ -254,9 +272,16 @@ const ASCENSION_UPGRADES = [
                     return cap;
                 },
                 req(bought) {
-                    return (player.anticap.upgrades.includes(1) || Decimal.lte(player.buyables[i], 0)) && Decimal.gte(player.points, Decimal.floor(bought).pow(1.5).pow_base(250 * (4 ** i)).mul(1e20 * (1e3 ** i)));
+                    return player.anticap.upgrades.includes(26) || 
+                        (
+                            (player.anticap.upgrades.includes(1) || Decimal.lte(player.buyables[i], 0)) 
+                            && Decimal.gte(player.points, Decimal.floor(bought).pow(1.5).pow_base(250 * (4 ** i)).mul(1e20 * (1e3 ** i)))
+                        );
                 },
                 reqDesc(bought) {
+                    if (player.anticap.upgrades.includes(26)) {
+                        return '';
+                    }
                     if (player.anticap.upgrades.includes(1)) {
                         return `You must reach ${format(Decimal.floor(bought).pow(1.5).pow_base(250 * (4 ** i)).mul(1e20 * (1e3 ** i)))} points.`;
                     } else {
@@ -285,6 +310,9 @@ const ASCENSION_UPGRADES = [
                     target2 = target2.div(1e20 * (1e3 ** i)).max(1).log(250 * (4 ** i)).root(1.5);
                     if (player.transcendInSpecialReq === "point4") {
                         target2 = target2.div(1000);
+                    }
+                    if (player.anticap.upgrades.includes(26)) {
+                        target2 = D(Infinity);
                     }
                     return Decimal.min(target1, target2);
                 },
@@ -389,12 +417,20 @@ const ASCENSION_UPGRADES = [
             if (player.transcendInSpecialReq === "point4") {
                 cost = cost.mul(1000);
             }
-            cost = cost.div(12).add(1).pow(2).sub(1).exp().sub(1).mul(6).pow(2).mul(2).pow_base(1e8).mul(1e60);
+            cost = cost.div(12);
+            if (!player.transcendUpgrades.includes('ascend6')) {
+                cost = cost.add(1).pow(2).sub(1)
+            }
+            cost = cost.exp().sub(1).mul(6).pow(2).mul(2).pow_base(1e8).mul(1e60);
             return cost;
         },
         target(resource) {
             let target = D(resource);
-            target = target.div(1e60).max(1).log(1e8).div(2).root(2).div(6).add(1).ln().add(1).root(2).sub(1).mul(12);
+            target = target.div(1e60).max(1).log(1e8).div(2).root(2).div(6).add(1).ln()
+            if (!player.transcendUpgrades.includes('ascend6')) {
+                target = target.add(1).root(2).sub(1);
+            }
+            target = target.mul(12);
             if (player.transcendInSpecialReq === "point4") {
                 target = target.div(1000);
             }
@@ -413,7 +449,7 @@ const ASCENSION_UPGRADES = [
         },
         get desc() {
             return player.anticap.upgrades.includes(8)
-                        ? `Increase Basic Buyable 5's effect by ^${format(tmp.ascendBuyables[14].eff, 3)}.`
+                        ? `Increase Basic Buyable 5's effect by +^0.002. Currently: ^${format(tmp.ascendBuyables[14].eff, 3)}.`
                         : `Automate Basic Buyable 5. This autobuyer can buy up to ${format(tmp.ascendBuyables[14].eff.mul(10))}/s.`;
         } 
     },
@@ -429,12 +465,20 @@ const ASCENSION_UPGRADES = [
             if (player.transcendInSpecialReq === "point4") {
                 cost = cost.mul(1000);
             }
-            cost = cost.div(16).add(1).pow(2).sub(1).exp().sub(1).mul(6).pow(2).mul(2).pow_base(1e10).mul(1e70);
+            cost = cost.div(16);
+            if (!player.transcendUpgrades.includes('ascend6')) {
+                cost = cost.add(1).pow(2).sub(1);
+            }
+            cost = cost.exp().sub(1).mul(6).pow(2).mul(2).pow_base(1e10).mul(1e70);
             return cost;
         },
         target(resource) {
             let target = D(resource);
-            target = target.div(1e70).max(1).log(1e10).div(2).root(2).div(6).add(1).ln().add(1).root(2).sub(1).mul(16);
+            target = target.div(1e70).max(1).log(1e10).div(2).root(2).div(6).add(1).ln();
+            if (!player.transcendUpgrades.includes('ascend6')) {
+                target = target.add(1).root(2).sub(1);
+            }
+            target = target.mul(16);
             if (player.transcendInSpecialReq === "point4") {
                 target = target.div(1000);
             }
@@ -453,7 +497,7 @@ const ASCENSION_UPGRADES = [
         },
         get desc() {
             return player.anticap.upgrades.includes(8)
-                        ? `Increase Basic Buyable 6's effect by ^${format(tmp.ascendBuyables[15].eff, 3)}.`
+                        ? `Increase Basic Buyable 6's effect by +^0.002. Currently: ^${format(tmp.ascendBuyables[15].eff, 3)}.`
                         : `Automate Basic Buyable 6. This autobuyer can buy up to ${format(tmp.ascendBuyables[15].eff)}/s.`;
         }
     }
@@ -514,6 +558,9 @@ function updateGame_ascend() {
             cost = anticapScaling(cost, "ascendBuyables", false);
         }
         tmp.ascendBuyables[i].cost = ASCENSION_UPGRADES[i].cost(cost);
+        if (hasHinderanceMilestone(4, 1)) {
+            tmp.ascendBuyables[i].cost = tmp.ascendBuyables[i].cost.div(ASCENSION_UPGRADES[i].cost(0));
+        }
         tmp.ascendBuyables[i].req = ASCENSION_UPGRADES[i].req(cost);
         tmp.ascendBuyables[i].reqDesc = ASCENSION_UPGRADES[i].reqDesc(cost);
         
@@ -523,12 +570,16 @@ function updateGame_ascend() {
         } else {
             resource = player.ascendGems;
         }
+        resource = D(resource);
+        tmp.ascendBuyables[i].canBuy = Decimal.gte(resource, tmp.ascendBuyables[i].cost);
+
+        if (hasHinderanceMilestone(4, 1)) {
+            resource = resource.mul(ASCENSION_UPGRADES[i].cost(0));
+        }
         tmp.ascendBuyables[i].target = ASCENSION_UPGRADES[i].target(resource);
         if (player.anticap.active) {
             tmp.ascendBuyables[i].target = anticapScaling(tmp.ascendBuyables[i].target, "ascendBuyables", true);
         }
-
-        tmp.ascendBuyables[i].canBuy = Decimal.gte(resource, tmp.ascendBuyables[i].cost);
 
         if (player.cheats.autoAscendUpgrades || (player.ascendUpgAuto && hasTranscendMilestone(8))) {
             let bought = D(player.ascendUpgrades[i]);
@@ -558,6 +609,13 @@ function updateGame_ascend() {
     tmp.factors.ascend = []
     tmp.ascendPointGain = Decimal.max(player.bestPointsInAscend, 1).log(tmp.ascendReq).sub(1).pow_base(1000);
     addStatFactor('ascend', `Base`, `1,000<sup>log<sub>${format(tmp.ascendReq)}</sub>(${format(player.bestPointsInAscend)})-1</sup>`, null, tmp.ascendPointGain);
+    if (tmp.prestigeRepeatChal[2].depth.lte(0)) {
+        if (hasHinderanceMilestone(2, 1) && Decimal.gte(player.hinderanceScore[2], HINDERANCES[2].start)) {
+            tmp.ascendPointGain = tmp.ascendPointGain.pow(HINDERANCES[2].eff);
+            addStatFactor('ascend', `Hinderance 3 PB via Milestone 2`, `^`, HINDERANCES[2].eff, tmp.ascendPointGain);
+        }
+    }
+        
     if (tmp.hinderances[4].depth.gt(0)) {
         tmp.ascendPointGain = tmp.ascendPointGain.pow(tmp.hinderances[4].effects.resource);
         addStatFactor('ascend', `Hinderance 5`, `^`, tmp.hinderances[4].effects.resource, tmp.ascendPointGain);
@@ -590,6 +648,11 @@ function updateGame_ascend() {
     if (tmp.hinderances[4].depth.gt(0)) {
         tmp.ascendPointNext = tmp.ascendPointNext.root(tmp.hinderances[4].effects.resource);
     }
+    if (tmp.prestigeRepeatChal[2].depth.lte(0)) {
+        if (hasHinderanceMilestone(2, 1) && Decimal.gte(player.hinderanceScore[2], HINDERANCES[2].start)) {
+            tmp.ascendPointNext = tmp.ascendPointNext.root(HINDERANCES[2].eff);
+        }
+    }
     tmp.ascendPointNext = tmp.ascendPointNext.add(1).log(1000).add(1).pow_base(tmp.ascendReq);
 
     tmp.autoAscend = player.cheats.autoAscend || (hasTranscendMilestone(9) && player.transcendInSpecialReq !== "prest4")
@@ -609,10 +672,17 @@ function getAscendEff(ascend) {
     if (player.anticap.upgrades.includes(16)) {
         eff = eff.mul(tmp.peEffect);
     }
-    eff = eff.pow(tmp.repliTierBuyables[3].eff);
-    if (tmp.hinderances[4].depth.gt(0)) {
-        eff = eff.pow(tmp.hinderances[4].effects.resource);
+
+    if (tmp.prestigeRepeatChal[2].depth.lte(0)) {
+        eff = eff.pow(tmp.repliTierBuyables[3].eff);
+        if (hasHinderanceMilestone(2, 2) && Decimal.gte(player.hinderanceScore[2], HINDERANCES[2].start)) {
+            eff = eff.pow(HINDERANCES[2].eff);
+        }
+        if (tmp.hinderances[4].depth.gt(0)) {
+            eff = eff.pow(tmp.hinderances[4].effects.resource);
+        }
     }
+
     if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
         eff = eff.add(1).log10().add(1).pow(tmp.prestigeRepeatChal[1].effects.exponent).sub(1).pow10().sub(1);
     }

@@ -212,12 +212,16 @@ const UPDATE_LOG = [
             "Nerfed Prestige Generators by increasing their scaling from 10^x^2 to 10^2^x. It inflated with higher PRC1 completions.",
         ],
         features: [
+            "Added Hinderance 6.",
+            "Added Prestige Repeat Challenges.",
+            "Completed implementing all extra setback upgrades from setback priorities.",
             "Added anticap.",
-            "Added new transcension upgrades and replicator tiers."
+            "Added tier XP and Enhancers.",
+            "Added new transcension upgrades and replicator tiers/tetrs."
         ],
         bugfixes: [
             "Fixed Setback in the Textbook not having a colored border. I hate CSS for this, but oh well.",
-            "PC11 is very annoying. I made generators have a minimum effect of 1.000e-1,000, so that you could still push through PC11 if you're far enough.",
+            "PC11 is very annoying. I made basic buyables have a minimum effect of 1.000e-1,000, so that you could still push through PC11 if you're far enough.",
             "Fixed an exploit that likely made several challenges trivial via 1 tick of extra PBs not being discarded after a reset.",
             "Fixed tiers having 1 extra level of effect.",
             "Fixed hinderance2's effect on dimensions not working at all.",
@@ -227,7 +231,24 @@ const UPDATE_LOG = [
 ]
 
 /*
+    player.prestigeChallengeRepCompleted[5] = D(0)
+    
+    player.time2ndInTranscend = D(0)
+
+    player.generatorFeatures.buyable[3] = D(0);
+    player.generatorFeatures.buyable[4] = D(0);
+    player.generatorFeatures.buyable[5] = D(0);
+
+    player.buyableAccumulated = [D(0), D(0), D(0), D(0), D(0), D(0)]
+
+    player.hinderanceScore[5] = D(0)
+    player.bestHinderanceScore[5] = D(0)
+    player.hinderancePts[5] = D(0)
+    player.hinderancePts = [D(0), D(0), D(0), D(0), D(0), D(0)]
+    
     player.replitierBuyables = [D(0), D(0), D(0), D(0), D(0)]
+    player.replitetrBuyables = [D(0), D(0), D(0), D(0), D(0), D(0)]
+
     player.anticap = {
         active: false,
         savedTotalTP: null,
@@ -238,5 +259,14 @@ const UPDATE_LOG = [
         bestEnergy: D(0),
         buyables: [D(0), D(0), D(0), D(0), D(0)],
         upgrades: []
+    }
+    
+    player.tierFeatures = {
+        xp: D(0),
+        buyable: [D(0), D(0), D(0)],
+        enhancer: D(0),
+        totalEnh: D(0),
+        enhancerBuyables: [D(0), D(0), D(0), D(0), D(0), D(0)],
+        enhanceCount: D(0),
     }
 */

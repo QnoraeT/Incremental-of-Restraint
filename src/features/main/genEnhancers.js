@@ -10,6 +10,9 @@ const GEN_ENH_BUYABLES = [
             if (player.transcendUpgrades.includes("exp4")) {
                 scale = scale.div(1000);
             }
+            if (player.anticap.upgrades.includes(24)) {
+                scale = D(0);
+            }
 
             let cost = D(bought);
             cost = increasingExpCostScaling(cost, scale).pow_base(2);
@@ -19,6 +22,9 @@ const GEN_ENH_BUYABLES = [
             let scale = D(0.02);
             if (player.transcendUpgrades.includes("exp4")) {
                 scale = scale.div(1000);
+            }
+            if (player.anticap.upgrades.includes(24)) {
+                scale = D(0);
             }
 
             let target = D(resource).ceil();
@@ -44,10 +50,16 @@ const GEN_ENH_BUYABLES = [
         cost(bought) {
             let cost = D(bought);
             cost = increasingExpCostScaling(cost, 0.02).pow_base(3).mul(5);
+            if (hasHinderanceMilestone(4, 0)) {
+                cost = cost.div(5);
+            }
             return cost.floor();
         },
         target(resource) {
             let target = D(resource).ceil();
+            if (hasHinderanceMilestone(4, 0)) {
+                target = target.mul(5);
+            }
             target = increasingExpCostScaling(target.div(5).max(1).log(3), 0.02, true);
             return target;
         },
@@ -55,7 +67,7 @@ const GEN_ENH_BUYABLES = [
             if (colorAmountTotal(3).gt(0) || player.transcendInSpecialReq === "ascend5") {
                 return D(1);
             }
-            let eff = Decimal.max(player.timeInAscend, 0)
+            let eff = Decimal.max(player.timeInAscend, 0);
             if (hasSetbackUpgrade('c9')) {
                 eff = eff.mul(2).add(30);
             }
@@ -73,12 +85,25 @@ const GEN_ENH_BUYABLES = [
         },
         cost(bought) {
             let cost = D(bought);
+            if (player.anticap.upgrades.includes(32)) {
+                cost = cost.div(tmp.anticap.upgrades[32].eff);
+            }
+
             cost = cost.pow_base(2).add(1).pow10();
+            if (hasHinderanceMilestone(4, 0)) {
+                cost = cost.div(100);
+            }
             return cost.floor();
         },
         target(resource) {
             let target = D(resource).ceil();
+            if (hasHinderanceMilestone(4, 0)) {
+                target = target.mul(100);
+            }
             target = target.max(100).log10().sub(1).log(2);
+            if (player.anticap.upgrades.includes(32)) {
+                target = target.mul(tmp.anticap.upgrades[32].eff);
+            }
             return target;
         },
         eff(bought) {
@@ -107,7 +132,14 @@ const GEN_ENH_BUYABLES = [
             }
 
             let cost = D(bought);
-            cost = increasingExpCostScaling(cost, scale).pow_base(3).mul(2500);
+            if (player.transcendUpgrades.includes('exp5')) {
+                cost = increasingExpCostScaling(cost.add(1).log10().add(1).pow(0.5).sub(1).pow10().sub(1), scale).add(1).log10().add(1).root(0.5).sub(1).pow10().sub(1).pow_base(3).mul(2500);
+            } else {
+                cost = increasingExpCostScaling(cost, scale).pow_base(3).mul(2500);
+            }
+            if (hasHinderanceMilestone(4, 0)) {
+                cost = cost.div(2500);
+            }
             return cost.floor();
         },
         target(resource) {
@@ -117,7 +149,16 @@ const GEN_ENH_BUYABLES = [
             }
 
             let target = D(resource).ceil();
-            target = increasingExpCostScaling(target.div(1000).max(1).log(3), scale, true);
+            if (hasHinderanceMilestone(4, 0)) {
+                target = target.mul(1000);
+            }
+
+            if (player.transcendUpgrades.includes('exp5')) {
+                target = increasingExpCostScaling(target.div(1000).max(1).log(3).add(1).log10().add(1).pow(0.5).sub(1).pow10().sub(1), scale, true).add(1).log10().add(1).root(0.5).sub(1).pow10().sub(1);;
+            } else {
+                target = increasingExpCostScaling(target.div(1000).max(1).log(3), scale, true);
+            }
+
             return target;
         },
         eff(bought) {
@@ -139,10 +180,16 @@ const GEN_ENH_BUYABLES = [
         cost(bought) {
             let cost = D(bought);
             cost = increasingExpCostScaling(cost, 0.01).pow_base(1e25).mul(1e100);
+            if (hasHinderanceMilestone(4, 0)) {
+                cost = cost.div(1e100);
+            }
             return cost.floor();
         },
         target(resource) {
             let target = D(resource).ceil();
+            if (hasHinderanceMilestone(4, 0)) {
+                target = target.mul(1e100);
+            }
             target = increasingExpCostScaling(target.div(1e100).max(1).log(1e25), 0.01, true);
             return target;
         },
@@ -165,10 +212,16 @@ const GEN_ENH_BUYABLES = [
         cost(bought) {
             let cost = D(bought);
             cost = cost.pow_base(3).pow_base(Number.MAX_VALUE);
+            if (hasHinderanceMilestone(4, 0)) {
+                cost = cost.div(Number.MAX_VALUE);
+            }
             return cost.floor();
         },
         target(resource) {
             let target = D(resource).ceil();
+            if (hasHinderanceMilestone(4, 0)) {
+                target = target.mul(Number.MAX_VALUE);
+            }
             target = target.max(1).log(Number.MAX_VALUE).max(1).log(3);
             return target;
         },
@@ -225,6 +278,12 @@ function updateGame_genEnhancers() {
         if (player.anticap.active) {
             cost = anticapScaling(cost, "genEnhBuyables", false);
         }
+        if (player.setbackUpgrades.includes('c15')) {
+            cost = cost.div(SETBACK_UPGRADES[3][14].eff);
+        }
+        if (player.transcendUpgrades.includes('enhancer2')) {
+            cost = cost.div(2);
+        }
         tmp.generatorFeatures.genEnhBuyables[i].cost = GEN_ENH_BUYABLES[i].cost(cost);
 
         if (tmp.hinderances[4].depth.gt(0) && i != 0) {
@@ -233,6 +292,12 @@ function updateGame_genEnhancers() {
             resource = player.generatorFeatures.enhancer;
         }
         tmp.generatorFeatures.genEnhBuyables[i].target = GEN_ENH_BUYABLES[i].target(resource);
+        if (player.transcendUpgrades.includes('enhancer2')) {
+            tmp.generatorFeatures.genEnhBuyables[i].target = tmp.generatorFeatures.genEnhBuyables[i].target.mul(2);
+        }
+        if (player.setbackUpgrades.includes('c15')) {
+            tmp.generatorFeatures.genEnhBuyables[i].target = tmp.generatorFeatures.genEnhBuyables[i].target.mul(SETBACK_UPGRADES[3][14].eff);
+        }
         if (player.anticap.active) {
             tmp.generatorFeatures.genEnhBuyables[i].target = anticapScaling(tmp.generatorFeatures.genEnhBuyables[i].target, "genEnhBuyables", true);
         }
@@ -249,13 +314,15 @@ function updateGame_genEnhancers() {
             }
         }
 
-        tmp.generatorFeatures.genEnhBuyables[i].eff = GEN_ENH_BUYABLES[i].eff(Decimal.floor(player.generatorFeatures.enhancerBuyables[i]));
+        tmp.generatorFeatures.genEnhBuyables[i].eff = GEN_ENH_BUYABLES[i].eff(tmp.prestigeRepeatChal[5].depth.gt(0)
+            ? D(0)
+            : Decimal.floor(player.generatorFeatures.enhancerBuyables[i]));
         tmp.generatorFeatures.genEnhBuyables[i].canBuy = Decimal.gte(resource, tmp.generatorFeatures.genEnhBuyables[i].cost);
     }
 
     tmp.factors.genEnh = [];
 
-    tmp.generatorFeatures.enhancerGain = Decimal.gte(player.generatorFeatures.xp, 1e33) && colorAmountTotal(3).lte(0) ? Decimal.div(player.generatorFeatures.xp, 1e33).pow(0.02) : D(0);
+    tmp.generatorFeatures.enhancerGain = colorAmountTotal(3).lte(0) ? Decimal.div(player.generatorFeatures.xp, 1e33).pow(0.02) : D(0);
     addStatFactor('genEnh', `Base`, `(${format(player.generatorFeatures.xp)}/${format(1e33)})<sup>0.02</sup>`, null, tmp.generatorFeatures.enhancerGain);
 
     if (tmp.generatorFeatures.genEnhBuyables[3].eff.neq(1)) {
@@ -273,6 +340,16 @@ function updateGame_genEnhancers() {
         if (player.transcendUpgrades.includes('enhancer1')) {
             tmp.generatorFeatures.enhancerGain = tmp.generatorFeatures.enhancerGain.pow(tmp.transEffs[9][1]);
             addStatFactor('genEnh', `Trans. Upg. "Enhancer Efficiency"`, `^`, tmp.transEffs[9][1], tmp.generatorFeatures.enhancerGain);
+        }
+
+        if (player.anticap.upgrades.includes(20)) {
+            tmp.generatorFeatures.enhancerGain = tmp.generatorFeatures.enhancerGain.pow(tmp.anticap.upgrades[20].eff);
+            addStatFactor('genEnh', `Anticap Upgrade #21`, `^`, tmp.anticap.upgrades[20].eff, tmp.generatorFeatures.enhancerGain);
+        }
+
+        if (hasHinderanceMilestone(2, 4) && Decimal.gte(player.hinderanceScore[2], HINDERANCES[2].start)) {
+            tmp.generatorFeatures.enhancerGain = tmp.generatorFeatures.enhancerGain.pow(HINDERANCES[2].eff);
+            addStatFactor('genEnh', `Hinderance 3 PB via Milestone 5`, `^`, HINDERANCES[2].eff, tmp.generatorFeatures.enhancerGain);
         }
     }
 
@@ -312,6 +389,10 @@ function updateGame_genEnhancers() {
             tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.root(tmp.hinderances[4].effects.resource);
         }
         if (tmp.prestigeRepeatChal[2].depth.lte(0)) {
+            if (player.anticap.upgrades.includes(20)) {
+                tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.root(tmp.anticap.upgrades[20].eff);
+            }
+
             if (player.transcendUpgrades.includes('enhancer1')) {
                 tmp.generatorFeatures.enhancerNext = tmp.generatorFeatures.enhancerNext.root(tmp.transEffs[9][1]);
             }
@@ -334,7 +415,14 @@ function updateGame_genEnhancers() {
     }
     decay = decay.mul(tmp.anticap.energyEffs[3]);
 
-    tmp.generatorFeatures.enhancerEff = powLogSlowDown(Decimal.max(player.generatorFeatures.totalEnh, 0).add(1), decay, false).pow(5);
+    tmp.generatorFeatures.enhancerEff = passiveLogSlowdown(Decimal.max(player.generatorFeatures.totalEnh, 0).add(1), decay, false).pow(5);
+    if (player.anticap.upgrades.includes(23)) {
+        tmp.generatorFeatures.enhancerEff = tmp.generatorFeatures.enhancerEff.log10().add(1).log10().mul(0.02).add(1).pow(2);
+        // lmao it's a triple log
+    }
+    if (player.transcendUpgrades.includes('exp5')) {
+        tmp.generatorFeatures.enhancerEff = tmp.generatorFeatures.enhancerEff.pow(8);
+    }
     if (colorAmountTotal(3).gt(0)) {
         tmp.generatorFeatures.enhancerEff = D(1);
     }
@@ -343,22 +431,22 @@ function updateGame_genEnhancers() {
 function updateHTML_genEnhancers() {
     let canBuy;
     if (tmp.mainTab === 1) {
-        html['genEnhGenerate'].setDisplay(hasTranscendMilestone(13) && colorAmountTotal(3).lte(0))
+        html['genEnhGenerate'].setDisplay(hasTranscendMilestone(13) && colorAmountTotal(3).lte(0));
         if (hasTranscendMilestone(13) && colorAmountTotal(3).lte(0)) {
-            html[`genEnhGenerate`].changeStyle('background-color', player.genEnhGenerate ? '#80800080' : '#80000080')
-            html[`genEnhGenerate`].changeStyle('border', `3px solid #${player.genEnhGenerate ? 'ffff00' : 'ff0000'}`)
-            html[`genEnhGenerate`].setTxt(player.genEnhGenerate ? 'Generate: 1%/s' : 'Generate: Off')
+            html[`genEnhGenerate`].changeStyle('background-color', player.genEnhGenerate ? '#00806080' : '#80000080');
+            html[`genEnhGenerate`].changeStyle('border', `3px solid #${player.genEnhGenerate ? '00ffc0' : 'ff0000'}`);
+            html[`genEnhGenerate`].setTxt(player.genEnhGenerate ? 'Generate: 1%/s' : 'Generate: Off');
         }
-        html['genEnhAuto'].setDisplay(hasTranscendMilestone(14) && colorAmountTotal(3).lte(0))
+        html['genEnhAuto'].setDisplay(hasTranscendMilestone(14) && colorAmountTotal(3).lte(0));
         if (hasTranscendMilestone(14) && colorAmountTotal(3).lte(0)) {
-            html[`genEnhAuto`].changeStyle('background-color', player.genEnhAuto ? '#80800080' : '#80000080')
-            html[`genEnhAuto`].changeStyle('border', `3px solid #${player.genEnhAuto ? 'ffff00' : 'ff0000'}`)
-            html[`genEnhAuto`].setTxt(player.genEnhAuto ? `Auto: ${format(tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer : D(Infinity))}/s` : 'Auto: Off')
+            html[`genEnhAuto`].changeStyle('background-color', player.genEnhAuto ? '#00806080' : '#80000080');
+            html[`genEnhAuto`].changeStyle('border', `3px solid #${player.genEnhAuto ? '00ffc0' : 'ff0000'}`);
+            html[`genEnhAuto`].setTxt(player.genEnhAuto ? `Auto: ${format(tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer : D(Infinity))}/s` : 'Auto: Off');
         }
 
-        html['enhAmount'].setTxt(format(tmp.generatorFeatures.enhancerGain))
-        let show = Decimal.lt(tmp.generatorFeatures.enhancerGain, 100)
-        html['enhNext'].setDisplay(show)
+        html['enhAmount'].setTxt(format(tmp.generatorFeatures.enhancerGain));
+        let show = Decimal.lt(tmp.generatorFeatures.enhancerGain, 100);
+        html['enhNext'].setDisplay(show);
         if (show) {
             html['enhNext'].setTxt(`Next enhancer at ${format(tmp.generatorFeatures.enhancerNext)} generator XP.`);
         }
@@ -368,7 +456,9 @@ function updateHTML_genEnhancers() {
         html['genEnhArea'].setDisplay(Decimal.gt(player.generatorFeatures.totalEnh, 0) && colorAmountTotal(3).lte(0));
         if (Decimal.gt(player.generatorFeatures.totalEnh, 0) && colorAmountTotal(3).lte(0)) {
             html['genEnhance'].setTxt(format(player.generatorFeatures.enhancer));
-            html['genEnhXPEff'].setTxt(format(tmp.generatorFeatures.enhancerEff, 2));
+            html['genEnhXPEff'].setTxt(player.anticap.upgrades.includes(23)
+                ? `${format(tmp.generatorFeatures.enhancerEff, 3)} to OoM`
+                : format(tmp.generatorFeatures.enhancerEff, 2));
 
             html['genEnhDispEff2'].setDisplay(player.transcendUpgrades.includes('exp2'));
             if (player.transcendUpgrades.includes('exp2')) {
@@ -385,10 +475,10 @@ function updateHTML_genEnhancers() {
                     } else {
                         html[`genEnhBuy${i}cost`].setTxt(`Cost: ${format(tmp.generatorFeatures.genEnhBuyables[i].cost)} enhancers`);
                     }
-                    html[`genEnhBuy${i}amount`].setTxt(`Gen. Enh. Buyable #${i+1}: ×${format(player.generatorFeatures.enhancerBuyables[i])}`);
+                    html[`genEnhBuy${i}amount`].setTxt(`Gen. Enh. Buyable #${i+1}: ×${format(Decimal.floor(player.generatorFeatures.enhancerBuyables[i]))}`);
 
-                    html[`genEnhBuy${i}`].changeStyle('background-color', canBuy ? '#C0C00080' : '#40400080');
-                    html[`genEnhBuy${i}`].changeStyle('border', `3px solid ${canBuy ? '#FFFF00' : '#808000'}`);
+                    html[`genEnhBuy${i}`].changeStyle('background-color', canBuy ? '#00806080' : '#00403080');
+                    html[`genEnhBuy${i}`].changeStyle('border', `3px solid ${canBuy ? '#00FFC0' : '#008060'}`);
                     html[`genEnhBuy${i}`].changeStyle('cursor', canBuy ? 'pointer' : 'not-allowed');
                 }
             }
@@ -424,7 +514,7 @@ function buyGenEnhBuy(i) {
     }
 
     if (tmp.hinderances[4].depth.lte(0) || i != 0) {
-        player.generatorFeatures.enhancer = Decimal.sub(player.generatorFeatures.enhancer, GEN_ENH_BUYABLES[i].cost);
+        player.generatorFeatures.enhancer = Decimal.sub(player.generatorFeatures.enhancer, tmp.generatorFeatures.genEnhBuyables[i].cost);
     }
     
     if (shiftDown) {

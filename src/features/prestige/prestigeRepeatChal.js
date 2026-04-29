@@ -17,8 +17,8 @@ const PRESTIGE_CHALLENGES_REPEAT = [
         },
         name: "Disgusting Prestiges",
         desc: "Prestige Point gain is log2()'d, and normal PC goal requirements are increased.",
-        eff(comp) {
-            return `Prestige Buyables have their own Prestige Generators (using Tier 2 Time Speed), which add 0.5 free levels to their own effect per level. PG/s: ${format(this.rewardEff(comp).exponent)}^x → ${format(this.rewardEff(Decimal.add(comp, 1)).exponent)}^x`;
+        eff(comp, next) {
+            return `Prestige Buyables have their own Prestige Generators (using Tier 2 Time Speed), which add 0.5 free levels to their own effect per level. PG/s: ${format(this.rewardEff(comp).exponent)}^x → ${format(this.rewardEff(Decimal.add(comp, next)).exponent)}^x`;
         },
         rewardEff(comp) {
             const obj = { exponent: D(4) };
@@ -49,8 +49,8 @@ const PRESTIGE_CHALLENGES_REPEAT = [
         },
         name: "Complete Dilation",
         desc: "All pre-transcension resources' gains are decreased by ▲0.75.",
-        eff(comp) {
-            return `Tier 1 Time Speed is increased by prestige essence. ${format(this.rewardEff(comp).timeSpeed, 2)}× → ${format(this.rewardEff(Decimal.add(comp, 1)).timeSpeed, 2)}×`;
+        eff(comp, next) {
+            return `Tier 1 Time Speed is increased by prestige essence. ${format(this.rewardEff(comp).timeSpeed, 2)}× → ${format(this.rewardEff(Decimal.add(comp, next)).timeSpeed, 2)}×`;
         },
         rewardEff(comp) {
             const obj = { timeSpeed: D(1) };
@@ -81,8 +81,8 @@ const PRESTIGE_CHALLENGES_REPEAT = [
         },
         name: "Arduous Traditions",
         desc: "All autobuyers are stuck at 25/s, and Tier 1 Time Speed is stuck at 1×. Shift-clicking is disabled entirely. All exponential-and-above boosts to pre-transcension resources are disabled.",
-        eff(comp) {
-            return `Blue setback dimensions scale -10% slower, and A.B. #2's increasing cost scaling is 2× slower. Currently: -${formatPerc(this.rewardEff(comp).costSpeed, 2)}, ${format(this.rewardEff(comp).ascendCost)}× → -${formatPerc(this.rewardEff(Decimal.add(comp, 1)).costSpeed, 2)}, ${format(this.rewardEff(Decimal.add(comp, 1)).ascendCost)}×`;
+        eff(comp, next) {
+            return `Blue setback dimensions scale -10% slower, and A.B. #2's increasing cost scaling is 2× slower. Currently: -${formatPerc(this.rewardEff(comp).costSpeed, 2)}, ${format(this.rewardEff(comp).ascendCost)}× → -${formatPerc(this.rewardEff(Decimal.add(comp, next)).costSpeed, 2)}, ${format(this.rewardEff(Decimal.add(comp, next)).ascendCost)}×`;
         },
         // it's actually closer to 11.1% but formatPerc makes this "9.09%" because its multiplicative and i do not want to have to put a cap on something like this because i'll have nothing to resolve it with
         rewardEff(comp) {
@@ -114,8 +114,8 @@ const PRESTIGE_CHALLENGES_REPEAT = [
         },
         name: "Generator Competence",
         desc: "Generators and tier levels' requirements scale ^2 as fast. Each prestige point requires at least 1 total generator level, alongside the point requirement.",
-        eff(comp) {
-            return `Prestige Points give a large boost to Generator Enhancers. Currently: ×${format(this.rewardEff(comp).mult)} → ×${format(this.rewardEff(Decimal.add(comp, 1)).mult)}`;
+        eff(comp, next) {
+            return `Prestige Points give a large boost to Generator Enhancers. Currently: ×${format(this.rewardEff(comp).mult)} → ×${format(this.rewardEff(Decimal.add(comp, next)).mult)}`;
         },
         rewardEff(comp) {
             const obj = { mult: D(1) };
@@ -146,18 +146,54 @@ const PRESTIGE_CHALLENGES_REPEAT = [
         },
         name: "Transcension Translation",
         desc: "Points are raised ^0.0005.",
-        eff(comp) {
-            return `Red to Cyan Setback Dimension multipliers are boosted based off of your transcension points. Currently: ×${format(this.rewardEff(comp).mult, 1)}, ^${format(this.rewardEff(comp).pow, 3)} → ×${format(this.rewardEff(Decimal.add(comp, 1)).mult, 1)}, ^${format(this.rewardEff(Decimal.add(comp, 1)).pow, 3)}`;
+        eff(comp, next) {
+            return `Red to Cyan Setback Dimension multipliers are boosted based off of your transcension points. Currently: ×${format(this.rewardEff(comp).mult, 1)}, ^${format(this.rewardEff(comp).pow, 3)} → ×${format(this.rewardEff(Decimal.add(comp, next)).mult, 1)}, ^${format(this.rewardEff(Decimal.add(comp, next)).pow, 3)}`;
         },
         rewardEff(comp) {
             const obj = { mult: D(1), pow: D(1) };
-            obj.mult = Decimal.max(player.transcendPoints, 1).log10().add(1).pow(0.25).sub(1).mul(comp).pow10();
+            // NERF THIS WTF
+            // TP IS SAME-LOG AS POINTS AND GXP
+            obj.mult = passiveLogSlowdown(Decimal.max(player.transcendPoints, 1).log10().add(1).pow(0.25).sub(1).mul(comp), 25, false).pow10();
             obj.pow = Decimal.max(player.transcendPoints, 10).log10().log10().mul(0.005).mul(comp).add(1)
             return obj;
         },
         chalEffects(depth) {
             const obj = { pow: D(0.0005) };
             obj.pow = obj.pow.pow(depth);
+
+            return obj;
+        },
+    },
+    {
+        shown() {
+            return player.transcendUpgrades.includes('prest7');
+        },
+        goal(comp) {
+            let goal = Decimal.pow(1.1, comp).mul(comp).pow_base('e10000');
+            return goal;
+        },
+        target(essence) {
+            if (Decimal.lt(essence, 1)) {
+                return D(0);
+            }
+            // wolfram alpha prompt: "inverse x*1.1^x" as of 4/22/2026
+            let target = Decimal.log(essence, 'e10000').mul(0.0953102).lambertw().mul(10.4921);
+            return target;
+        },
+        name: "The World",
+        desc: "T1 and T2 time speed are stuck at 0.001×. Prestige buyables, gen./tier levels, their XP, and their buyables, setback energy, hinderances, and transcension points do nothing. You are stuck in PRC2x4. Reveal a new feature in this challenge.",
+        eff(comp, next) {
+            return `Unlock a new feature in prestige, and Anticap energy's exponent is higher >1 completion. Currently: ×${format(this.rewardEff(comp).exp, 2)} → ×${format(this.rewardEff(Decimal.add(comp, next)).exp, 2)}`;
+        },
+        rewardEff(comp) {
+            const obj = { exp: D(1.02) };
+
+            obj.exp = obj.exp.pow(Decimal.max(comp, 1).sub(1));
+            return obj;
+        },
+        chalEffects(depth) {
+            const obj = { prc2: D(4) };
+            obj.prc2 = obj.prc2.mul(depth);
 
             return obj;
         }
@@ -199,8 +235,9 @@ function updateGame_prestigeRepChal() {
     for (let i = PRESTIGE_CHALLENGES_REPEAT.length - 1; i >= 0; i--) {
         tmp.prestigeRepeatChal[i].shown = PRESTIGE_CHALLENGES_REPEAT[i].shown();
 
-        tmp.prestigeRepeatChal[i].goal = PRESTIGE_CHALLENGES_REPEAT[i].goal(player.prestigeChallengeRepCompleted[i]);
         tmp.prestigeRepeatChal[i].target = PRESTIGE_CHALLENGES_REPEAT[i].target(player.prestigeEssence);
+        tmp.prestigeRepeatChal[i].goal = PRESTIGE_CHALLENGES_REPEAT[i].goal(player.prestigeChallengeRepCompleted[i]);
+        tmp.prestigeRepeatChal[i].nextGoal = PRESTIGE_CHALLENGES_REPEAT[i].goal(tmp.prestigeRepeatChal[i].target.max(player.prestigeChallengeRepCompleted[i]).ceil());
 
         // separate code for being trapped in a PRC
         // ! MAKE SURE NOT TO CHANGE PRC EFFECTS ON COMPLETIONS! they're all meant to be completed with the same restriction!
@@ -217,6 +254,13 @@ function updateGame_prestigeRepChal() {
             tmp.prestigeRepeatChal[i].depth = Decimal.add(tmp.prestigeRepeatChal[i].depth, 1);
         }
 
+        if (i === 1) {
+            if (tmp.prestigeRepeatChal[5].depth.gt(0)) {
+                tmp.prestigeRepeatChal[i].trapped = true;
+                tmp.prestigeRepeatChal[i].depth = Decimal.add(tmp.prestigeRepeatChal[i].depth, tmp.prestigeRepeatChal[5].effects.prc2);
+            }
+        }
+
         tmp.prestigeRepeatChal[i].effects = PRESTIGE_CHALLENGES_REPEAT[i].chalEffects(tmp.prestigeRepeatChal[i].depth);
         tmp.prestigeRepeatChal[i].rewardEffs = PRESTIGE_CHALLENGES_REPEAT[i].rewardEff(player.prestigeChallengeRepCompleted[i]);
     }
@@ -231,19 +275,29 @@ function updateHTML_prestigeRepChal() {
             for (let i = 0; i < PRESTIGE_CHALLENGES_REPEAT.length; i++) {
                 html[`prestigeChallengeRepeat${i}`].setDisplay(tmp.prestigeRepeatChal[i].shown);
                 if (tmp.prestigeRepeatChal[i].shown) {
-                    html[`prestigeChallengeRepeat${i}comp`].setTxt(format(player.prestigeChallengeRepCompleted[i]));
+                    html[`prestigeChallengeRepeat${i}comp`].setTxt(player.prestigeChallengeRepeat === i && player.transcendUpgrades.includes('prest6') && tmp.prestigeRepeatChal[i].target.gt(player.prestigeChallengeRepCompleted[i])
+                        ? `${format(player.prestigeChallengeRepCompleted[i])} (+${format(tmp.prestigeRepeatChal[i].target.sub(player.prestigeChallengeRepCompleted[i]).ceil())})`
+                        : format(player.prestigeChallengeRepCompleted[i]));
 
-                    html[`prestigeChallengeRepeat${i}goal`].setTxt(format(tmp.prestigeRepeatChal[i].goal));
-                    html[`prestigeChallengeRepeat${i}reward`].setTxt(PRESTIGE_CHALLENGES_REPEAT[i].eff(player.prestigeChallengeRepCompleted[i], 1));
+                    html[`prestigeChallengeRepeat${i}goal`].setTxt(player.prestigeChallengeRepeat === i && player.transcendUpgrades.includes('prest6') && tmp.prestigeRepeatChal[i].target.gt(player.prestigeChallengeRepCompleted[i])
+                        ? format(tmp.prestigeRepeatChal[i].nextGoal)
+                        : format(tmp.prestigeRepeatChal[i].goal));
+                    html[`prestigeChallengeRepeat${i}reward`].setTxt(PRESTIGE_CHALLENGES_REPEAT[i].eff(player.prestigeChallengeRepCompleted[i], player.prestigeChallengeRepeat === i && player.transcendUpgrades.includes('prest6') && tmp.prestigeRepeatChal[i].target.gt(player.prestigeChallengeRepCompleted[i])
+                        ? tmp.prestigeRepeatChal[i].target.sub(player.prestigeChallengeRepCompleted[i]).ceil()
+                        : D(1)));
 
                     html[`prestigeChallengeRepeat${i}`].changeStyle('background-color', 
                         (player.prestigeChallengeRepeat === i
-                                ? '#00408080'
+                                ? (tmp.prestigeRepeatChal[i].target.gt(player.prestigeChallengeRepCompleted[i]) 
+                                    ? '#40608080'
+                                    : '#00408080')
                                 : '#00008080')
                     );
                     html[`prestigeChallengeRepeat${i}`].changeStyle('border', `3px solid ${
                         (player.prestigeChallengeRepeat === i
-                                ? '#0080ff'
+                                ? (tmp.prestigeRepeatChal[i].target.gt(player.prestigeChallengeRepCompleted[i])
+                                    ? '#80c0ff'
+                                    : '#0080ff')
                                 : '#0000ff')}`
                     );
                 }
@@ -271,6 +325,9 @@ function togglePrestigeChallengeRepeat(i) {
         player.prestigeChalRepeatSave.transcendUpgrades = player.transcendUpgrades;
 
         player.transcendPoints = D(0);
+        if (player.anticap.upgrades.includes(19)) {
+            player.transcendPoints = D(1000);
+        }
         player.transcendResetCount = D(0);
         player.transcendUpgrades = player.transcendUpgrades.filter((value) => { return !UNSAFE_UPGRADES.includes(value) });
 
@@ -290,7 +347,11 @@ function togglePrestigeChallengeRepeat(i) {
     }
 
     if (Decimal.gte(player.prestigeEssence, tmp.prestigeRepeatChal[i].goal)) {
-        player.prestigeChallengeRepCompleted[i] = Decimal.add(player.prestigeChallengeRepCompleted[i], 1);
+        if (player.transcendUpgrades.includes('prest6')) {
+            player.prestigeChallengeRepCompleted[i] = Decimal.max(player.prestigeChallengeRepCompleted[i], tmp.prestigeRepeatChal[i].target.ceil());
+        } else {
+            player.prestigeChallengeRepCompleted[i] = Decimal.add(player.prestigeChallengeRepCompleted[i], 1);
+        }
     }
 
     player.specialBuyables[0] = D(0);

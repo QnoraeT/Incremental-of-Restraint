@@ -30,6 +30,7 @@ function initPlayer() {
         timeInAscend: D(0),
         time2ndInAscend: D(0),
         timeInTranscension: D(0),
+        time2ndInTranscend: D(0),
         points: D(0),
         bestPointsInPrestige: D(0),
         bestPointsInAscend: D(0),
@@ -83,8 +84,9 @@ function initPlayer() {
         },
         prestigeUpgradesInCurrentAscension: false,
         darts: D(0),
-        hinderanceScore: [D(0), D(0), D(0), D(0), D(0)],
-        bestHinderanceScore: [D(0), D(0), D(0), D(0), D(0)],
+        hinderanceScore: [D(0), D(0), D(0), D(0), D(0), D(0)],
+        bestHinderanceScore: [D(0), D(0), D(0), D(0), D(0), D(0)],
+        hinderancePts: [D(0), D(0), D(0), D(0), D(0), D(0)],
         currentHinderance: null,
         ascend: D(0),
         ascendCount: D(0),
@@ -128,7 +130,7 @@ function initPlayer() {
         genXPAuto: false,
         generatorFeatures: {
             xp: D(0),
-            buyable: [D(0), D(0), D(0)],
+            buyable: [D(0), D(0), D(0), D(0), D(0), D(0)],
             enhancer: D(0),
             totalEnh: D(0),
             enhancerBuyables: [D(0), D(0), D(0), D(0), D(0), D(0)],
@@ -136,6 +138,14 @@ function initPlayer() {
             advance: D(0),
             totalAdv: D(0),
             advanceUpgsChosen: []
+        },
+        tierFeatures: {
+            xp: D(0),
+            buyable: [D(0), D(0), D(0)],
+            enhancer: D(0),
+            totalEnh: D(0),
+            enhancerBuyables: [D(0), D(0), D(0)],
+            enhanceCount: D(0)
         },
         transcendPoints: D(0),
         transcendPointTotal: D(0),
@@ -153,6 +163,7 @@ function initPlayer() {
         replitierBuyables: [D(0), D(0), D(0), D(0), D(0)],
         replitetr: D(0),
         replitetrPoints: D(0),
+        replitetrBuyables: [D(0), D(0), D(0), D(0), D(0), D(0)],
         replispawns: D(0),
         repliupgrades: [],
         anticap: {
@@ -168,8 +179,10 @@ function initPlayer() {
         }
     };
 }
+
 function initTmp() {
-    return {
+    // i'm sick of this approach why did i do this
+    const obj = {
         fps: [],
         lastFPSTick: 0,
         offlineTime: {
@@ -268,7 +281,20 @@ function initTmp() {
             advanceNext: D(0),
             advanceEff: D(1)
         },
+        tierFeatures: {
+            gain: D(0),
+            xpBuy: resetTierXPBuyables(),
+            xpEffTiers: D(1),
+            xpEffPoints: D(1),
+            enhancerGain: D(0),
+            enhancerNext: D(0),
+            enhancerEff: D(1),
+            enhancerBuyables: resetTierEnhBuyables(),
+        },
         hinderances: resetHinderanceEffs(),
+        hinderancePtsGain: [D(0), D(0), D(0), D(0), D(0), D(0)],
+        hinderancePtsEff: [D(0), D(0), D(0), D(0), D(0), D(0)],
+        hinderancePtsDesc: [``, ``, ``, ``, ``, ``],
         transcendReq: D(0),
         transcendAmount: D(0),
         transcendNext: D(0),
@@ -285,17 +311,31 @@ function initTmp() {
         replicatorTrueSpdDisp1: D(1),
         replicatorTrueSpdDisp2: D(1),
         repliRankPointGen: D(0),
+        repliRankPointEff: D(1),
+        repliRankNext: D(0),
         repliRankReq: D(Infinity),
+        repliRankReqNext: D(Infinity),
         repliRankTarget: D(0),
         repliRankEffect: D(0),
         repliRankBuyables: resetRepliRankBuyables(),
         repliTierPointGen: D(0),
         repliTierPointEff: D(0),
         repliTierPointEff2: D(0),
+        repliTierNext: D(0),
         repliTierReq: D(Infinity),
+        repliTierReqNext: D(Infinity),
+        repliTierReqRepliNext: D(Infinity),
         repliTierTarget: D(0),
         repliTierEffect: D(0),
         repliTierBuyables: resetRepliTierBuyables(),
+        repliTetrPointGen: D(0),
+        repliTetrPointEff: D(0),
+        repliTetrPointEff2: D(0),
+        repliTetrReq: D(Infinity),
+        repliTetrReqRepliNext: D(Infinity),
+        repliTetrTarget: D(0),
+        repliTetrEffect: D(0),
+        repliTetrBuyables: resetRepliTetrBuyables(),
         anticap: {
             softcaps: [],
             scalings: [],
@@ -310,11 +350,18 @@ function initTmp() {
             upgrades: resetAnticapUpgs()
         }
     };
+
+    for (let i = 0; i < PRESTIGE_UPGRADES.length; i++) {
+        obj.prestigeUpgLevels[i] = D(0);
+        obj.prestigeUpgEffs[i] = D(0);
+        obj.prestigeUpgDescs[i] = 'If you are seeing this, something went very, very wrong.';
+    }
+    return obj;
 }
 
 function resetMainBuyables() {
     const arr = [];
-    for (let i = 0; i < player.buyables.length; i++) {
+    for (let i = 0; i < BASIC_BUYABLES.totalAmt; i++) {
         arr[i] = {
             effective: D(0),
             effect: D(0),
@@ -334,7 +381,7 @@ function resetMainBuyables() {
 
 function resetBuyableEnable() {
     const arr = [];
-    for (let i = 0; i < player.buyables.length; i++) {
+    for (let i = 0; i < BASIC_BUYABLES.totalAmt; i++) {
         arr[i] = false;
     }
     return arr;
@@ -342,7 +389,7 @@ function resetBuyableEnable() {
 
 function resetBuyableAuto() {
     const arr = [];
-    for (let i = 0; i < player.buyables.length; i++) {
+    for (let i = 0; i < BASIC_BUYABLES.totalAmt; i++) {
         arr[i] = D(0);
     }
     return arr;
@@ -370,6 +417,7 @@ function resetPrestigeChalRepeatEffs() {
             effects: {},
             depth: D(0),
             goal: D(Infinity),
+            nextGoal: D(Infinity),
             target: D(0),
             shown: false,
             rewardEffs: {}
@@ -380,7 +428,7 @@ function resetPrestigeChalRepeatEffs() {
 
 function resetPFUpgData() {
     const arr = [];
-    for (let i = 0; i < player.prestigeUpgrades.length; i++) {
+    for (let i = 0; i < PRESTIGE_UPGRADES.length; i++) {
         arr[i] = {
             effect: D(1),
             effectNext: D(1),
@@ -410,7 +458,7 @@ function resetAscendBuyables() {
 
 function resetSetbackEffects() {
     const arr = [];
-    for (let i = 0; i < SETBACK_CALC.difficulty.length; i++) {
+    for (let i = 0; i < SETBACK_CALC.totalAmt; i++) {
         arr.push(SETBACK_CALC.difficulty[i](0));
     }
     return arr;
@@ -418,14 +466,14 @@ function resetSetbackEffects() {
 
 function resetSetbackPrioOnChange() {
     const arr = [];
-    for (let i = 0; i < SETBACK_CALC.energy.length; i++) {
+    for (let i = 0; i < SETBACK_CALC.totalAmt; i++) {
         arr.push({
             effPrio: D(0),
             cost: D(Infinity),
             nextCost: D(Infinity),
             target: D(0),
-            plus1: SETBACK_CALC.energy[i](0),
-            minus1: SETBACK_CALC.energy[i](0)
+            plus1: D(0),
+            minus1: D(0)
         });
     }
     return arr;
@@ -433,7 +481,7 @@ function resetSetbackPrioOnChange() {
 
 function resetQuarkColors(colors) {
     const arr = [];
-    for (let i = 0; i < player.quarkDimsBought.length; i++) {
+    for (let i = 0; i < SETBACK_CALC.totalAmt; i++) {
         arr.push({
             yes: {
                 border: `${colorChange(colors[i], 1.0, 1.0)}`,
@@ -450,11 +498,11 @@ function resetQuarkColors(colors) {
 
 function resetQuarkDimAuto() {
     const arr = [];
-    for (let i = 0; i < player.quarkDimsBought.length; i++) {
+    for (let i = 0; i < SETBACK_CALC.totalAmt; i++) {
         arr.push([]);
     }
-    for (let i = 0; i < player.quarkDimsBought.length; i++) {
-        for (let j = 0; j < player.quarkDimsBought[i].length; j++) {
+    for (let i = 0; i < SETBACK_CALC.totalAmt; i++) {
+        for (let j = 0; j < SETBACK_CALC.dimAmt.length; j++) {
             arr[i].push({ enabled: false, spd: D(0) });
         }
     }
@@ -476,7 +524,7 @@ function resetHinderanceEffs() {
 
 function resetGenXPBuyables() {
     const arr = [];
-    for (let i = 0; i < player.generatorFeatures.buyable.length; i++) {
+    for (let i = 0; i < GEN_XP_BUYABLES.length; i++) {
         arr[i] = {
             eff: D(0),
             cost: D(1),
@@ -489,12 +537,42 @@ function resetGenXPBuyables() {
 
 function resetGenEnhBuyables() {
     const arr = [];
-    for (let i = 0; i < player.generatorFeatures.enhancerBuyables.length; i++) {
+    for (let i = 0; i < GEN_ENH_BUYABLES.length; i++) {
         arr[i] = {
             eff: D(0),
             cost: D(1),
             target: D(0),
             canBuy: false
+        };
+    }
+    return arr;
+}
+
+function resetTierXPBuyables() {
+    const arr = [];
+    for (let i = 0; i < TIER_XP_BUYABLES.length; i++) {
+        arr[i] = {
+            eff: D(0),
+            cost: D(1),
+            target: D(0),
+            canBuy: false,
+            show: false,
+            desc: ""
+        };
+    }
+    return arr;
+}
+
+function resetTierEnhBuyables() {
+    const arr = [];
+    for (let i = 0; i < TIER_ENH_BUYABLES.length; i++) {
+        arr[i] = {
+            eff: D(0),
+            cost: D(1),
+            target: D(0),
+            canBuy: false,
+            show: false,
+            desc: ""
         };
     }
     return arr;
@@ -513,7 +591,7 @@ function resetTransUpgBuyables() {
 
 function resetRepliRankBuyables() {
     const arr = [];
-    for (let i = 0; i < player.replirankBuyables.length; i++) {
+    for (let i = 0; i < REPLIRANK_DATA.buyables.length; i++) {
         arr[i] = {
             eff: D(0),
             cost: D(1),
@@ -526,7 +604,20 @@ function resetRepliRankBuyables() {
 
 function resetRepliTierBuyables() {
     const arr = [];
-    for (let i = 0; i < player.replitierBuyables.length; i++) {
+    for (let i = 0; i < REPLITIER_DATA.buyables.length; i++) {
+        arr[i] = {
+            eff: D(0),
+            cost: D(1),
+            target: D(0),
+            canBuy: false
+        };
+    }
+    return arr;
+}
+
+function resetRepliTetrBuyables() {
+    const arr = [];
+    for (let i = 0; i < REPLITETR_DATA.buyables.length; i++) {
         arr[i] = {
             eff: D(0),
             cost: D(1),
@@ -582,6 +673,7 @@ let tmp = initTmp();
 let draw;
 let pen;
 let gameTick;
+let viewOnly;
 const gameVars = {
     timeUntilSave: 5,
     delta: 0,
@@ -802,25 +894,43 @@ function updatePlayer() {
 }
 
 function loadGame() {
-    player = initPlayer();
-    tmp = initTmp();
+    console.log("Initializing HTML...");
+    initHTML();
+    console.log("HTML initialized.");
 
+    console.log(`Loading initial player data...`);
+    player = initPlayer();
+    console.log(`Initial player data loaded.`);
+    console.log(`Loading temporary data...`);
+    tmp = initTmp();
+    console.log(`Temporary data loaded...`);
+
+    console.log(`Gathering player save file...`);
     if (localStorage.getItem(saveID) !== null && localStorage.getItem(saveID) !== "null") {
         try {
             player = JSON.parse(LZString.decompressFromBase64(localStorage.getItem(saveID)));
         } catch (e) {
-            console.error(`loading the game went wrong!`);
+            console.error(`Loading the game went wrong! Saving has been disabled.`);
             console.error(e);
-            console.error(localStorage.getItem(saveID));
+            console.log("Your save file data is:");
+            console.info(localStorage.getItem(saveID));
             gameVars.saveDisabled = true;
+
+            spawnPopup(0, `${e} - Auto save has been disabled. Recover your save by going into console!`, "The save file was unable to be loaded!", 10, "#FF8080");
+            gameVars.delta = 1;
+            diePopupsDie();
+            for (let i = 0; i < popupList.length; i++) {
+                html[`popupID${i}`].style.opacity = `${popupList[i].opacity}`;
+            }
         }
     } else {
-        console.log("no save detected");
+        console.log("No save file detected.");
     }
+    console.log("Completed gathering player save.");
 
+    console.log("Updating player data...")
     updatePlayer();
-
-    initHTML();
+    console.log("Player data updated.");
 
     // cheats start
 
@@ -845,6 +955,7 @@ function loadGame() {
     // player.currentSetback = 0
     // displaySetbackCompleted()
 
+    console.log("Launch! time to crash >:3");
     doGameLoopTicksLol();
 }
 
@@ -852,6 +963,7 @@ function initHTML() {
     document.body.style.backgroundColor = "#000000";
     document.body.style.margin = "0px";
     document.body.style.padding = "0px";
+    
     try {
         toHTMLvar('offlineTime');
         toHTMLvar('inGame');
@@ -872,6 +984,8 @@ function initHTML() {
         initHTML_anticap();
         initHTML_replicators();
         initHTML_transcend();
+        initHTML_tierEnhancers();
+        initHTML_tierXP();
         initHTML_genAdvances();
         initHTML_genEnhancers();
         initHTML_genXP();
@@ -898,8 +1012,11 @@ function initHTML() {
             </span>
         `;
 
-        console.error(e);
-        throw new Error('stopped.');
+        console.log("The game has been stopped.");
+        console.log(e); // WHY HERE, IS IT SHOWING TRACE LOGS BUT NOT THE ERROR FUNCTION??? WHAT THE FUCK JAVASCRIPT?
+        // BEFORE THIS, LOGGING DIDN'T SHOW THE ERROR, ONLY THE ERROR FUNCTION DID, BUT NOW IT'S REVERSED?
+        // WHY?!
+        throw new Error(e);
     }
 }
 
@@ -962,6 +1079,7 @@ function doOfflineTime() {
             console.error(`Offline time couldn't be done!`);
             console.error(e);
             gameVars.offlineTimeFailed = true;
+            document.getElementById("error").innerHTML += `<span style="font-size: 12px; text-align: center" class="whiteText font flex-vertical">The error occured during calculation of offline time.</span><br>`;
             return;
         }
     }
@@ -979,26 +1097,37 @@ function doOfflineTime() {
         txt += `<span style="color: #80ffa0">Your total generator levels are ${format(tmp.buyables.reduce((accumulator, current) => { return Decimal.add(accumulator, current.genLevels) }, tmp.buyables[0]))}.</span>`;
         txt += `<span style="color: #80ffa0">Your best generator level is ${format(tmp.buyables.reduce((accumulator, current) => { return Decimal.max(accumulator, current.genLevels) }, tmp.buyables[0]))}.</span>`;
     }
+
+    if (hasSetbackUpgrade('r10')) {
+        txt += `<br>`;
+        txt += `<b><span style="color: #00ff40">You have ${format(player.generatorFeatures.xp)} generator experience. (+${format(tmp.generatorFeatures.gain)}/s)</span></b>`;
+    }
+    if (Decimal.gt(player.generatorFeatures.totalEnh, 0)) {
+        txt += `<span style="color: #00ffc0">You have ${format(player.generatorFeatures.enhancer)} generator enhancers. (+${format(tmp.generatorFeatures.enhancerGain)})</span>`;
+    }
+    if (Decimal.gt(player.generatorFeatures.enhancerBuyables[5], 0)) {
+        txt += `<span style="color: #80ffff">You have ${format(player.generatorFeatures.advance)} generator advances. (+${format(tmp.generatorFeatures.advanceGain)})</span>`;
+    }
+    
     if (Decimal.gte(tmp.generatorFeatures.genEnhBuyables[2].eff, 1)) {
+        txt += `<br>`;
         txt += `<span style="color: #ffa080">Your total tier levels are ${format(tmp.buyables.reduce((accumulator, current) => { return Decimal.add(accumulator, current.tierLevels) }, tmp.buyables[0]))}.</span>`;
         txt += `<span style="color: #ffa080">Your best tier level is ${format(tmp.buyables.reduce((accumulator, current) => { return Decimal.max(accumulator, current.tierLevels) }, tmp.buyables[0]))}.</span>`;
     }
 
-    if (hasSetbackUpgrade('r10')) {
+    if (hasSetbackUpgrade('r15')) {
         txt += `<br>`;
-        txt += `<b><span style="color: #ffc080">You have ${format(player.generatorFeatures.xp)} generator experience. (+${format(tmp.generatorFeatures.gain)}/s)</span></b>`;
-    }
-    if (Decimal.gt(player.generatorFeatures.totalEnh, 0)) {
-        txt += `<span style="color: #ffff80">You have ${format(player.generatorFeatures.enhancer)} generator enhancers. (+${format(tmp.generatorFeatures.enhancerGain)})</span>`;
-    }
-    if (Decimal.gt(player.generatorFeatures.enhancerBuyables[5], 0)) {
-        txt += `<span style="color: #80ffff">You have ${format(player.generatorFeatures.advance)} generator advances. (+${format(tmp.generatorFeatures.advanceGain)})</span>`;
+        txt += `<b><span style="color: #ff8000">You have ${format(player.tierFeatures.xp)} tier experience. (+${format(tmp.tierFeatures.gain)}/s)</span></b>`;
+        txt += `<b><span style="color: #ffff00">You have ${format(player.tierFeatures.enhancer)} tier enhancers. (+${format(tmp.tierFeatures.enhancerGain)})</span></b>`;
     }
 
     if (player.generatorFeatures.advanceUpgsChosen.includes(1)) {
         txt += `<br>`;
         txt += `<b><span style="color: #ff80c0">You have ${format(player.replicators)} replicators. (&times;${format(tmp.replicatorTrueSpdDisp2, 3)}/s)</span></b>`;
-        txt += `<span style="color: #ff80c0">You have ${format(player.replirankPoints)} rank points. (+${format(tmp.repliRankPointGen)}/s)</span>`;
+        txt += `<span style="color: #ff80c0">You have ${format(player.replirankPoints)} replirank points. (+${format(tmp.repliRankPointGen)}/s)</span>`;
+        if (player.transcendUpgrades.includes("repli1")) {
+            txt += `<span style="color: #ff80ff">You have ${format(player.replitierPoints)} replitier points. (+${format(tmp.repliTierPointGen)}/s)</span>`;
+        }
     }
 
     txt += `<br>`;
@@ -1045,8 +1174,15 @@ function gameLoop() {
     }
 
     delta = (Date.now() - player.lastTick) / 1000;
-    delta = Math.max(delta, 0); // for some reason, delta goes negative, and i'm really not sure why
-    // happened when debugging a NaN error
+    if (delta === 0) {
+        console.info(`delta is 0 but i changed it to 1e-7. idk why its 0 but ehh`);
+    }
+    if (delta < 0) {
+        console.warn(`delta went negative (${delta})! but i changed it to 1e-7. why does it go negative? i'm still trying to find why...`);
+    }
+    delta = Math.max(delta, 1e-7); // for some reason, delta goes negative, and i'm really not sure why
+    // happened when debugging a NaN error, twice
+    // this has to be a small value and NOT 0 because this game sometimes uses Inf * delta, and Inf * 0 = NaN
     gameVars.delta = delta;
     if (!tmp.offlineTime.active) {
         player.lastTick = Date.now();
@@ -1086,9 +1222,12 @@ function gameLoop() {
         updateGame_prestigeChallenges();
 
         calcTimeSpeed();
+        updateGame_hinderanceResources();
         updateGame_anticapResources();
         updateGame_replicators();
         updateGame_transcend();
+        updateGame_tierEnhancers();
+        updateGame_tierXP();
         updateGame_genAdvances();
         updateGame_genEnhancers();
         updateGame_genXP();
@@ -1099,8 +1238,24 @@ function gameLoop() {
         updateGame_main();
         updateGame_stats();
     } catch(e) {
-        console.error(e);
         clearInterval(gameTick);
+        document.getElementById("error").innerHTML = `
+            <span style="font-size: 12px; text-align: center" class="whiteText font flex-vertical">
+                <b>Frick.</b>&nbsp;An error has occurred while running!<br><br>
+                ${e}<br><br>
+                Check the console by right click → Inspect, or by pressing Ctrl + Shift + I (Windows).<br>
+
+            </span>
+        `;
+
+        // <b>The game will be in read-only mode. However, you may be able to see your data. Remember to check the console error.</b><br>
+        // viewOnly = setInterval(updateHTML, 50);
+        // html['inGame'].setDisplay(true);
+
+        console.error(e) // i have to throw a console error because throwing the error for some reason loses the source of the error
+        // rather stupid but oh well
+        throw Error(e); // throw the same error just in case we happen to be in offline time
+        // not the best but oh well
     }
 
     if (!tmp.offlineTime.active) {
@@ -1112,7 +1267,7 @@ function gameLoop() {
         drawing();
 
         gameVars.timeUntilSave -= delta;
-        if (gameVars.timeUntilSave <= 0) {
+        if (!gameVars.saveDisabled && gameVars.timeUntilSave <= 0) {
             gameVars.timeUntilSave += 5;
             localStorage.setItem(saveID, LZString.compressToBase64(JSON.stringify(player)));
         }
@@ -1128,6 +1283,8 @@ function updateHTML() {
     updateHTML_anticap();
     updateHTML_replicators();
     updateHTML_transcend();
+    updateHTML_tierEnhancers();
+    updateHTML_tierXP();
     updateHTML_genAdvances();
     updateHTML_genEnhancers();
     updateHTML_genXP();
@@ -1232,9 +1389,29 @@ function calcTimeSpeed() {
         addStatFactor('tier2Time', `Anticap Upgrade #16`, `×`, 3, tmp.timeSpeedTiers[1]);
     }
 
+    if (player.anticap.upgrades.includes(28)) {
+        tmp.timeSpeedTiers[1] = tmp.timeSpeedTiers[1].mul(tmp.anticap.upgrades[28].eff);
+        addStatFactor('tier2Time', `Anticap Upgrade #29`, `×`, tmp.anticap.upgrades[28].eff, tmp.timeSpeedTiers[1]);
+    }
+
+    if (hasHinderanceMilestone(4, 4) && Decimal.gte(player.hinderanceScore[4], HINDERANCES[4].start)) {
+        tmp.timeSpeedTiers[1] = tmp.timeSpeedTiers[1].mul(HINDERANCES[4].eff.max(1).log10().mul(0.01).add(1));
+        addStatFactor('tier2Time', `Hinderance 5 PB via Milestone 5`, `×`, HINDERANCES[4].eff.max(1).log10().mul(0.01).add(1), tmp.timeSpeedTiers[1]);
+    }
+
+    if (tmp.hinderancePtsEff[4].neq(1)) {
+        tmp.timeSpeedTiers[1] = tmp.timeSpeedTiers[1].pow(tmp.hinderancePtsEff[4]);
+        addStatFactor('tier2Time', `Hinderance 4 Points`, `^`, tmp.hinderancePtsEff[4], tmp.timeSpeedTiers[1]);
+    }
+
     if (player.cheats.dilate) {
         tmp.timeSpeedTiers[1] = cheatDilateBoost(tmp.timeSpeedTiers[1]);
         addStatFactor('tier2Time', `Cheats`, `...`, null, tmp.timeSpeedTiers[1]);
+    }
+
+    if (tmp.prestigeRepeatChal[5].depth.gt(0)) {
+        tmp.timeSpeedTiers[1] = tmp.timeSpeedTiers[1].min(0.001);
+        addStatFactor('tier2Time', `PRC6`, `...`, null, tmp.timeSpeedTiers[1]);
     }
 
     tmp.factors.tier1Time = [];
@@ -1257,6 +1434,15 @@ function calcTimeSpeed() {
         tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].mul(tmp.anticap.energyEffs[4]);
         addStatFactor('tier1Time', `Anticap Energy`, `×`, tmp.anticap.energyEffs[4], tmp.timeSpeedTiers[0]);
     }
+    if (tmp.hinderancePtsEff[4].neq(1)) {
+        tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].pow(tmp.hinderancePtsEff[4]);
+        addStatFactor('tier1Time', `Hinderance 4 Points`, `^`, tmp.hinderancePtsEff[4], tmp.timeSpeedTiers[0]);
+    }
+    if (hasHinderanceMilestone(2, 5) && Decimal.gte(player.hinderanceScore[2], HINDERANCES[2].start)) {
+        tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].pow(HINDERANCES[2].eff);
+        addStatFactor('tier1Time', `Hinderance 3 PB via Milestone 6`, `^`, HINDERANCES[2].eff, tmp.timeSpeedTiers[0]);
+    }
+
     if (tmp.prestigeChal[11].depth.gt(0)) {
         tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].div(tmp.prestigeChal[11].effects.timeSpeed);
         addStatFactor('tier1Time', `PC12`, `/`, tmp.prestigeChal[11].effects.timeSpeed, tmp.timeSpeedTiers[0]);
@@ -1276,8 +1462,18 @@ function calcTimeSpeed() {
     }
 
     if (tmp.prestigeRepeatChal[2].depth.gt(0)) {
-        tmp.timeSpeedTiers[0] = new Decimal(1);
+        tmp.timeSpeedTiers[0] = D(1);
         addStatFactor('tier1Time', `PRC3`, `...`, null, tmp.timeSpeedTiers[0]);
+    }
+
+    if (tmp.prestigeRepeatChal[5].depth.gt(0)) {
+        tmp.timeSpeedTiers[0] = tmp.timeSpeedTiers[0].min(0.001);
+        addStatFactor('tier1Time', `PRC6`, `...`, null, tmp.timeSpeedTiers[0]);
+    }
+
+    if (tmp.hinderances[5].depth.gt(0)) {
+        tmp.timeSpeedTiers[0] = D(1);
+        addStatFactor('tier1Time', `Hinderance 6`, `...`, null, tmp.timeSpeedTiers[0]);
     }
 }
 
@@ -1292,6 +1488,8 @@ function addStatFactor(type, name, desc, eff, result) {
         tmp.factors[type] = [];
     }
     tmp.factors[type].push(`${name}: ${desc}${eff !== null ? format(eff, 3) : ''} → ${format(result, 2)}`);
+    checkNaN(eff, `${type}: ${name}'s effect was NaN!`);
+    checkNaN(result, `${type}: ${name}'s effect resulted in ${type} becoming NaN!`);
 }
 
 let shiftDown = false;

@@ -79,7 +79,13 @@ function linearAdd(num, base, growth, inverse) {
         : Decimal.sub(num, 1).mul(growth).add(Decimal.mul(base, 2)).mul(num).div(2);
 };
 
-function powLogSlowDown(val, decay, inverse) {
+function passiveLogSlowdown(val, decay, inverse) {
+    if (Decimal.lt(val, 1)) {
+        return D(val);
+    }
+    if (Decimal.lt(val, 0)) {
+        throw new Error(`Invalid parameter, ${val} cannot be 0 or negative!`)
+    }
     if (inverse) {
         // not get fucked by floating point
         if (Decimal.log10(val).div(decay).lt(1e-7)) {
@@ -98,11 +104,13 @@ function powLogSlowDown(val, decay, inverse) {
 // exp = 0.01 = it scales 1% faster per purchase
 function increasingExpCostScaling(val, exp, inverse = false) {
     if (inverse) {
+        // floating point
         if (Decimal.mul(val, exp).lt(1e-7)) {
             return val;
         }
         return Decimal.mul(val, exp).add(1).ln().div(exp);
     } else {
+        // floating point
         if (Decimal.mul(val, exp).lt(1e-7)) {
             return val;
         }
@@ -464,7 +472,7 @@ function formatTime(number, dec = 0, expdec = 3, limit = 2) {
 
 function checkNaN(x, err) {
     if (Decimal.isNaN(x)) {
-        throw new Error(`Error: ${err}`);
+        throw new Error(err);
     }
 }
 

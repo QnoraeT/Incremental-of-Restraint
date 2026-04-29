@@ -27,6 +27,9 @@ const PRESTIGE_FLUID = {
         if (Decimal.lt(bought, 0)) {
             return D(0);
         }
+        if (hasHinderanceMilestone(4, 2)) {
+            return Decimal.pow(2, bought).sub(1).pow10();
+        }
         return this.costArr[i].mul(Decimal.pow(2, bought).sub(1).pow10());
     },
     buyTarget(i, resource) {

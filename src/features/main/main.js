@@ -1,5 +1,9 @@
 "use strict";
 
+const BASIC_BUYABLES = {
+    totalAmt: 6
+}
+
 const MAIN_SPECIALS = {
     special1: {
         get show() {
@@ -66,25 +70,25 @@ function initHTML_main() {
     let txt = ``;
     for (let i = 0; i < player.buyables.length; i++) {
         txt += `
-            <div id="upgrade${i}all" style="width: 175px; margin: 2px">
-                <button onclick="toggleBuyableAutobuy(${i})" id="upgrade${i}auto" class="whiteText font" style="height: 20px; width: 175px; font-size: 10px; margin: 2px">
+            <div id="upgrade${i}all" style="width: 185px; margin: 2px">
+                <button onclick="toggleBuyableAutobuy(${i})" id="upgrade${i}auto" class="whiteText font" style="height: 20px; width: 185px; font-size: 10px; margin: 2px">
                     Autobuyer: <span id="upgrade${i}autoStatus"></span>
                 </button>
-                <button onclick="buyBuyable(${i})" id="upgrade${i}" class="whiteText font" style="height: 70px; width: 175px; font-size: 10px; margin: 2px">
+                <button onclick="buyBuyable(${i})" id="upgrade${i}" class="whiteText font" style="height: 75px; width: 185px; font-size: 10px; margin: 2px">
                     <span id="upgrade${i}amount"></span><br>
                     <br>
                     Effect: <span id="upgrade${i}eff"></span><br>
                     Cost: <span id="upgrade${i}cost"></span>
                 </button>
                 <div class="flex-vertical" style="margin-left: 4px">
-                    <div id="upgrade${i}generators" style="height: 10px; width: 175px; position: relative; margin: 2px">
+                    <div id="upgrade${i}generators" style="height: 10px; width: 185px; position: relative; margin: 2px">
                         <div id="upgrade${i}generatorProgressBarBase" style="background-color: #008020; position: absolute; top: 0; left: 0; height: 100%; width: 100%;"></div>
                         <div id="upgrade${i}generatorProgressBar" style="background-color: #00FF40; position: absolute; top: 0; left: 0; height: 100%"></div>
                     </div>
                     <span id="upgrade${i}generatorProgressNumber" class="whiteText font" style="font-size: 10px; text-align: center"></span>
                 </div>
                 <div class="flex-vertical" style="margin-left: 4px">
-                    <div id="upgrade${i}generatorTiers" style="height: 10px; width: 175px; position: relative; margin: 2px">
+                    <div id="upgrade${i}generatorTiers" style="height: 10px; width: 185px; position: relative; margin: 2px">
                         <div id="upgrade${i}generatorTierProgressBarBase" style="background-color: #805000; position: absolute; top: 0; left: 0; height: 100%; width: 100%;"></div>
                         <div id="upgrade${i}generatorTierProgressBar" style="background-color: #FFA000; position: absolute; top: 0; left: 0; height: 100%"></div>
                     </div>
@@ -161,6 +165,43 @@ function updateGame_main() {
         tmp.bybBoostCost = D(1.95);
     }
 
+    if (hasHinderanceMilestone(3, 0)) {
+        tmp.bybBoostCost = D(1.9);
+    }
+    if (hasHinderanceMilestone(3, 3)) {
+        tmp.bybBoostCost = D(1.85);
+    }
+    if (hasHinderanceMilestone(3, 4)) {
+        tmp.bybBoostCost = D(1.8);
+    }
+    if (hasHinderanceMilestone(3, 5)) {
+        tmp.bybBoostCost = D(1.75);
+    }
+    if (hasHinderanceMilestone(3, 6)) {
+        tmp.bybBoostCost = D(1.7);
+    }
+    if (hasHinderanceMilestone(3, 7)) {
+        tmp.bybBoostCost = D(1.65);
+    }
+    if (hasHinderanceMilestone(3, 8)) {
+        tmp.bybBoostCost = D(1.6);
+    }
+    if (hasHinderanceMilestone(3, 9)) {
+        tmp.bybBoostCost = D(1.55);
+    }
+    if (hasHinderanceMilestone(3, 10)) {
+        tmp.bybBoostCost = D(1.5);
+    }
+
+    tmp.bybBoostEffect = tmp.bybBoostEffect.mul(tmp.hinderancePtsEff[3]);
+
+    tmp.bybBoostInterval = tmp.bybBoostInterval.add(tmp.tierFeatures.xpBuy[2].eff);
+    tmp.bybBoostEffect = tmp.bybBoostEffect.pow(tmp.tierFeatures.xpBuy[2].eff.div(100).add(1));
+
+    if (hasHinderanceMilestone(3, 1)) {
+        tmp.bybBoostInterval = tmp.bybBoostInterval.add(Decimal.max(player.hinderanceScore[3], 1e10).log10().log10().sub(HINDERANCES[3].threshold.log10().log10()).mul(10));
+    }
+
     if (tmp.prestigeChal[1].depth.gt(0)) {
         tmp.bybBoostInterval = tmp.prestigeChal[1].effects.interval;
         tmp.bybBoostEffect = D(1);
@@ -190,12 +231,31 @@ function updateGame_main() {
             tmp.tierEffectBase = D(1.01);
             if (Decimal.gte(player.hinderanceScore[4], HINDERANCES[4].start) && player.transcendInSpecialReq === null) {
                 tmp.tierEffectBase = D(1.011);
+                if (hasHinderanceMilestone(4, 3)) {
+                    tmp.tierEffectBase = D(1.012);
+                }
+                if (hasHinderanceMilestone(4, 5)) {
+                    tmp.tierEffectBase = D(1.013);
+                }
+                if (hasHinderanceMilestone(4, 6)) {
+                    tmp.tierEffectBase = D(1.014);
+                }
+                if (hasHinderanceMilestone(4, 7)) {
+                    tmp.tierEffectBase = D(1.015);
+                }
             }
+
+            tmp.buyables[i].tierEffect = tmp.buyables[i].tierLevels;
+            tmp.buyables[i].tierEffect = tmp.buyables[i].tierEffect.min(1e10);
             tmp.buyables[i].tierEffect = (
                 player.transcendInSpecialReq !== 'exp2' 
-                    ? tmp.buyables[i].tierLevels.sub(1)
-                    : tmp.buyables[i].tierLevels.sub(1).neg())
+                ? tmp.buyables[i].tierEffect.sub(1)
+                : tmp.buyables[i].tierEffect.sub(1).neg())
                 .pow_base(tmp.tierEffectBase);
+                
+            if (tmp.prestigeRepeatChal[5].depth.gt(0)) {
+                tmp.buyables[i].tierEffect = D(1);
+            }
 
             tmp.buyables[i].costSpeed = D(1);
             if (i >= 0 && i <= 3) {
@@ -255,6 +315,9 @@ function updateGame_main() {
                 player.buyableAutobought[i] = Decimal.add(player.buyableAutobought[i], buyableAutobSpeed(i).mul(delta)).min(tmp.buyables[i].target).max(player.buyableAutobought[i]);
                 let bought = player.buyables[i];
                 player.buyables[i] = player.buyableAutobought[i].add(0.99999999).floor().max(player.buyables[i]);
+                if (hasHinderanceMilestone(0, 1) && tmp.hinderances[0].depth.gt(0)) {
+                    player.buyables[i] = Decimal.sqrt(player.buyables[i]).ceil().pow(2).round();
+                }
                 bought = Decimal.sub(bought, player.buyables[i]);
                 if (bought.lt(0)) {
                     // why only the first buy? the earlier purchases get increasingly negligible
@@ -266,6 +329,7 @@ function updateGame_main() {
                         }
                     }
                 }
+                checkNaN(player.buyables[i], `NaN detected while attempting to autobuy Buyable #${i + 1}`);
             }
 
             tmp.buyables[i].cost = D(player.buyables[i]);
@@ -288,7 +352,6 @@ function updateGame_main() {
             tmp.buyables[i].canBuy = Decimal.gte(resource, tmp.buyables[i].cost);
 
             tmp.buyables[i].effective = D(player.buyables[i]);
-
             if (player.prestigeChallengeCompleted.includes(2)) {
                 if (tmp.prestigeUpgEffs[3].gt(0)) {
                     for (let j = i + 1; j < player.buyables.length; j++) {
@@ -304,6 +367,92 @@ function updateGame_main() {
                     tmp.buyables[i].effective = tmp.buyables[i].effective.add(tmp.buyables[i + 1].effective.mul(tmp.prestigeUpgEffs[3]));
                 }
             }
+            tmp.buyables[i].effective = tmp.buyables[i].effective.add(player.buyableAccumulated[i]);
+            checkNaN(tmp.buyables[i].effective, `NaN detected while trying to calculate effectiveness of Buyable #${i + 1}`);
+
+            tmp.buyables[i].effectBase = [D(1.0), D(0.5), D(0.25), D(0.1), D(0.05), D(0.01)][i];
+            if (tmp.prestigeChal[3].depth.gt(0) && i < player.buyables.length - 1) {
+                tmp.buyables[i].effectBase = tmp.buyables[i].effectBase.add(tmp.buyables[i+1].effect);
+            }
+            if (!player.cheats.stupid && player.transcendUpgrades.includes('prest4') && i < player.buyables.length - 1) {
+                if (player.prestigeChallenge === 2) {
+                    tmp.buyables[i].effectBase = tmp.buyables[i].effectBase.add(tmp.buyables[i+1].effect);
+                } else {
+                    tmp.buyables[i].effectBase = tmp.buyables[i].effectBase.mul(tmp.buyables[i+1].effect);
+                }
+            }
+
+            if (hasPrestigeUpgrade(5)) {
+                if (i === 3) {
+                    tmp.buyables[i].effectBase = tmp.buyables[i].effectBase.add(tmp.prestigeUpgEffs[5]);
+                }
+            }
+
+            if (hasPrestigeUpgrade(8)) {
+                tmp.buyables[i].effectBase = tmp.buyables[i].effectBase.mul(tmp.prestigeUpgEffs[8]);
+            }
+
+            if (hasSetbackUpgrade('r14')) {
+                tmp.buyables[i].effectBase = tmp.buyables[i].effectBase.mul(SETBACK_UPGRADES[0][13].eff);
+            }
+
+            if (player.cheats.stupid && player.transcendUpgrades.includes('prest4') && i < player.buyables.length - 1) {
+                if (player.prestigeChallenge === 2) {
+                    tmp.buyables[i].effectBase = tmp.buyables[i].effectBase.add(tmp.buyables[i+1].effect);
+                } else {
+                    tmp.buyables[i].effectBase = tmp.buyables[i].effectBase.pow(tmp.buyables[i+1].effect);
+                }
+            }
+
+            if (tmp.prestigeChal[0].depth.gt(0)) {
+                tmp.buyables[i].effectBase = tmp.buyables[i].effectBase.div(tmp.prestigeChal[0].effects.effectBase);
+            }
+            tmp.buyables[i].effect = tmp.buyables[i].effective.mul(tmp.buyables[i].effectBase).add(1);
+            if (tmp.prestigeChal[12].depth.lte(0)) {
+                tmp.buyables[i].effect = tmp.buyables[i].effect.mul(tmp.buyables[i].genEffect);
+            }
+
+            if (tmp.prestigeChal[3].depth.gt(0) && i !== 0) {
+                tmp.buyables[i].effect = tmp.buyables[i].effect.sub(1);
+            }
+
+            tmp.buyables[i].effect = tmp.buyables[i].effect.mul(Decimal.div(player.buyables[i], tmp.bybBoostInterval).floor().pow_base(tmp.bybBoostEffect));
+
+            if (Decimal.lt(i, player.ascendUpgrades[2])) {
+                tmp.buyables[i].effect = tmp.buyables[i].effect.pow(tmp.ascendBuyables[2].eff);
+            }
+            if (player.anticap.upgrades.includes(8)) {
+                if (i >= 0 && i <= 3) {
+                    tmp.buyables[i].effect = tmp.buyables[i].effect.pow(tmp.ascendBuyables[i + 4].eff);
+                }
+                if (i >= 4 && i <= 5) {
+                    tmp.buyables[i].effect = tmp.buyables[i].effect.pow(tmp.ascendBuyables[i + 10].eff);
+                }
+            }
+            if (player.anticap.upgrades.includes(25)) {
+                if (i === 5) {
+                    tmp.buyables[i].effect = tmp.buyables[i].effect.add(1).log10().add(1).pow(4/3).sub(1).pow10().sub(1);
+                }
+            }
+
+            // put this after the stuff
+            if (player.cheats.stupid) {
+                tmp.buyables[i].effect = tmp.buyables[i].effect.max(0).add(1).log10().add(1);
+            }
+
+            if (tmp.prestigeChal[12].depth.gt(0)) {
+                tmp.buyables[i].effect = tmp.buyables[i].effect.add(1).layeradd10(tmp.prestigeChal[12].effects.log.neg());
+                if (Decimal.isNaN(tmp.buyables[i].effect)) {
+                    tmp.buyables[i].effect = D(1);
+                }
+            }
+            if (tmp.hinderances[0].depth.gt(0) && Decimal.sqrt(player.buyables[i]).neq_tolerance(Decimal.sqrt(player.buyables[i]).round())) {
+                tmp.buyables[i].effect = D(1);
+            }
+
+            // make it some really low number so higher values don't softlock you out of completing PC11
+            tmp.buyables[i].effect = tmp.buyables[i].effect.max('1.000e-1000');
+            checkNaN(tmp.buyables[i].effect, `NaN detected while trying to calculate effect of Buyable #${i+1}`);
 
             // tiers
             let upgGen = D(0);
@@ -329,6 +478,40 @@ function updateGame_main() {
                         upgGen = upgGen.mul(tmp.buyables[i].genLevels.mul(0.001).add(1));
                         if (i === 0) {
                             addStatFactor('tier', `Trans. Upg. "Tier Level Interest"`, `×`, tmp.buyables[i].genLevels.mul(0.001).add(1), upgGen)
+                        }
+                    }
+                    if (Decimal.gt(player.generatorFeatures.buyable[5], 0)) {
+                        upgGen = upgGen.mul(tmp.generatorFeatures.genXPBuyables[5].eff);
+                        if (i === 0) {
+                            addStatFactor('tier', `Generator XP Buyable #6`, `×`, tmp.generatorFeatures.genXPBuyables[5].eff, upgGen);
+                        }
+                    }
+                    if (Decimal.gt(player.tierFeatures.enhancerBuyables[1], 0)) {
+                        upgGen = upgGen.mul(tmp.tierFeatures.enhancerBuyables[1].eff);
+                        if (i === 0) {
+                            addStatFactor('tier', `Tier Enh. Buyable #2`, `×`, tmp.tierFeatures.enhancerBuyables[1].eff, upgGen);
+                        }
+                    }
+                    if (tmp.prestigeRepeatChal[2].depth.lte(0)) {  
+                        if (Decimal.gt(player.tierFeatures.xp, 0)) {
+                            upgGen = upgGen.pow(tmp.tierFeatures.xpEffTiers);
+                            if (i === 0) {
+                                addStatFactor('tier', `Tier XP Effect`, `^`, tmp.tierFeatures.xpEffTiers, upgGen);
+                            }
+                        }
+    
+                        if (hasHinderanceMilestone(2, 8) && Decimal.gte(player.hinderanceScore[2], HINDERANCES[2].start)) {
+                            upgGen = upgGen.pow(HINDERANCES[2].eff);
+                            if (i === 0) {
+                                addStatFactor('tier', `Hinderance 3 PB via Milestone 9`, `^`, HINDERANCES[2].eff, upgGen);
+                            }
+                        }
+    
+                        if (tmp.repliTetrBuyables[4].eff.neq(1)) {
+                            upgGen = upgGen.pow(tmp.repliTetrBuyables[4].eff);
+                            if (i === 0) {
+                                addStatFactor('tier', `RepliTetr Buyable #5`, `^`, tmp.repliTetrBuyables[4].eff, upgGen);
+                            }
                         }
                     }
 
@@ -370,6 +553,7 @@ function updateGame_main() {
 
                 tmp.tierSpeed = upgGen;
             }
+            checkNaN(upgGen, `NaN detected while trying to calculate tier speed of Buyable #${i+1}`);
             player.buyableTierPoints[i] = Decimal.add(player.buyableTierPoints[i], upgGen.mul(delta));
 
             // generators
@@ -393,7 +577,7 @@ function updateGame_main() {
                             addStatFactor('generator', `Ascension Buyable 2`, `×`, tmp.ascendBuyables[1].eff, upgGen);
                         }
                     }
-                    if (player.prestigeChallengeCompleted.includes(12)) {
+                    if (!player.cheats.stupid && player.prestigeChallengeCompleted.includes(12)) {
                         let eff = tmp.buyables[i].effect;
                         if (player.prestigeChallenge === 2) {
                             upgGen = upgGen.add(eff);
@@ -449,15 +633,30 @@ function updateGame_main() {
                             }
                         }
                         if (Decimal.gte(player.hinderanceScore[0], HINDERANCES[0].start)) {
-                            upgGen = upgGen.pow(Decimal.max(player.prestigeEssence, 1).log10().mul(0.02).add(1));
+                            let eff = hasHinderanceMilestone(0, 2) 
+                                ? D(0.02).add(Decimal.max(player.prestigeEssence, 1).log10().mul(0.0001)) 
+                                : D(0.02);
+                            upgGen = upgGen.pow(Decimal.max(player.prestigeEssence, 1).log10().mul(eff).add(1));
                             if (i === 0) {
-                                addStatFactor('generator', `H1 Reward`, `^1+0.02log<sub>10</sub>(${format(player.prestigeEssence)})</sup> → ^`, Decimal.max(player.prestigeEssence, 1).log10().mul(0.02).add(1), upgGen);
+                                addStatFactor('generator', `Hinderance 1 Reward`, `^1+${format(eff, 2)}log<sub>10</sub>(${format(player.prestigeEssence)})</sup> → ^`, Decimal.max(player.prestigeEssence, 1).log10().mul(0.02).add(1), upgGen);
+                            }
+                        }
+                        if (hasHinderanceMilestone(2, 6) && Decimal.gte(player.hinderanceScore[2], HINDERANCES[2].start)) {
+                            upgGen = upgGen.pow(HINDERANCES[2].eff);
+                            if (i === 0) {
+                                addStatFactor('generator', `Hinderance 3 PB via Milestone 7`, `^`, HINDERANCES[2].eff, upgGen);
                             }
                         }
                         if (player.transcendUpgrades.includes('gen2')) {
                             upgGen = upgGen.pow(tmp.buyables[i].tierLevels.mul(0.0001).add(1))
                             if (i === 0) {
                                 addStatFactor('generator', `Trans. Upg. "Tier Level Interest"`, `^`, tmp.buyables[i].tierLevels.mul(0.0001).add(1), upgGen)
+                            }
+                        }
+                        if (player.transcendUpgrades.includes('gen5')) {
+                            upgGen = upgGen.pow(tmp.transEffs[14][2][0]);
+                            if (i === 0) {
+                                addStatFactor('generator', `Trans. Upg. "Holy Generator Synergy"`, `^`, tmp.transEffs[14][2][0], upgGen);
                             }
                         }
                         if (tmp.repliRankBuyables[3].eff.neq(1)) {
@@ -471,6 +670,19 @@ function updateGame_main() {
                             upgGen = upgGen.max(1).log10().add(1).pow(tmp.prestigeUpgEffs[16]).sub(1).pow10();
                             if (i === 0) {
                                 addStatFactor('generator', `Prestige Upgrade 17`, `▲`, tmp.prestigeUpgEffs[16], upgGen);
+                            }
+                        }
+
+                        if (player.cheats.stupid && player.prestigeChallengeCompleted.includes(12)) {
+                            let eff = tmp.buyables[i].effect;
+                            if (player.prestigeChallenge === 2) {
+                                upgGen = upgGen.add(eff);
+                            } else {
+                                upgGen = upgGen.pow(eff);
+                            }
+
+                            if (i === 0) {
+                                addStatFactor('generator', `PC13 Reward`, player.prestigeChallenge === 2 ? '+' : '^', eff, upgGen);
                             }
                         }
                     }
@@ -534,7 +746,7 @@ function updateGame_main() {
                     tmp.generatorSpeed = upgGen;
                 }
             }
-
+            checkNaN(upgGen, `NaN detected while trying to calculate generator speed of Buyable #${i+1}`);
             if (tmp.hinderances[1].depth.gt(0)) {
                 player.buyablePoints[i] = Decimal.max(player.buyablePoints[i], 0).add(1).log10().add(1).root(tmp.hinderances[1].effects.decay).sub(1).pow10().sub(1).add(upgGen.mul(delta)).add(1).log10().add(1).pow(tmp.hinderances[1].effects.decay).sub(1).pow10().sub(1);
             } else {
@@ -551,8 +763,7 @@ function updateGame_main() {
             }
 
             if (tmp.prestigeChal[10].depth.gt(0)) {
-                // make it some really low number so higher values don't softlock you out of completing PC11
-                tmp.buyables[i].genEffect = Decimal.sub(2, tmp.buyables[i].genEffect).max('e-1000');
+                tmp.buyables[i].genEffect = Decimal.sub(2, tmp.buyables[i].genEffect).max(0);
             } else {
                 if (player.transcendUpgrades.includes('point4')) {
                     tmp.buyables[i].genEffect = tmp.buyables[i].genEffect.max(0).add(1).log10().add(1).pow(1.25).sub(1).pow10().sub(1);
@@ -563,75 +774,35 @@ function updateGame_main() {
                 }
             }
 
-            tmp.buyables[i].effectBase = [D(1.0), D(0.5), D(0.25), D(0.1), D(0.05), D(0.01)][i];
-            if (tmp.prestigeChal[3].depth.gt(0) && i < player.buyables.length - 1) {
-                tmp.buyables[i].effectBase = tmp.buyables[i].effectBase.add(tmp.buyables[i+1].effect);
+            if (!tmp.inAnyChallenge && player.anticap.upgrades.includes(33)) {
+                tmp.buyables[i].genEffect = tmp.buyables[i].genEffect.max(0).add(1).log10().add(1).log10().add(1).pow(1.5).sub(1).pow10().sub(1).pow10().sub(1);
             }
-            if (player.transcendUpgrades.includes('prest4') && i < player.buyables.length - 1) {
-                if (player.prestigeChallenge === 2) {
-                    tmp.buyables[i].effectBase = tmp.buyables[i].effectBase.add(tmp.buyables[i+1].effect);
+            
+            if (tmp.prestigeRepeatChal[5].depth.gt(0)) {
+                tmp.buyables[i].genEffect = D(1);
+            }
+
+            if (i >= 0 && tmp.hinderancePtsEff[2].neq(0)) {
+                if (player.cheats.stupid) {
+                    player.buyableAccumulated[i - 1] = Decimal.max(player.buyableAccumulated[i - 1], 1).mul(tmp.buyables[i].effect.max(1).mul(tmp.hinderancePtsEff[2]).pow(delta).pow(tmp.timeSpeedTiers[1]));
                 } else {
-                    tmp.buyables[i].effectBase = tmp.buyables[i].effectBase.mul(tmp.buyables[i+1].effect);
+                    player.buyableAccumulated[i - 1] = Decimal.add(player.buyableAccumulated[i - 1], tmp.buyables[i].effect.max(1).sub(1).pow(tmp.hinderancePtsEff[2]).mul(delta).mul(tmp.timeSpeedTiers[0]));
                 }
-            }
-
-            if (hasPrestigeUpgrade(5)) {
-                if (i === 3) {
-                    tmp.buyables[i].effectBase = tmp.buyables[i].effectBase.add(tmp.prestigeUpgEffs[5]);
-                }
-            }
-
-            if (hasPrestigeUpgrade(8)) {
-                tmp.buyables[i].effectBase = tmp.buyables[i].effectBase.mul(tmp.prestigeUpgEffs[8]);
-            }
-
-            if (hasSetbackUpgrade('r14')) {
-                tmp.buyables[i].effectBase = tmp.buyables[i].effectBase.mul(SETBACK_UPGRADES[0][13].eff);
-            }
-
-            if (tmp.prestigeChal[0].depth.gt(0)) {
-                tmp.buyables[i].effectBase = tmp.buyables[i].effectBase.div(tmp.prestigeChal[0].effects.effectBase);
-            }
-            tmp.buyables[i].effect = tmp.buyables[i].effective.mul(tmp.buyables[i].effectBase).add(1);
-            if (tmp.prestigeChal[12].depth.lte(0)) {
-                tmp.buyables[i].effect = tmp.buyables[i].effect.mul(tmp.buyables[i].genEffect);
-            }
-
-            if (tmp.prestigeChal[3].depth.gt(0) && i !== 0) {
-                tmp.buyables[i].effect = tmp.buyables[i].effect.sub(1);
-            }
-
-            tmp.buyables[i].effect = tmp.buyables[i].effect.mul(Decimal.div(player.buyables[i], tmp.bybBoostInterval).floor().pow_base(tmp.bybBoostEffect));
-            if (Decimal.lt(i, player.ascendUpgrades[2])) {
-                tmp.buyables[i].effect = tmp.buyables[i].effect.pow(tmp.ascendBuyables[2].eff);
-            }
-            if (player.anticap.upgrades.includes(8)) {
-                if (i >= 0 && i <= 3) {
-                    tmp.buyables[i].effect = tmp.buyables[i].effect.pow(tmp.ascendBuyables[i + 4].eff);
-                }
-                if (i >= 4 && i <= 5) {
-                    tmp.buyables[i].effect = tmp.buyables[i].effect.pow(tmp.ascendBuyables[i + 10].eff);
-                }
-            }
-
-            if (tmp.prestigeChal[12].depth.gt(0)) {
-                tmp.buyables[i].effect = tmp.buyables[i].effect.add(1).layeradd10(tmp.prestigeChal[12].effects.log.neg());
-                if (Decimal.isNaN(tmp.buyables[i].effect)) {
-                    tmp.buyables[i].effect = D(1);
-                }
-            }
-            if (tmp.hinderances[0].depth.gt(0) && Decimal.sqrt(player.buyables[i]).neq(Decimal.sqrt(player.buyables[i]).round())) {
-                tmp.buyables[i].effect = D(1);
             }
 
             if ((tmp.prestigeChal[3].depth.lte(0) || i === 0) && tmp.prestigeChal[12].depth.lte(0)) {
                 if (tmp.prestigeChal[2].depth.lte(0)) {
-                    tmp.pointGen = tmp.pointGen.mul(tmp.buyables[i].effect);
+                    if (player.cheats.stupid) {
+                        // tmp.pointGen = tmp.pointGen.pow(tmp.buyables[i].effect);
+                        // this is pushed into EXP boosts for points
+                    } else {
+                        tmp.pointGen = tmp.pointGen.mul(tmp.buyables[i].effect);
+                        addStatFactor('points', `Buyable ${i+1}`, `×`, tmp.buyables[i].effect, tmp.pointGen);
+                    }
                 } else {
                     tmp.pointGen = tmp.pointGen.add(tmp.buyables[i].effect);
+                    addStatFactor('points', `Buyable ${i+1}`, `+`, tmp.buyables[i].effect, tmp.pointGen);
                 }
-
-                addStatFactor('points', `Buyable ${i+1}`, `×`, tmp.buyables[i].effect, tmp.pointGen);
             }
 
             if (tmp.prestigeChal[12].depth.gt(0)) {
@@ -645,10 +816,10 @@ function updateGame_main() {
     }
     player.bestTotalGenLvs = Decimal.max(player.bestTotalGenLvs, totalGenLevels);
 
-    if (true) {
+    if (tmp.hinderances[5].depth.lte(0)) {
         if (tmp.hinderances[3].depth.gt(0)) {
-            tmp.pointGen = tmp.pointGen.pow(5);
-            addStatFactor('points', `Hinderance 4`, `^`, 5, tmp.pointGen);
+            tmp.pointGen = tmp.pointGen.pow(tmp.hinderances[3].effects.pts.recip());
+            addStatFactor('points', `Hinderance 4`, `^`, tmp.hinderances[3].effects.pts.recip(), tmp.pointGen);
         }
         if (Decimal.gt(player.specialBuyables[0])) {
             tmp.pointGen = tmp.pointGen.mul(MAIN_SPECIALS.special1.effect);
@@ -718,11 +889,15 @@ function updateGame_main() {
             tmp.pointGen = tmp.pointGen.mul(tmp.generatorFeatures.genXPBuyables[1].eff);
             addStatFactor('points', `Generator XP Buyable #2`, `×`, tmp.generatorFeatures.genXPBuyables[1].eff, tmp.pointGen);
         }
+        if (Decimal.gt(player.generatorFeatures.buyable[4], 0)) {
+            tmp.pointGen = tmp.pointGen.mul(tmp.generatorFeatures.genXPBuyables[4].eff);
+            addStatFactor('points', `Generator XP Buyable #5`, `×`, tmp.generatorFeatures.genXPBuyables[4].eff, tmp.pointGen);
+        }
         if (Decimal.gt(player.generatorFeatures.enhancerBuyables[4], 0)) {
             tmp.pointGen = tmp.pointGen.mul(tmp.generatorFeatures.genEnhBuyables[4].eff);
             addStatFactor('points', `Generator Enh. Buyable #5`, `×`, tmp.generatorFeatures.genEnhBuyables[4].eff, tmp.pointGen);
         }
-        if (Decimal.gte(player.hinderanceScore[2], HINDERANCES[2].start)) {
+        if (!hasHinderanceMilestone(2, 0) && Decimal.gte(player.hinderanceScore[2], HINDERANCES[2].start)) {
             tmp.pointGen = tmp.pointGen.mul(HINDERANCES[2].eff);
             addStatFactor('points', `Hinderance 3 PB`, `×`, HINDERANCES[2].eff, tmp.pointGen);
         }
@@ -746,7 +921,7 @@ function updateGame_main() {
             tmp.pointGen = tmp.pointGen.mul(tmp.transEffs[5][0]);
             addStatFactor('points', `Trans. Upg. "Extra Synergy II"`, `×`, tmp.transEffs[5][0], tmp.pointGen);
         }
-        if (player.generatorFeatures.advanceUpgsChosen.includes(1)) {
+        if (!player.transcendUpgrades.includes('repli3') && player.generatorFeatures.advanceUpgsChosen.includes(1)) {
             tmp.pointGen = tmp.pointGen.mul(tmp.replicatorEff)
             addStatFactor('points', `Replicator Effect`, `×`, tmp.replicatorEff, tmp.pointGen);
         }
@@ -757,6 +932,18 @@ function updateGame_main() {
 
         // exp boosts
         if (tmp.prestigeRepeatChal[2].depth.lte(0)) {
+            if (player.cheats.stupid) {
+                for (let i = player.buyables.length - 1; i >= 0; i--) {
+                    if ((tmp.prestigeChal[3].depth.lte(0) || i === 0) && tmp.prestigeChal[12].depth.lte(0)) {
+                        if (tmp.prestigeChal[2].depth.lte(0)) {
+                            if (player.cheats.stupid) {
+                                tmp.pointGen = tmp.pointGen.pow(tmp.buyables[i].effect);
+                                addStatFactor('points', `Buyable ${i+1}`, `^`, tmp.buyables[i].effect, tmp.pointGen);
+                            }
+                        }
+                    }
+                }
+            }
             if (hasPrestigeUpgrade(9)) {
                 tmp.pointGen = tmp.pointGen.pow(tmp.prestigeUpgEffs[9]);
                 addStatFactor('points', `Prestige Upgrade 10`, `^`, tmp.prestigeUpgEffs[9], tmp.pointGen);
@@ -783,6 +970,10 @@ function updateGame_main() {
                 tmp.pointGen = tmp.pointGen.pow(tmp.generatorFeatures.xpEffPoints);
                 addStatFactor('points', `Generator XP 2nd Eff.`, `^`, tmp.generatorFeatures.xpEffPoints, tmp.pointGen);
             }
+            if (Decimal.gt(player.tierFeatures.xp, 0)) {
+                tmp.pointGen = tmp.pointGen.pow(tmp.tierFeatures.xpEffPoints);
+                addStatFactor('points', `Tier XP 2nd Eff.`, `^`, tmp.tierFeatures.xpEffPoints, tmp.pointGen);
+            }
             if (player.transcendUpgrades.includes('base')) {
                 tmp.pointGen = tmp.pointGen.pow(tmp.transEffs[0][0][1]);
                 addStatFactor('points', `Trans. Upg. "Patience"`, `^`, tmp.transEffs[0][0][1], tmp.pointGen);
@@ -795,15 +986,31 @@ function updateGame_main() {
                 tmp.pointGen = tmp.pointGen.pow(tmp.transEffs[10][2]);
                 addStatFactor('points', `Trans. Upg. "Running Out of Names"`, `^`, tmp.transEffs[10][2], tmp.pointGen);
             }
+            if (player.transcendUpgrades.includes('gen5')) {
+                tmp.pointGen = tmp.pointGen.pow(tmp.transEffs[14][2][1]);
+                addStatFactor('points', `Trans. Upg. "Holy Generator Synergy"`, `^`, tmp.transEffs[14][2][1], tmp.pointGen);
+            }
+            if (player.transcendUpgrades.includes('repli3') && player.generatorFeatures.advanceUpgsChosen.includes(1)) {
+                tmp.pointGen = tmp.pointGen.pow(tmp.replicatorEff)
+                addStatFactor('points', `Replicator Effect`, `^`, tmp.replicatorEff, tmp.pointGen);
+            }
             if (tmp.anticap.energyEffs[0].neq(1)) {
                 tmp.pointGen = tmp.pointGen.pow(tmp.anticap.energyEffs[0]);
                 addStatFactor('points', `Anticap Energy`, `^`, tmp.anticap.energyEffs[0], tmp.pointGen);
+            }
+            if (hasHinderanceMilestone(2, 0) && Decimal.gte(player.hinderanceScore[2], HINDERANCES[2].start)) {
+                tmp.pointGen = tmp.pointGen.pow(HINDERANCES[2].eff);
+                addStatFactor('points', `Hinderance 3 PB via Milestone 1`, `^`, HINDERANCES[2].eff, tmp.pointGen);
             }
 
             // exp^2 boosts
             if (hasPrestigeUpgrade(15)) {
                 tmp.pointGen = tmp.pointGen.add(1).log10().add(1).pow(tmp.prestigeUpgEffs[15]).sub(1).pow10().sub(1);
                 addStatFactor('points', `Prestige Upgrade 16`, `▲`, tmp.prestigeUpgEffs[15], tmp.pointGen);
+            }
+            if (Decimal.gt(player.tierFeatures.enhancerBuyables[2], 0)) {
+                tmp.pointGen = tmp.pointGen.add(1).log10().add(1).pow(tmp.tierFeatures.enhancerBuyables[2].eff.add(1)).sub(1).pow10().sub(1);
+                addStatFactor('points', `Tier Enh. Buyable #3`, `▲`, tmp.tierFeatures.enhancerBuyables[2].eff.add(1), tmp.pointGen);
             }
         }
 
@@ -854,6 +1061,9 @@ function updateGame_main() {
         if (player.anticap.active) {
             tmp.pointGen = anticapSoftcap(tmp.pointGen, "points", "points", false);
         }
+    } else {
+        tmp.pointGen = D(player.replicators);
+        addStatFactor('points', `Hinderance 6`, `...`, null, tmp.pointGen);
     }
     if (player.cheats.dilate) {
         tmp.pointGen = cheatDilateBoost(tmp.pointGen);
@@ -947,7 +1157,14 @@ function updateHTML_main() {
                             } else {
                                 html[`upgrade${i}generatorProgressNumber`].setTxt(`${format(player.buyablePoints[i])}, Level ${format(tmp.buyables[i].genLevels)}`);
                             }
-                            html[`upgrade${i}generatorProgressBar`].changeStyle('width', `${player.buyablePoints[i].div(genPointFunc(tmp.buyables[i].genLevels, false, i)).max(1).log(genPointFunc(tmp.buyables[i].genLevels.add(1), false, i).div(genPointFunc(tmp.buyables[i].genLevels, false, i))).min(1).mul(100).toNumber()}%`);
+
+                            // the illusion of progress part 1 (it loses precision and eventually stands still)
+                            // it is effectively random anyways tho lmao
+                            html[`upgrade${i}generatorProgressBar`].changeStyle('width', `${tmp.buyables[i].genLevels.gte(1e12)
+                                ? (Decimal.gte(tmp.generatorSpeed, player.buyablePoints[i])
+                                    ? (Math.random() * 100).toString()
+                                    : '0')
+                                : Decimal.div(player.buyablePoints[i], genPointFunc(tmp.buyables[i].genLevels, false, i)).max(1).log(genPointFunc(tmp.buyables[i].genLevels.add(1), false, i).div(genPointFunc(tmp.buyables[i].genLevels, false, i))).min(1).mul(100).toNumber()}%`);
                         } else {
                             html[`upgrade${i}generatorProgressNumber`].setTxt(`${format(player.buyablePoints[i])}/${format(genPointFunc(tmp.buyables[i].genLevels.add(1), false, i))}, Level ${format(tmp.buyables[i].genLevels)}`);
                             html[`upgrade${i}generatorProgressBar`].changeStyle('width', `${Decimal.div(player.buyablePoints[i], genPointFunc(tmp.buyables[i].genLevels.add(1), false, i)).min(1).mul(100).toNumber()}%`);
@@ -956,17 +1173,21 @@ function updateHTML_main() {
                     if (Decimal.gte(player.generatorFeatures.enhancerBuyables[2], 1) || player.transcendInSpecialReq === 'exp2') {
                         if (tmp.buyables[i].tierLevels.gte(100)) {
                             html[`upgrade${i}generatorTierProgressNumber`].setTxt(`Tier ${format(tmp.buyables[i].tierLevels)}`)
-                            html[`upgrade${i}generatorTierProgressBar`].changeStyle('width', `${Decimal.div(player.buyableTierPoints[i], tierPointFunc(tmp.buyables[i].tierLevels, false, i)).max(1).log(tierPointFunc(tmp.buyables[i].tierLevels.add(1), false, i).div(tierPointFunc(tmp.buyables[i].tierLevels, false, i))).min(1).mul(100).toNumber()}%`);
+                            html[`upgrade${i}generatorTierProgressBar`].changeStyle('width', `${tmp.buyables[i].tierLevels.gte(1e12)
+                                ? (Decimal.gte(tmp.tierSpeed, player.buyableTierPoints[i])
+                                    ? (Math.random() * 100).toString()
+                                    : '0')
+                                : Decimal.div(player.buyableTierPoints[i], tierPointFunc(tmp.buyables[i].tierLevels, false, i)).max(1).log(tierPointFunc(tmp.buyables[i].tierLevels.add(1), false, i).div(tierPointFunc(tmp.buyables[i].tierLevels, false, i))).min(1).mul(100).toNumber()}%`);
                         } else {
                             html[`upgrade${i}generatorTierProgressNumber`].setTxt(`${format(Decimal.sub(player.buyableTierPoints[i], tierPointFunc(tmp.buyables[i].tierLevels, false, i)).max(0), 2)}/${format(tierPointFunc(tmp.buyables[i].tierLevels.add(1), false, i).sub(tierPointFunc(tmp.buyables[i].tierLevels, false, i)), 2)}, Tier ${format(tmp.buyables[i].tierLevels)}`);
                             html[`upgrade${i}generatorTierProgressBar`].changeStyle('width', `${Decimal.sub(player.buyableTierPoints[i], tierPointFunc(tmp.buyables[i].tierLevels, false, i)).max(0).div(tierPointFunc(tmp.buyables[i].tierLevels.add(1), false, i).sub(tierPointFunc(tmp.buyables[i].tierLevels, false, i))).min(1).mul(100).toNumber()}%`);
                         }
                     }
 
-                    html[`upgrade${i}amount`].setTxt(`${Decimal.gt(tmp.buyables[i].effective, 9999) ? 'B. ' : 'Buyable'} ${i + 1} ×${format(player.buyables[i])}${tmp.hinderances[0].depth.gt(0) ? (Decimal.sqrt(player.buyables[i]).eq(Decimal.sqrt(player.buyables[i]).round()) ? '=' : '≠') + format(Decimal.sqrt(player.buyables[i]).ceil().pow(2)) : ''}${tmp.buyables[i].effective.eq(player.buyables[i]) ? '' : ' (' + format(tmp.buyables[i].effective) + ')'}`);
+                    html[`upgrade${i}amount`].setTxt(`${Decimal.gt(tmp.buyables[i].effective, 9999) ? 'B. ' : 'Buyable'} ${i + 1} ×${format(player.buyables[i])}${tmp.hinderances[0].depth.gt(0) ? (Decimal.sqrt(player.buyables[i]).eq_tolerance(Decimal.sqrt(player.buyables[i]).round()) ? '=' : '≠') + format(Decimal.sqrt(player.buyables[i]).ceil().pow(2)) : ''}${tmp.buyables[i].effective.eq(player.buyables[i]) ? '' : ' (' + format(tmp.buyables[i].effective) + ')'}`);
 
                     if (tmp.hinderances[4].depth.gt(0) && i != 0) {
-                        html[`upgrade${i}cost`].setTxt(`${format(tmp.buyables[i].cost)} Buyable ${i}`);
+                        html[`upgrade${i}cost`].setTxt(`${format(tmp.buyables[i].cost)} ${tmp.buyables[i].cost.gt('ee3') ? 'B.' : 'Buyable'} ${i}`);
                     } else {
                         html[`upgrade${i}cost`].setTxt(`${format(tmp.buyables[i].cost)} points`);
                     }
@@ -975,14 +1196,30 @@ function updateHTML_main() {
                         if (tmp.prestigeChal[12].depth.gt(0)) {
                             html[`upgrade${i}eff`].setTxt(`×${format(tmp.buyables[i].effect, 2)} generator speed`);
                         } else {
+                            // TODO: replace player.cheats.stupid with the actual thing from an upgrade
+                            // from a save with e1.000e130 points, this jumps up to e1.000e800!!!
+                            // thankfully, this doesn't violate the anti-inflation rule (dilate 2, 2 test passed)
+                            // but it will fuck the balancing below e1.000e1,000 i think
                             if (player.prestigeChallengeCompleted.includes(12)) {
                                 if (player.transcendUpgrades.includes('prest4') && i !== 0) {
-                                    html[`upgrade${i}eff`].setTxt(`${player.prestigeChallenge === 2 ? '+' : '×'}${format(tmp.buyables[i].effect, 2)} point, gen. spd., and ${Decimal.gt(tmp.buyables[i].effective, 9999) ? 'B. ' : 'Buyable'} ${i} base`);
+                                    html[`upgrade${i}eff`].setTxt(`${player.prestigeChallenge === 2 
+                                        ? '+' 
+                                        : (player.cheats.stupid
+                                            ? '^'
+                                            : '×')}${format(tmp.buyables[i].effect, 2)} point, gen. spd., and ${Decimal.gt(tmp.buyables[i].effective, 9999) ? 'B. ' : 'Buyable'} ${i} base`);
                                 } else {
-                                    html[`upgrade${i}eff`].setTxt(`${player.prestigeChallenge === 2 ? '+' : '×'}${format(tmp.buyables[i].effect, 2)} point and gen. speed`);
+                                    html[`upgrade${i}eff`].setTxt(`${player.prestigeChallenge === 2 
+                                        ? '+' 
+                                        : (player.cheats.stupid
+                                            ? '^'
+                                            : '×')}${format(tmp.buyables[i].effect, 2)} point and gen. speed`);
                                 }
                             } else {
-                                html[`upgrade${i}eff`].setTxt(`${player.prestigeChallenge === 2 ? '+' : '×'}${format(tmp.buyables[i].effect, 2)} point gain`);
+                                html[`upgrade${i}eff`].setTxt(`${player.prestigeChallenge === 2 
+                                    ? '+' 
+                                    : (player.cheats.stupid
+                                        ? '^'
+                                        : '×')}${format(tmp.buyables[i].effect, 2)} point gain`);
                             }
                         }
                     } else {
@@ -1117,12 +1354,12 @@ function checkBuyableAutobuyers() {
                 tmp.basicBuyableAutobData[i] = D(Infinity);
             }
         } else {
-            tmp.basicBuyableAutobData[i] = D(0)
+            tmp.basicBuyableAutobData[i] = D(0);
         }
     }
 }
 function toggleBuyableAutobuy(i) {
-    player.buyableAuto[i] = !player.buyableAuto[i]
+    player.buyableAuto[i] = !player.buyableAuto[i];
 }
 
 function buyBuyable(i) {
@@ -1130,29 +1367,29 @@ function buyBuyable(i) {
         return;
     }
     
-    player.timeSinceBuyableBought = D(0)
+    player.timeSinceBuyableBought = D(0);
     if (shiftDown) {
         if (!player.transcendUpgrades.includes('prest3')) {
-            player.points = Decimal.sub(player.points, tmp.buyables[i].cost)
+            player.points = Decimal.sub(player.points, tmp.buyables[i].cost);
         }
-        player.buyables[i] = Decimal.max(player.buyables[i], tmp.buyables[i].target.ceil())
-        player.buyableAutobought[i] = Decimal.max(player.buyableAutobought[i], tmp.buyables[i].target.ceil())
+        player.buyables[i] = Decimal.max(player.buyables[i], tmp.buyables[i].target.ceil());
+        player.buyableAutobought[i] = Decimal.max(player.buyableAutobought[i], tmp.buyables[i].target.ceil());
     } else {
         if (tmp.hinderances[0].depth.gt(0)) {
-            player.buyables[i] = Decimal.add(player.buyables[i], 1).sqrt().ceil().pow(2).round()
+            player.buyables[i] = Decimal.add(player.buyables[i], 1).sqrt().ceil().pow(2).round();
             if (!player.transcendUpgrades.includes('prest3')) {
-                player.points = Decimal.sub(player.points, tmp.buyables[i].cost)
+                player.points = Decimal.sub(player.points, tmp.buyables[i].cost);
             }
-            player.buyableAutobought[i] = Decimal.add(player.buyableAutobought[i], 1).sqrt().ceil().pow(2).round()
+            player.buyableAutobought[i] = Decimal.add(player.buyableAutobought[i], 1).sqrt().ceil().pow(2).round();
         } else {
             if (!player.transcendUpgrades.includes('prest3')) {
-                player.points = Decimal.sub(player.points, tmp.buyables[i].cost)
+                player.points = Decimal.sub(player.points, tmp.buyables[i].cost);
             }
-            player.buyables[i] = Decimal.add(player.buyables[i], 1)
-            player.buyableAutobought[i] = Decimal.add(player.buyableAutobought[i], 1)
+            player.buyables[i] = Decimal.add(player.buyables[i], 1);
+            player.buyableAutobought[i] = Decimal.add(player.buyableAutobought[i], 1);
         }
     }
-    updateGame_main()
+    updateGame_main();
 }
 
 function buySpecialBuyable(i) {
@@ -1163,9 +1400,9 @@ function buySpecialBuyable(i) {
             }
             if (shiftDown) {
                 player.timeSinceBuyableBought = D(0)
-                player.points = Decimal.sub(player.points, MAIN_SPECIALS.special1.cost)
-                player.specialBuyables[i] = Decimal.max(player.specialBuyables[i],  MAIN_SPECIALS.special1.target.ceil())
-                // player.buyableAutobought[i] = Decimal.add(player.buyableAutobought[i], 1)
+                player.points = Decimal.sub(player.points, MAIN_SPECIALS.special1.cost);
+                player.specialBuyables[i] = Decimal.max(player.specialBuyables[i],  MAIN_SPECIALS.special1.target.ceil());
+                // player.buyableAutobought[i] = Decimal.add(player.buyableAutobought[i], 1);
             } else {
                 player.timeSinceBuyableBought = D(0)
                 player.points = Decimal.sub(player.points, MAIN_SPECIALS.special1.cost)
@@ -1179,18 +1416,18 @@ function buySpecialBuyable(i) {
             }
             if (shiftDown) {
                 player.timeSinceBuyableBought = D(0)
-                player.points = Decimal.sub(player.points, MAIN_SPECIALS.b1_2.cost)
-                player.specialBuyables[i] = Decimal.max(player.specialBuyables[i],  MAIN_SPECIALS.b1_2.target.ceil())
-                // player.buyableAutobought[i] = Decimal.add(player.buyableAutobought[i], 1)
+                player.points = Decimal.sub(player.points, MAIN_SPECIALS.b1_2.cost);
+                player.specialBuyables[i] = Decimal.max(player.specialBuyables[i],  MAIN_SPECIALS.b1_2.target.ceil());
+                // player.buyableAutobought[i] = Decimal.add(player.buyableAutobought[i], 1);
             } else {
                 player.timeSinceBuyableBought = D(0)
-                player.points = Decimal.sub(player.points, MAIN_SPECIALS.b1_2.cost)
-                player.specialBuyables[i] = Decimal.add(player.specialBuyables[i], 1)
-                // player.buyableAutobought[i] = Decimal.add(player.buyableAutobought[i], 1)
+                player.points = Decimal.sub(player.points, MAIN_SPECIALS.b1_2.cost);
+                player.specialBuyables[i] = Decimal.add(player.specialBuyables[i], 1);
+                // player.buyableAutobought[i] = Decimal.add(player.buyableAutobought[i], 1);
             }
             break
         default:
-            throw new Error(`${i} is not a special buyable`)
+            throw new Error(`${i} is not a special buyable`);
     }
 }
 
@@ -1300,6 +1537,9 @@ function tierPointFunc(xp, inv, genID) {
         eff = Decimal.add(eff, 1).mul(0.01).add(1).log(1.01);
 
         eff = eff.root(tmp.anticap.energyEffs[1]);
+        if (hasSetbackUpgrade('g15')) {
+            eff = eff.div(SETBACK_UPGRADES[1][10].eff);
+        }
 
         if (player.anticap.active) {
             eff = anticapScaling(eff, "tierLevels", true);
@@ -1315,6 +1555,9 @@ function tierPointFunc(xp, inv, genID) {
             eff = anticapScaling(eff, "tierLevels", false);
         }
 
+        if (hasSetbackUpgrade('g15')) {
+            eff = eff.mul(SETBACK_UPGRADES[1][10].eff);
+        }
         eff = eff.pow(tmp.anticap.energyEffs[1]);
 
         eff = Decimal.pow(1.01, eff).sub(1).div(0.01).sub(1).max(0);

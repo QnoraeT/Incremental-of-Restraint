@@ -2,7 +2,9 @@
 
 const PRESTIGE_UPGRADES = [
     {
-        cost: D(1),
+        get cost() {
+            return hasHinderanceMilestone(4, 2) ? D(1) : D(1);
+        },
         desc(levels) {
             return `Point gain is boosted. Currently: ×${format(tmp.prestigeUpgEffs[0], 2)}`;
         },
@@ -19,7 +21,9 @@ const PRESTIGE_UPGRADES = [
         }
     },
     {
-        cost: D(1),
+        get cost() {
+            return hasHinderanceMilestone(4, 2) ? D(1) : D(1);
+        },
         desc(levels) {
             return `Point gain is boosted based off of points. Currently: ×${format(tmp.prestigeUpgEffs[1], 2)}`;
         },
@@ -33,7 +37,9 @@ const PRESTIGE_UPGRADES = [
         }
     },
     {
-        cost: D(1),
+        get cost() {
+            return hasHinderanceMilestone(4, 2) ? D(1) : D(1);
+        },
         desc(levels) {
             return `Point gain is boosted based off of total prestige points. Currently: ×${format(tmp.prestigeUpgEffs[2], 2)}`;
         },
@@ -56,7 +62,9 @@ const PRESTIGE_UPGRADES = [
         }
     },
     {
-        cost: D(5),
+        get cost() {
+            return hasHinderanceMilestone(4, 2) ? D(1) : D(5);
+        },
         desc(levels) {
             return player.prestigeChallengeCompleted.includes(2)
                 ? Decimal.neq(tmp.prestigeUpgEffs[3], 0) && Decimal.neq(tmp.prestigeUpgEffs[3], 1)
@@ -79,7 +87,9 @@ const PRESTIGE_UPGRADES = [
         }
     },
     {
-        cost: D(5),
+        get cost() {
+            return hasHinderanceMilestone(4, 2) ? D(1) : D(5);
+        },
         desc(levels) {
             return `Total amount of basic buyables gives an extra boost to points. Currently: ×${format(tmp.prestigeUpgEffs[4], 2)}`;
         },
@@ -97,7 +107,9 @@ const PRESTIGE_UPGRADES = [
         }
     },
     {
-        cost: D(5),
+        get cost() {
+            return hasHinderanceMilestone(4, 2) ? D(1) : D(5);
+        },
         desc(levels) {
             return `Buy. 4's effect base increases by +×0.002 per Buy. 4 bought. Currently: +×${format(tmp.prestigeUpgEffs[5], 3)}`;
         },
@@ -111,7 +123,9 @@ const PRESTIGE_UPGRADES = [
         }
     },
     {
-        cost: D(8),
+        get cost() {
+            return hasHinderanceMilestone(4, 2) ? D(1) : D(8);
+        },
         desc(levels) {
             return `Point gain is increased based off of the amount of prestige ${tmp.prestigeIsUpg ? 'upgrades' : 'buyables'}. Currently: ×${format(tmp.prestigeUpgEffs[6], 2)}`;
         },
@@ -125,7 +139,9 @@ const PRESTIGE_UPGRADES = [
         }
     },
     {
-        cost: D(8),
+        get cost() {
+            return hasHinderanceMilestone(4, 2) ? D(1) : D(8);
+        },
         desc(levels) {
             return `Prestige ${tmp.prestigeIsUpg ? 'upgrades' : 'buyables'} and total basic buyables bought give a boost to points. Currently: ×${format(tmp.prestigeUpgEffs[7], 2)}`;
         },
@@ -143,7 +159,9 @@ const PRESTIGE_UPGRADES = [
         }
     },
     {
-        cost: D(8),
+        get cost() {
+            return hasHinderanceMilestone(4, 2) ? D(1) : D(8);
+        },
         desc(levels) {
             return `Prestige ${tmp.prestigeIsUpg ? 'upgrades' : 'buyables'} increase Buyable 1's effect base. Currently: +${format(tmp.prestigeUpgEffs[8], 2)}`;
         },
@@ -157,7 +175,9 @@ const PRESTIGE_UPGRADES = [
         }
     },
     {
-        cost: D(15),
+        get cost() {
+            return hasHinderanceMilestone(4, 2) ? D(1) : D(15);
+        },
         desc(levels) {
             return `Raise Point gain by ^${format(tmp.prestigeUpgEffs[9], 2)}. (~×${format(tmp.pointGen.root(tmp.prestigeUpgEffs[9]).pow(tmp.prestigeUpgEffs[9].sub(1)))})`
         },
@@ -171,7 +191,9 @@ const PRESTIGE_UPGRADES = [
         }
     },
     {
-        cost: D(15),
+        get cost() {
+            return hasHinderanceMilestone(4, 2) ? D(1) : D(15);
+        },
         desc(levels) {
             return `Raise Generator Speed by ^${format(tmp.prestigeUpgEffs[10], 2)}. (~×${format(Decimal.root(player.buyablePoints[0], tmp.prestigeUpgEffs[10]).pow(tmp.prestigeUpgEffs[10].sub(1)))}) `
         },
@@ -182,7 +204,9 @@ const PRESTIGE_UPGRADES = [
         }
     },
     {
-        cost: D(15),
+        get cost() {
+            return hasHinderanceMilestone(4, 2) ? D(1) : D(15);
+        },
         desc(levels) {
             return `Raise Point and Generator Speed by ^${format(tmp.prestigeUpgEffs[11], 3)}. (~×${format(tmp.pointGen.root(tmp.prestigeUpgEffs[11]).pow(tmp.prestigeUpgEffs[11].sub(1)))} pts, ~×${format(Decimal.root(player.buyablePoints[0], tmp.prestigeUpgEffs[11]).pow(tmp.prestigeUpgEffs[11].sub(1)))} gen. spd)`
         },
@@ -193,9 +217,11 @@ const PRESTIGE_UPGRADES = [
         }
     },
     {
-        cost: D(25),
+        get cost() {
+            return hasHinderanceMilestone(4, 2) ? D(1) : D(25);
+        },
         desc(levels) {
-            return `Increase Generator effects from +${format(tmp.prestigeUpgEffs[12].recip().mul(100))}%/level to +${format(this.eff2(Decimal.add(levels, 1)).recip().mul(100))}%/level.`
+            return `Increase Generator effects from +${format(tmp.prestigeUpgEffs[12].recip().mul(100))}%/level to +${format(this.eff2(Decimal.add(levels, 1)).recip().pow(tmp.pfUpgData[12].effect).mul(100))}%/level.`
         },
         eff(levels) {
             return this.eff2(levels)
@@ -208,7 +234,9 @@ const PRESTIGE_UPGRADES = [
         }
     },
     {
-        cost: D(25),
+        get cost() {
+            return hasHinderanceMilestone(4, 2) ? D(1) : D(25);
+        },
         desc(levels) {
             return `P${tmp.prestigeIsUpg ? 'U' : 'B'}1 is raised to the ^${format(tmp.prestigeUpgEffs[13], 2)}`
         },
@@ -219,9 +247,11 @@ const PRESTIGE_UPGRADES = [
         }
     },
     {
-        cost: D(25),
+        get cost() {
+            return hasHinderanceMilestone(4, 2) ? D(1) : D(25);
+        },
         desc(levels) {
-            return `Prestige Point effect from PC4 is increased from +${format(tmp.prestigeUpgEffs[14].mul(100))}%/point to +${format(this.eff2(Decimal.add(levels, 1)).mul(100))}%/point.`
+            return `Prestige Point effect from PC4 is increased from +${format(tmp.prestigeUpgEffs[14].mul(100))}%/point to +${format(this.eff2(Decimal.add(levels, 1)).pow(tmp.pfUpgData[14].effect).mul(100))}%/point.`
         },
         eff(levels) {
             return this.eff2(levels)
@@ -234,7 +264,9 @@ const PRESTIGE_UPGRADES = [
         }
     },
     {
-        cost: D(1e11),
+        get cost() {
+            return hasHinderanceMilestone(4, 2) ? D(1) : D(1e11);
+        },
         desc(levels) {
             return `Raise Point gain by +▲${format(tmp.prestigeUpgEffs[15].sub(1), 3)}. (~^${format(tmp.pointGen.max(10).log10().root(tmp.prestigeUpgEffs[15]).pow(tmp.prestigeUpgEffs[15].sub(1)), 3)})`;
         },
@@ -248,7 +280,9 @@ const PRESTIGE_UPGRADES = [
         }
     },
     {
-        cost: D(1e11),
+        get cost() {
+            return hasHinderanceMilestone(4, 2) ? D(1) : D(1e11);
+        },
         desc(levels) {
             return `Raise Generator Speed by +▲${format(tmp.prestigeUpgEffs[16].sub(1), 3)}. (~^${format(Decimal.max(player.buyablePoints[0], 10).log10().root(tmp.prestigeUpgEffs[16]).pow(tmp.prestigeUpgEffs[16].sub(1)), 3)})`;
         },
@@ -259,7 +293,9 @@ const PRESTIGE_UPGRADES = [
         }
     },
     {
-        cost: D(1e12),
+        get cost() {
+            return hasHinderanceMilestone(4, 2) ? D(1) : D(1e12);
+        },
         desc(levels) {
             return `PB4 to PB9 gain ${format(tmp.prestigeUpgEffs[17], 1)} free level(s).`;
         },
@@ -329,13 +365,21 @@ function initHTML_prestige() {
 }
 
 function updateGame_prestige() {
+    let eff;
+
     for (let i = PRESTIGE_UPGRADES.length - 1; i >= 0; i--) {
         let upgGen = D(0);
         if (Decimal.gte(player.prestigeChallengeRepCompleted[0], 1)) {
             upgGen = Decimal.gt(player.prestigeUpgrades[i], 0) ? Decimal.pow(tmp.prestigeRepeatChal[0].rewardEffs.exponent, player.prestigeUpgrades[i]) : D(0);
         }
+        if (player.anticap.upgrades.includes(31)) {
+            upgGen = upgGen.root(tmp.tierFeatures.enhancerBuyables[5].eff.pow(4/5));
+        }
         upgGen = cheatDilateBoost(upgGen);
-        player.prestigeBuyablePoints[i] = Decimal.add(player.prestigeBuyablePoints[i], upgGen.mul(delta).mul(tmp.timeSpeedTiers[1]))
+
+        player.prestigeBuyablePoints[i] = Decimal.root(player.prestigeBuyablePoints[i], tmp.tierFeatures.enhancerBuyables[5].eff);
+        player.prestigeBuyablePoints[i] = Decimal.add(player.prestigeBuyablePoints[i], upgGen.mul(delta).mul(tmp.timeSpeedTiers[1]));
+        player.prestigeBuyablePoints[i] = Decimal.pow(player.prestigeBuyablePoints[i], tmp.tierFeatures.enhancerBuyables[5].eff);
 
         tmp.prestigeUpgLevels[i] = prestigeBuyGenFunc(player.prestigeBuyablePoints[i], true, i).floor().max(1);
 
@@ -359,15 +403,31 @@ function updateGame_prestige() {
         : D(0);
     addStatFactor('prestigeEssence', `Base`, `10<sup>log<sub>2</sub>(log<sub>1,000,000</sub>(${format(player.bestPointsInPrestige)}))</sup>`, null, tmp.peGain);
     if (player.transcendInSpecialReq === "prest4" && Decimal.gte(player.prestigeCountInTrans, 1)) {
-        tmp.peGain = new Decimal(0);
+        tmp.peGain = D(0);
         addStatFactor('prestigeEssence', `Advantageous 'Challenge'`, `...`, null, tmp.peGain);
+    }
+    if (hasHinderanceMilestone(1, 0)) {
+        tmp.peGain = tmp.peGain.mul(HINDERANCES[1].eff);
+        addStatFactor('prestigeEssence', `Hinderance 2 PB via Milestone 1`, `×`, HINDERANCES[1].eff, tmp.peGain);
+    }
+    if (player.anticap.upgrades.includes(18)) {
+        tmp.peGain = tmp.peGain.mul(tmp.anticap.upgrades[18].eff);
+        addStatFactor('prestigeEssence', `Anticap Upgrade #19`, `×`, tmp.anticap.upgrades[18].eff, tmp.peGain);
     }
 
     // exp boosts
     if (tmp.prestigeRepeatChal[2].depth.lte(0)) {
         if (Decimal.gte(player.hinderanceScore[0], HINDERANCES[0].start)) {
             tmp.peGain = tmp.peGain.pow(HINDERANCES[0].eff);
-            addStatFactor('prestigeEssence', `H1 PB`, `^`, HINDERANCES[0].eff, tmp.peGain);
+            addStatFactor('prestigeEssence', `Hinderance 1 PB`, `^`, HINDERANCES[0].eff, tmp.peGain);
+        }
+        if (tmp.hinderancePtsEff[0].neq(1)) {
+            tmp.peGain = tmp.peGain.pow(tmp.hinderancePtsEff[0]);
+            addStatFactor('prestigeEssence', `Hinderance 1 Points`, `^`, tmp.hinderancePtsEff[0], tmp.peGain);
+        }
+        if (tmp.repliTetrBuyables[5].eff.neq(1)) {
+            tmp.peGain = tmp.peGain.pow(tmp.repliTetrBuyables[5].eff);
+            addStatFactor('prestige', `RepliTetr Buyable #6`, `^`, tmp.repliTetrBuyables[5].eff, tmp.peGain);
         }
     }
 
@@ -399,7 +459,7 @@ function updateGame_prestige() {
 
     tmp.peNext = tmp.peGain;
     if (player.transcendInSpecialReq === "prest4" && Decimal.gte(player.prestigeCountInTrans, 1)) {
-        tmp.peNext = new Decimal(Infinity);
+        tmp.peNext = D(Infinity);
     }
 
     tmp.peNext = tmp.peNext.add(1).floor().add(hasSetbackUpgrade('b7') ? D(0) : player.prestigeEssence);
@@ -410,6 +470,8 @@ function updateGame_prestige() {
         tmp.peNext = tmp.peNext.root(tmp.hinderances[4].effects.resource);
     }
     if (tmp.prestigeRepeatChal[2].depth.lte(0)) {
+        tmp.peNext = tmp.peNext.root(tmp.repliTetrBuyables[5].eff);
+        tmp.peNext = tmp.peNext.root(tmp.hinderancePtsEff[0]);
         if (Decimal.gte(player.hinderanceScore[0], HINDERANCES[0].start)) {
             tmp.peNext = tmp.peNext.root(HINDERANCES[0].eff);
         }
@@ -457,10 +519,11 @@ function updateGame_prestige() {
         tmp.prestigeUpgCap = tmp.prestigeUpgCap.add(1);
     }
     if (player.prestigeChallengeCompleted.includes(12)) {
+        eff = Decimal.max(player.bestTotalGenLvs, 1).log2().sub(11).max(0);
         if (player.transcendUpgrades.includes('prest4')) {
-            tmp.prestigeUpgCap = tmp.prestigeUpgCap.add(Decimal.max(player.bestTotalGenLvs, 1).log2().sub(11).max(0).mul(2).floor().div(2));
+            tmp.prestigeUpgCap = tmp.prestigeUpgCap.add(eff.mul(2).floor().div(2));
         } else {
-            tmp.prestigeUpgCap = tmp.prestigeUpgCap.add(Decimal.max(player.bestTotalGenLvs, 1).log2().sub(11).max(0).floor());
+            tmp.prestigeUpgCap = tmp.prestigeUpgCap.add(eff.floor());
         }
     }
     if (Decimal.gte(player.hinderanceScore[1], HINDERANCES[1].start)) {
@@ -468,6 +531,14 @@ function updateGame_prestige() {
     }
     if (player.anticap.upgrades.includes(16)) {
         tmp.prestigeUpgCap = tmp.prestigeUpgCap.add(10);
+    }
+    if (hasHinderanceMilestone(1, 1)) {
+        eff = Decimal.max(player.hinderanceScore[1], 1e10).log10().log10().sub(HINDERANCES[1].threshold.log10().log10()).max(0).mul(2);
+        if (player.transcendUpgrades.includes('prest4')) {
+            tmp.prestigeUpgCap = tmp.prestigeUpgCap.add(eff.mul(2).floor().div(2));
+        } else {
+            tmp.prestigeUpgCap = tmp.prestigeUpgCap.add(eff.floor());
+        }
     }
 
     tmp.prestigeIsUpg = !player.transcendUpgrades.includes('prest4');
@@ -490,7 +561,7 @@ function updateGame_prestige() {
     tmp.prestigePointGain = Decimal.max(player.bestPointsInPrestige, 1e5).div(1e6).log10().add(1);
     addStatFactor('prestige', `Base`, `1+log<sub>10</sub>(${format(player.bestPointsInPrestige)}/1,000,000)`, null, tmp.prestigePointGain);
     if (player.transcendInSpecialReq === "prest4" && Decimal.gte(player.prestigeCountInTrans, 1)) {
-        tmp.prestigePointGain = new Decimal(0);
+        tmp.prestigePointGain = D(0);
         addStatFactor('prestige', `Advantageous 'Challenge'`, `...`, null, tmp.prestigePointGain);
     }
     if (Decimal.gt(player.setbackEnergy[2], 0)) {
@@ -499,7 +570,7 @@ function updateGame_prestige() {
     }
     if (Decimal.gt(player.hinderanceScore[1], HINDERANCES[1].start)) {
         tmp.prestigePointGain = tmp.prestigePointGain.mul(HINDERANCES[1].eff);
-        addStatFactor('prestige', `H2 PB`, `×`, HINDERANCES[1].eff, tmp.prestigePointGain);
+        addStatFactor('prestige', `Hinderance 2 PB`, `×`, HINDERANCES[1].eff, tmp.prestigePointGain);
     }
     if (player.transcendUpgrades.includes('prest1')) {
         tmp.prestigePointGain = tmp.prestigePointGain.mul(2);
@@ -517,9 +588,15 @@ function updateGame_prestige() {
         tmp.prestigePointGain = tmp.prestigePointGain.mul(tmp.anticap.upgrades[6].eff);
         addStatFactor('prestige', `Anticap Upgrade #7`, `×`, tmp.anticap.upgrades[6].eff, tmp.prestigePointGain);
     }
-    if (tmp.repliTierBuyables[4].eff.neq(1)) {
-        tmp.prestigePointGain = tmp.prestigePointGain.pow(tmp.repliTierBuyables[4].eff);
-        addStatFactor('prestige', `RepliTier Buyable #5`, `^`, tmp.repliTierBuyables[4].eff, tmp.prestigePointGain);
+    if (tmp.prestigeRepeatChal[2].depth.lte(0)) {
+        if (tmp.repliTierBuyables[4].eff.neq(1)) {
+            tmp.prestigePointGain = tmp.prestigePointGain.pow(tmp.repliTierBuyables[4].eff);
+            addStatFactor('prestige', `RepliTier Buyable #5`, `^`, tmp.repliTierBuyables[4].eff, tmp.prestigePointGain);
+        }
+        if (tmp.hinderancePtsEff[1].neq(1)) {
+            tmp.prestigePointGain = tmp.prestigePointGain.pow(tmp.hinderancePtsEff[1]);
+            addStatFactor('prestige', `Hinderance 1 Points`, `^`, tmp.hinderancePtsEff[1], tmp.prestigePointGain);
+        }
     }
 
     // challenge effs
@@ -573,7 +650,7 @@ function updateGame_prestige() {
 
     tmp.prestigePointNext = tmp.prestigePointGain.add(hasSetbackUpgrade('b10') ? D(0) : player.prestige).add(1);
     if (player.transcendInSpecialReq === "prest4" && Decimal.gte(player.prestigeCountInTrans, 1)) {
-        tmp.prestigePointNext = new Decimal(Infinity);
+        tmp.prestigePointNext = D(Infinity);
     }
     tmp.prestigePointNext = cheatDilateBoost(tmp.prestigePointNext, true);
 
@@ -597,6 +674,7 @@ function updateGame_prestige() {
         tmp.prestigePointNext = tmp.prestigePointNext.mul(tmp.setbackEffects[1][0]);
     }
 
+    tmp.prestigePointNext = tmp.prestigePointNext.root(tmp.hinderancePtsEff[1]);
     tmp.prestigePointNext = tmp.prestigePointNext.root(tmp.repliTierBuyables[4].eff);
     if (player.anticap.upgrades.includes(6)) {
         tmp.prestigePointNext = tmp.prestigePointNext.div(tmp.anticap.upgrades[6].eff);
@@ -669,6 +747,9 @@ function getPrestigeEssenceEff(essence) {
         eff = eff.pow(total.add(1).log10().mul(0.1).add(1));
     }
     eff = eff.pow(tmp.pfEffect);
+    if (hasHinderanceMilestone(0, 0)) {
+        eff = eff.pow(HINDERANCES[0].eff);
+    }
     return eff;
 }
 
@@ -793,7 +874,7 @@ function updateHTML_prestige() {
                     html[`pb${i}generatorProgressNumber`].setDisplay(Decimal.gte(player.prestigeChallengeRepCompleted[0], 1));
 
                     if (Decimal.gte(player.prestigeChallengeRepCompleted[0], 1)) {
-                        if (tmp.prestigeUpgLevels[i].gte(20)) {
+                        if (tmp.prestigeUpgLevels[i].gte(5)) {
                             if (tmp.prestigeUpgLevels[i].gte(100)) {
                                 html[`pb${i}generatorProgressNumber`].setTxt(`Level ${format(tmp.prestigeUpgLevels[i])}`);
                             } else {
@@ -876,6 +957,9 @@ function buyPrestigeUpgrade(i) {
 }
 
 function hasPrestigeUpgrade(i) {
+    if (tmp.prestigeRepeatChal[5].depth.gt(0)) {
+        return false;
+    }
     if (tmp.hinderances[2].depth.lte(0) && (tmp.prestigeChal[5].depth.gt(0) || tmp.prestigeChal[6].depth.gt(0) || tmp.prestigeChal[7].depth.gt(0) || tmp.prestigeChal[8].depth.gt(0) || tmp.prestigeChal[9].depth.gt(0))) {
         return false;
     }
@@ -895,11 +979,14 @@ function hasPrestigeUpgrade(i) {
 
 function prestigeUpgradeCostScaling(amt, inverse) {
     if (Decimal.eq(amt, 0)) {
-        return new Decimal(1);
+        return D(1);
     }
-    let costScaling = new Decimal(2);
+    let costScaling = D(2);
     if (player.transcendUpgrades.includes('prest5')) {
-        costScaling = new Decimal(1.9);
+        costScaling = D(1.9);
+    }
+    if (player.transcendUpgrades.includes('prest6')) {
+        costScaling = D(1.8);
     }
 
     // i have to accomodate the scaling somehow, using the normal scaling screws it up so i have to put an edge case for mults < 10
@@ -939,6 +1026,7 @@ function doPrestigeReset(doAnyway = false) {
         player.buyables[i] = D(0);
         player.buyablePoints[i] = D(0);
         player.buyableAutobought[i] = D(0);
+        player.buyableAccumulated[i] = D(0);
     }
     tmp.pointGen = D(0);
     tmp.buyables = resetMainBuyables();

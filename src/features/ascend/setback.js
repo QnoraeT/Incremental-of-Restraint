@@ -92,7 +92,7 @@ const SETBACK_UPGRADES = [
         {
             id: "r15",
             cost: D('e8e8'),
-            desc: `[UNIMPLEMENTED] Add an alternative to "generator experience" using Tiers instead of Generator Levels, called "tier experience." (This feature persists on transcension-level resets.)`
+            desc: `Add an alternative to "generator experience" using Tiers instead of Generator Levels, called "tier experience." (This feature persists on transcension-level resets.)`
         },
     ],
     [
@@ -200,7 +200,7 @@ const SETBACK_UPGRADES = [
         {
             id: "g15",
             cost: D('ee8'),
-            desc: `[UNIMPLEMENTED] Unlock Cost/Requirement Pulverizer which reduces costs of various things. (This feature persists on transcension-level resets.)`
+            desc: `Green S. Upgrade #11 also affects tiers.`
         },
     ],
     [
@@ -252,7 +252,7 @@ const SETBACK_UPGRADES = [
         {
             id: "b9",
             cost: D('e1600'),
-            desc: `[UNIMPLEMENTED] Unlock Hinderance Points, which are earned based on your highest PB. Hinderance scores no longer get reset on transcension resets, but you must have transcension milestone 13.`
+            desc: `Unlock Hinderance Points, which are earned based on your highest PB. Hinderance scores no longer get reset on transcension resets, but you must have transcension milestone 13.`
         },
         {
             id: "b10",
@@ -344,106 +344,24 @@ const SETBACK_UPGRADES = [
         {
             id: "c14",
             cost: D('e10000'),
-            desc: `[UNIMPLEMENTED] Unlock 3 new Gen. XP Buyables.`
-            /*
-            // NOTE TO DISABLE GXP #3 WHEN hasSetbackUpgrade('c14') AND ascend5 !!
-    {
-        get show() {
-            return hasSetbackUpgrade('c14');
-        },
-        get cost() {
-            let scale = D(0.1);
-            let cost = D(player.generatorFeatures.buyable[6]);
-            cost = cost.pow_base(scale.add(1)).sub(1).div(scale).pow_base(1.5).pow_base('ee4');
-            return cost.floor();
-        },
-        target(resource) {
-            let scale = D(0.1);
-            let target = D(resource).ceil();
-            target = target.max(1).log('ee4').log(1.5).mul(scale).add(1).log(scale.add(1));
-            return target;
-        },
-        get eff() {
-            if (player.transcendInSpecialReq === "ascend5") {
-                return D(1);
-            }
-            let eff = Decimal.max(player.timeInTranscension, 0).div(86400).add(1).ln().add(1).ln().mul(0.05);
-            eff = eff.mul(player.generatorFeatures.buyable[0]);
-            eff = eff.add(1)
-            return eff;
-        },
-        get desc() {
-            return `[UNIMPLEMENTED] Generator XP gain is increased over time since transcension by +^${format(tmp.generatorFeatures.genXPBuyables[0].eff, 3)}.`;
-        }
-    },
-    {
-        get show() {
-            return hasSetbackUpgrade('c14');
-        },
-        get cost() {
-            let scale = D(0.04);
-            let cost = D(player.generatorFeatures.buyable[7]);
-            cost = cost.pow_base(scale.add(1)).sub(1).div(scale).pow_base(1.1).pow_base('e2e4');
-            return cost.floor();
-        },
-        target(resource) {
-            let scale = D(0.04);
-            let target = D(resource).ceil();
-            target = target.max(1).log('e2e4').log(1.1).mul(scale).add(1).log(scale.add(1));
-            return target;
-        },
-        get eff() {
-            if (player.transcendInSpecialReq === "ascend5") {
-                return D(1);
-            }
-            let eff = Decimal.max(player.generatorFeatures.xp, 1).log10().div(1000).add(1).ln().mul(1000).pow10();
-            eff = eff.pow(player.generatorFeatures.buyable[0]);
-            return eff;
-        },
-        get desc() {
-            return `[UNIMPLEMENTED] Point gain is increased by Generator XP by ${format(tmp.generatorFeatures.genXPBuyables[7].eff, 3)}.`;
-        }
-    },
-    {
-        get show() {
-            return hasSetbackUpgrade('c14');
-        get cost() {
-            let scale = D(0.05);
-            let cost = D(player.generatorFeatures.buyable[8]);
-            cost = cost.pow_base(scale.add(1)).sub(1).div(scale).pow_base(1.1).pow_base('e5e4');
-            return cost.floor();
-        },
-        target(resource) {
-            let scale = D(0.05);
-            let target = D(resource).ceil();
-            target = target.max(1).log('e5e4').log(1.1).mul(scale).add(1).log(scale.add(1));
-            return target;
-        },
-        get eff() {
-            let eff = Decimal.max(player.timeInAscend, 0)
-            eff = Decimal.div(eff, 30).add(1).ln().pow_base(1.02);
-            eff = eff.pow(player.generatorFeatures.enhancerBuyables[8]);
-        },
-        get desc() {
-            return `[UNIMPLEMENTED] Time since ascension boosts tiers by ×${format(tmp.generatorFeatures.genXPBuyables[8].eff, 1)}.`;
-        }
-    },
-            */
+            desc: `Unlock 3 new Gen. XP Buyables.`
         },
         {
             id: "c15",
             cost: D('e800000'),
             get desc() {
-                return `[UNIMPLEMENTED] Gen. Advances slow down Gen. XP and Enh. Buyables #1-6, and Cyan Energy's effect only weakens in setbacks instead of being disabled. Currently: Currently: -${formatPerc(this.eff, 2)}`;
+                return `Gen. Advances slow down Gen. XP and Enh. Buyables #1-6 cost scaling, and Cyan Energy's effect only weakens in setbacks (▲0.5) instead of being disabled. Currently: Currently: -${formatPerc(this.eff, 2)}`;
             },
             get eff() {
-                return Decimal.max(player.generatorFeatures.totalAdv, 0).pow_base(1.01)
+                return Decimal.max(player.generatorFeatures.totalAdv, 0).mul(0.01).add(1);
             }
         },
     ]
 ]
 
 const SETBACK_CALC = {
+    totalAmt: 4,
+    dimAmt: 8,
     energy: [
         (x) => {
             let eff = Decimal.max(x, 10).log10().log10().floor().add(1);
@@ -463,6 +381,13 @@ const SETBACK_CALC = {
         },
         (x) => {
             let eff = Decimal.max(x, 0).add(1).pow(Decimal.max(x, 0).add(1).log10().floor().mul(0.05).add(1));
+            if (tmp.setbackTotalStacks.length === 0) {
+                if (player.setbackUpgrades.includes('c15')) {
+                    eff = eff.log10().add(1).pow(0.5).sub(1).pow10();
+                } else {
+                    eff = D(1);
+                }
+            }
             return eff; // i doubt a cyan mult would scale non-logarithmically with gen xp so this should be fine
         }
     ],
@@ -830,11 +755,17 @@ function updateGame_setbackResources() {
     }
 
     for (let i = 0; i < player.setback.length; i++) {
+        let bonusActive = Decimal.gte(player.bestSetbackPriority[0], SETBACK_PRIO.cap)
+            && Decimal.gte(player.bestSetbackPriority[1], SETBACK_PRIO.cap)
+            && Decimal.gte(player.bestSetbackPriority[2], SETBACK_PRIO.cap)
+            && Decimal.gte(player.bestSetbackPriority[3], SETBACK_PRIO.cap);
         tmp.quarkEffs[i] = Decimal.max(player.setbackQuarks[i], 0);
 
         // multiply this by 2 because we've already counted it in the totalPrioScore variable, and we actually want to add itself instead of cancelling itself out
-        tmp.setbackPriorityData[i].effPrio = Decimal.mul(player.setbackPriority[i], 3).sub(totalPrioScore).div(2);
-        let baseEffect = SETBACK_CALC.energy[i](Decimal.max(player.setbackEnergy[i], 0));
+        tmp.setbackPriorityData[i].effPrio = Decimal.mul(player.setbackPriority[i], bonusActive ? 2 : 3).sub(bonusActive ? D(0) : totalPrioScore).div(2);
+        let baseEffect = SETBACK_CALC.energy[i](tmp.prestigeRepeatChal[5].depth.gt(0)
+            ? D(0)
+            : Decimal.max(player.setbackEnergy[i], 0));
         
         tmp.energyEffs[i] = baseEffect.pow(SETBACK_PRIO.prioScoreEff(tmp.setbackPriorityData[i].effPrio)).pow(SETBACK_PRIO.prioBoost(player.setbackPriority[i]));
         tmp.setbackPriorityData[i].plus1 = baseEffect.pow(SETBACK_PRIO.prioScoreEff(tmp.setbackPriorityData[i].effPrio.add(1))).pow(SETBACK_PRIO.prioBoost(Decimal.add(player.setbackPriority[i], 1)));
@@ -962,6 +893,10 @@ function updateGame_setbackResources() {
     tmp.quarkBoostEffect = D(1);
     tmp.quarkBoostCost = D(2);
 
+    if (hasHinderanceMilestone(3, 2)) {
+        tmp.quarkBoostInterval = tmp.quarkBoostInterval.add(Decimal.max(player.hinderanceScore[3], 1e10).log10().log10().sub(HINDERANCES[3].threshold.log10().log10()).mul(10));
+    }
+
     tmp.trueQuarkTotal = D(0);
     for (let i = 0; i < player.setback.length; i++) {
         tmp.trueQuarkTotal = tmp.trueQuarkTotal.add(player.currentSetback === null ? D(0) : player.setbackLoadout[player.currentSetback][i]);
@@ -1078,6 +1013,9 @@ function updateGame_setbackResources() {
                     tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.pow(tmp.prestigeRepeatChal[4].rewardEffs.pow);
                 }
             }
+            if (player.transcendUpgrades.includes('setback3')) {
+                tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.pow(Decimal.mul(player.quarkDimsBought[i][j], 0.0001).add(1));
+            }
             if (player.anticap.active) {
                 tmp.quarkDim[i][j].mult = anticapSoftcap(tmp.quarkDim[i][j].mult, "quarkDimMult", null, false);
             }
@@ -1095,12 +1033,23 @@ function updateGame_setbackResources() {
                 }
                 gen = cheatDilateBoost(gen);
             } 
-            gen = gen.mul(delta).mul(tmp.timeSpeedTiers[0]);
 
-            if (j === 0) {
-                player.setbackEnergy[i] = Decimal.add(player.setbackEnergy[i], gen);
+            if (player.transcendUpgrades.includes('setback2')) {
+                gen = gen.pow(tmp.timeSpeedTiers[1]);
+                gen = gen.pow(delta);
+                if (j === 0) {
+                    player.setbackEnergy[i] = Decimal.max(player.setbackEnergy[i], 1).mul(gen);
+                } else {
+                    player.quarkDimsAccumulated[i][j - 1] = Decimal.max(player.quarkDimsAccumulated[i][j - 1], 1).mul(gen);
+                }
             } else {
-                player.quarkDimsAccumulated[i][j - 1] = Decimal.add(player.quarkDimsAccumulated[i][j - 1], gen);
+                gen = gen.mul(tmp.timeSpeedTiers[0]);
+                gen = gen.mul(delta);
+                if (j === 0) {
+                    player.setbackEnergy[i] = Decimal.add(player.setbackEnergy[i], gen);
+                } else {
+                    player.quarkDimsAccumulated[i][j - 1] = Decimal.add(player.quarkDimsAccumulated[i][j - 1], gen);
+                }
             }
         }
     }
