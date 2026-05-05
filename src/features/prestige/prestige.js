@@ -580,7 +580,7 @@ function updateGame_prestige() {
         tmp.prestigePointGain = tmp.prestigePointGain.div(tmp.transEffs[2][1]);
         addStatFactor('prestige', `Trans. Upg. "Tier Combine"`, `/`, tmp.transEffs[2][1], tmp.prestigePointGain);
     }
-    if (Decimal.neq(tmp.generatorFeatures.advanceEff, 0)) {
+    if (Decimal.neq(tmp.generatorFeatures.advanceEff, 1)) {
         tmp.prestigePointGain = tmp.prestigePointGain.mul(tmp.generatorFeatures.advanceEff);
         addStatFactor('prestige', `Generator Advance Effect"`, `×`, tmp.generatorFeatures.advanceEff, tmp.prestigePointGain);
     }
@@ -589,7 +589,7 @@ function updateGame_prestige() {
         addStatFactor('prestige', `Anticap Upgrade #7`, `×`, tmp.anticap.upgrades[6].eff, tmp.prestigePointGain);
     }
     if (tmp.prestigeRepeatChal[2].depth.lte(0)) {
-        if (tmp.repliTierBuyables[4].eff.neq(1)) {
+        if (tmp.repliTierBuyables[4].eff.gte(1)) {
             tmp.prestigePointGain = tmp.prestigePointGain.pow(tmp.repliTierBuyables[4].eff);
             addStatFactor('prestige', `RepliTier Buyable #5`, `^`, tmp.repliTierBuyables[4].eff, tmp.prestigePointGain);
         }
@@ -675,7 +675,9 @@ function updateGame_prestige() {
     }
 
     tmp.prestigePointNext = tmp.prestigePointNext.root(tmp.hinderancePtsEff[1]);
-    tmp.prestigePointNext = tmp.prestigePointNext.root(tmp.repliTierBuyables[4].eff);
+    if (tmp.repliTierBuyables[4].eff.gte(1)) {
+        tmp.prestigePointNext = tmp.prestigePointNext.root(tmp.repliTierBuyables[4].eff);
+    }
     if (player.anticap.upgrades.includes(6)) {
         tmp.prestigePointNext = tmp.prestigePointNext.div(tmp.anticap.upgrades[6].eff);
     }

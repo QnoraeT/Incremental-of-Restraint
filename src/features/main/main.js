@@ -1,8 +1,22 @@
 "use strict";
 
+
 const BASIC_BUYABLES = {
-    totalAmt: 6
+    totalAmt: 6,
+    enabled
 }
+
+const BASIC_BUYABLE_DATA = new BuyableList("basic", 
+    ...(() => {
+        const arr = [];
+        for (let i = 0; i < BASIC_BUYABLES.totalAmt; i++) {
+            arr.push(
+                new Buyable(0, 0, "basic", i, )
+            )
+        }
+        return arr;
+    })()
+)
 
 const MAIN_SPECIALS = {
     special1: {
