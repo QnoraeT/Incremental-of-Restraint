@@ -369,6 +369,9 @@ const SETBACK_CALC = {
                 eff = eff.pow(2);
             }
             eff = Decimal.max(x, 0).add(1).log10().add(1).pow(eff);
+            if (Decimal.gte(player.cheats.bullshit.ascendExtr, 5)) {
+                eff = eff.log10().add(1);
+            }
             return eff;
         },
         (x) => {
@@ -377,6 +380,9 @@ const SETBACK_CALC = {
         },
         (x) => {
             let eff = Decimal.max(x, 0).add(1).log10().pow(2).div(200).add(1);
+            if (Decimal.gte(player.cheats.bullshit.ascendExtr, 7)) {
+                eff = eff.log10().add(1).ln().add(1).sqrt();
+            }
             return eff;
         },
         (x) => {
@@ -387,6 +393,9 @@ const SETBACK_CALC = {
                 } else {
                     eff = D(1);
                 }
+            }
+            if (Decimal.gte(player.cheats.bullshit.ascendExtr, 8)) {
+                eff = eff.log10().add(1).ln().add(1);
             }
             return eff; // i doubt a cyan mult would scale non-logarithmically with gen xp so this should be fine
         }
@@ -974,9 +983,14 @@ function updateGame_setbackResources() {
             if (player.anticap.upgrades.includes(9)) {
                 baseMultBoost = baseMultBoost.pow(tmp.anticap.upgrades[9].eff);
             }
+            if (Decimal.gte(player.cheats.bullshit.ascendExtr, 4)) {
+                baseMultBoost = baseMultBoost.div(20);
+            }
 
             tmp.quarkDim[i][j].mult = D(1);
-            tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(Decimal.pow(baseMultBoost, player.quarkDimsBought[i][j]));
+            if (Decimal.lt(player.cheats.bullshit.ascendExtr, 4)) {
+                tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(Decimal.pow(baseMultBoost, player.quarkDimsBought[i][j]));
+            }
             if (player.currentSetback !== null) {
                 tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.mul(getLoadoutBaseMult(player.setbackLoadout[player.currentSetback][i], tmp.trueQuarkTotal));
             }
@@ -1007,14 +1021,17 @@ function updateGame_setbackResources() {
             }
             if (tmp.prestigeRepeatChal[2].depth.lte(0)) {
                 tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.pow(tmp.repliRankBuyables[2].eff);
-            }
-            if (i >= 0 && i <= 3) {
-                if (tmp.prestigeRepeatChal[2].depth.lte(0) && Decimal.gte(player.prestigeChallengeRepCompleted[4], 1)) {
-                    tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.pow(tmp.prestigeRepeatChal[4].rewardEffs.pow);
+                if (i >= 0 && i <= 3) {
+                    if (Decimal.gte(player.prestigeChallengeRepCompleted[4], 1)) {
+                        tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.pow(tmp.prestigeRepeatChal[4].rewardEffs.pow);
+                    }
                 }
-            }
-            if (player.transcendUpgrades.includes('setback3')) {
-                tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.pow(Decimal.mul(player.quarkDimsBought[i][j], 0.0001).add(1));
+                if (player.transcendUpgrades.includes('setback3')) {
+                    tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.pow(Decimal.mul(player.quarkDimsBought[i][j], 0.0001).add(1));
+                }
+                if (Decimal.gte(player.cheats.bullshit.ascendExtr, 4)) {
+                    tmp.quarkDim[i][j].mult = tmp.quarkDim[i][j].mult.pow(Decimal.mul(baseMultBoost, player.quarkDimsBought[i][j]).add(1));
+                }
             }
             if (player.anticap.active) {
                 tmp.quarkDim[i][j].mult = anticapSoftcap(tmp.quarkDim[i][j].mult, "quarkDimMult", null, false);

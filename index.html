@@ -3,7 +3,7 @@
     <head>
         <link rel="icon" type="image/x-icon" href="/the rpg project!!!.ico">
         <link href="style.css" rel="stylesheet" type="text/css">
-        <title>Abstraction</title>
+        <title>Incremental of Abstraction</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
         <script src="src/utils/break_eternity.js"></script>
@@ -31,6 +31,7 @@
         <script src="src/features/misc/stat.js"></script>
         <script src="src/features/misc/textbook.js"></script>
         <script src="src/features/misc/popups.js"></script>
+        <script src="src/features/misc/updatelog.js"></script>
 
         <script src="src/gameHandle.js"></script>
     </head>
@@ -165,7 +166,7 @@
                         <div class="flex-vertical">
                             <div class="flex-horizontal">
                                 <div id="spBuy1all" style="width: 185px; margin: 2px">
-                                    <button onclick="toggleUpgradeAutobuy(0)" id="spBuy1auto" class="whiteText font" style="height: 20px; width: 185px; font-size: 10px; margin: 2px">
+                                    <button onclick="toggleBuyableAutobuy(6)" id="spBuy1auto" class="whiteText font" style="height: 20px; width: 185px; font-size: 10px; margin: 2px">
                                         Autobuyer: <span id="spBuy1autoStatus"></span>
                                     </button>
                                     <button onclick="buySpecialBuyable(0)" id="spBuy1" class="whiteText font" style="height: 75px; width: 185px; font-size: 10px; margin: 2px">
@@ -184,6 +185,7 @@
                                 <button onclick="player.genXPAuto = !player.genXPAuto" id="genXPAuto" class="whiteText font" style="height: 40px; width: 200px; font-size: 12px; margin: 2px; cursor: pointer;"></button>
                                 <button onclick="player.genEnhGenerate = !player.genEnhGenerate" id="genEnhGenerate" class="whiteText font" style="height: 40px; width: 200px; font-size: 12px; margin: 2px; cursor: pointer;"></button>
                                 <button onclick="player.genEnhAuto = !player.genEnhAuto" id="genEnhAuto" class="whiteText font" style="height: 40px; width: 200px; font-size: 12px; margin: 2px; cursor: pointer;"></button>
+                                <button onclick="player.genAdvAuto = !player.genAdvAuto" id="genAdvAuto" class="whiteText font" style="height: 40px; width: 200px; font-size: 12px; margin: 2px; cursor: pointer;"></button>
                             </div>
                             <div class="flex-horizontal" style="flex-wrap: wrap;">
                                 <div id="genMainArea">
@@ -226,6 +228,11 @@
                     </div>
                     <div id="tierMain">
                         <div class="flex-vertical">
+                            <div class="flex-horizontal">
+                                <button onclick="player.tierXPAuto = !player.tierXPAuto" id="tierXPAuto" class="whiteText font" style="height: 40px; width: 200px; font-size: 12px; margin: 2px; cursor: pointer;"></button>
+                                <button onclick="player.tierEnhGenerate = !player.tierEnhGenerate" id="tierEnhGenerate" class="whiteText font" style="height: 40px; width: 200px; font-size: 12px; margin: 2px; cursor: pointer;"></button>
+                                <button onclick="player.tierEnhAuto = !player.tierEnhAuto" id="tierEnhAuto" class="whiteText font" style="height: 40px; width: 200px; font-size: 12px; margin: 2px; cursor: pointer;"></button>
+                            </div>
                             <div class="flex-horizontal" style="flex-wrap: wrap;">
                                 <div id="tierMainArea">
                                     <div class="flex-vertical">
@@ -253,6 +260,10 @@
                     </div>
                     <div id="replicatorMain">
                         <div class="flex-vertical whiteText font">
+                            <div class="flex-horizontal">
+                                <button onclick="player.repliRankBuyAuto = !player.repliRankBuyAuto" id="repliRankBuyAuto" class="whiteText font" style="height: 40px; width: 200px; font-size: 12px; margin: 2px; cursor: pointer;"></button>
+                                <button onclick="player.repliTierBuyAuto = !player.repliTierBuyAuto" id="repliTierBuyAuto" class="whiteText font" style="height: 40px; width: 200px; font-size: 12px; margin: 2px; cursor: pointer;"></button>
+                            </div>
                             <div class="flex-horizontal">
                                 <div style="margin: 4px" class="flex-vertical">
                                     <span class="font" style="font-size: 24px; color: #ff80a0" id="replicatorDisp"></span><span class="font" style="font-size: 12px; color: #ff80a0">replicators</span>
@@ -320,7 +331,7 @@
                                             <button onclick="repliTetrReset()" id="repliTetr" class="whiteText font" style="height: 100px; width: 200px; font-size: 10px; margin: 2px">
                                                 <span style="font-size: 12px;"><b>Replitetr <span id="repliTetrAmount"></span></b></span><br>
                                                 <br>
-                                                Reset prior progress to increase tetr point gain from <span id="repliTetrEff"></span> and increase rank point gain by ^1.1.<br>
+                                                Reset prior progress to increase tetr point gain from <span id="repliTetrEff"></span> and increase rank point gain by +^0.1.<br>
                                                 Requires: <span id="repliTetrCost"></span>
                                             </button>
                                         </div>
@@ -382,7 +393,8 @@
                                     See prestige buyable presets.
                                 </button>
                             </div>
-                            <span class="font" style="font-size: 16px; color: #0080ff">You can only have <b><span id="prestigeUpgradeCap"></span></b> prestige upgrades bought!</span>
+                            <span id="prestigeUpgCapLimit" class="font" style="font-size: 16px; color: #0080ff">You can only have <b><span id="prestigeUpgradeCap"></span></b> prestige upgrades bought!</span>
+                            <span id="prestigeUpgCapBuff" class="font" style="font-size: 16px; color: #0080ff">From Prestige Extract Level 3, your prestige buyables are +<b><span id="prestigeUpgradeCapEff"></span></b>% more effective!</span>
                             <div class="flex-horizontal" style="width: 600px; flex-wrap: wrap" id="prestigeUpgradeList"></div><br>
                         </div>
                     </div>
@@ -629,6 +641,9 @@
                                     You will gain anticap power depending on how far you get in Softcap Hell.
                                 </button>
                                 <br>
+                                <div class="flex-horizontal">
+                                    <button onclick="player.anticapBuyAuto = !player.anticapBuyAuto" id="anticapBuyAuto" class="whiteText font" style="height: 40px; width: 200px; font-size: 12px; margin: 2px; cursor: pointer;"></button>
+                                </div>
                                 <span class="whiteText font" style="font-size: 15px;" id="anticapBuyableScaling">All anticap buyables scale 1% faster per purchase.</span>
                                 <div class="flex-horizontal" id="anticapBuyableList"></div>
                                 <!-- 1102px to try to align the thing to the buyables manually (at least when you first unlock it) idk im lazy -->

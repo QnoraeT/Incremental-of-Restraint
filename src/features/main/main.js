@@ -222,6 +222,11 @@ function updateGame_main() {
     tmp.factors.tier = [];
     let totalGenLevels = D(0);
     addStatFactor('points', `Base`, ``, 1, 1);
+
+    if (player.buyableAuto[6]) {
+        player.specialBuyables[0] = Decimal.floor(MAIN_SPECIALS.special1.target).add(1).max(player.specialBuyables[0])
+    }
+
     for (let i = player.buyables.length - 1; i >= 0; i--) {
         if (buyableEnabled(i)) {
             player.buyableInTranscension[i] ||= Decimal.gt(player.buyables[i], 0);
@@ -857,7 +862,7 @@ function updateGame_main() {
             tmp.pointGen = tmp.pointGen.mul(tmp.ascendBuyables[0].eff);
             addStatFactor('points', `Ascension Buyable 1`, `×`, tmp.ascendBuyables[0].eff, tmp.pointGen);
         }
-        if (Decimal.gt(player.setbackEnergy[0], 0)) {
+        if (Decimal.lt(player.cheats.bullshit.ascendExtr, 5) && Decimal.gt(player.setbackEnergy[0], 0)) {
             tmp.pointGen = tmp.pointGen.mul(tmp.energyEffs[0]);
             addStatFactor('points', `Red Energy`, `×`, tmp.energyEffs[0], tmp.pointGen);
         }
@@ -901,7 +906,7 @@ function updateGame_main() {
             tmp.pointGen = tmp.pointGen.mul(HINDERANCES[2].eff);
             addStatFactor('points', `Hinderance 3 PB`, `×`, HINDERANCES[2].eff, tmp.pointGen);
         }
-        if (Decimal.gt(player.transcendPointTotal, 0)) {
+        if (Decimal.lt(player.cheats.bullshit.transExtr, 3) && Decimal.gt(player.transcendPointTotal, 0)) {
             tmp.pointGen = tmp.pointGen.mul(tmp.transcendEffect);
             addStatFactor('points', `Transcension Points`, `×`, tmp.transcendEffect, tmp.pointGen);
         }
@@ -966,6 +971,10 @@ function updateGame_main() {
                 tmp.pointGen = tmp.pointGen.pow(eff);
                 addStatFactor('points', `PC12 Reward`, `^`, eff, tmp.pointGen);
             }
+            if (Decimal.gte(player.cheats.bullshit.ascendExtr, 5) && Decimal.gt(player.setbackEnergy[0], 0)) {
+                tmp.pointGen = tmp.pointGen.pow(tmp.energyEffs[0]);
+                addStatFactor('points', `Red Energy`, `^`, tmp.energyEffs[0], tmp.pointGen);
+            }
             if (Decimal.gt(player.generatorFeatures.xp, 0)) {
                 tmp.pointGen = tmp.pointGen.pow(tmp.generatorFeatures.xpEffPoints);
                 addStatFactor('points', `Generator XP 2nd Eff.`, `^`, tmp.generatorFeatures.xpEffPoints, tmp.pointGen);
@@ -973,6 +982,10 @@ function updateGame_main() {
             if (Decimal.gt(player.tierFeatures.xp, 0)) {
                 tmp.pointGen = tmp.pointGen.pow(tmp.tierFeatures.xpEffPoints);
                 addStatFactor('points', `Tier XP 2nd Eff.`, `^`, tmp.tierFeatures.xpEffPoints, tmp.pointGen);
+            }
+            if (Decimal.gte(player.cheats.bullshit.transExtr, 3) && Decimal.gt(player.transcendPointTotal, 0)) {
+                tmp.pointGen = tmp.pointGen.pow(tmp.transcendEffect);
+                addStatFactor('points', `Transcension Points`, `^`, tmp.transcendEffect, tmp.pointGen);
             }
             if (player.transcendUpgrades.includes('base')) {
                 tmp.pointGen = tmp.pointGen.pow(tmp.transEffs[0][0][1]);
@@ -1011,6 +1024,10 @@ function updateGame_main() {
             if (Decimal.gt(player.tierFeatures.enhancerBuyables[2], 0)) {
                 tmp.pointGen = tmp.pointGen.add(1).log10().add(1).pow(tmp.tierFeatures.enhancerBuyables[2].eff.add(1)).sub(1).pow10().sub(1);
                 addStatFactor('points', `Tier Enh. Buyable #3`, `▲`, tmp.tierFeatures.enhancerBuyables[2].eff.add(1), tmp.pointGen);
+            }
+            if (Decimal.gt(player.cheats.bullshit.pointExtr, 0)) {
+                tmp.pointGen = tmp.pointGen.add(1).log10().add(1).pow(BULLSHIT.pointExtr(player.cheats.bullshit.pointExtr)).sub(1).pow10().sub(1);
+                addStatFactor('points', `Point Extract Effect`, `▲`, BULLSHIT.pointExtr(player.cheats.bullshit.pointExtr), tmp.pointGen);
             }
         }
 
@@ -1255,12 +1272,12 @@ function updateHTML_main() {
                 html[`spBuy1`].changeStyle('border', `3px solid ${Decimal.gte(player.points, MAIN_SPECIALS.special1.cost) ? '#00ff00' : '#ff0000'}`);
                 html[`spBuy1`].changeStyle('cursor', Decimal.gte(player.points, MAIN_SPECIALS.special1.cost) ? 'pointer' : 'not-allowed');
 
-                html[`spBuy1auto`].setDisplay(false)
-                // if (false) {
-                //     html[`spBuy1autoStatus`].setTxt(player.buyableAuto[i] ? 'On' : 'Off')
-                //     html[`spBuy1auto`].changeStyle('background-color', player.buyableAuto[i] ? '#00400080' : '#40000080')
-                //     html[`spBuy1auto`].changeStyle('border', `3px solid ${player.buyableAuto[i] ? '#00ff00' : '#ff0000'}`)
-                // }
+                html[`spBuy1auto`].setDisplay(Decimal.gte(player.cheats.bullshit.pointExtr, 2))
+                if (Decimal.gte(player.cheats.bullshit.pointExtr, 2)) {
+                    html[`spBuy1autoStatus`].setTxt(player.buyableAuto[6] ? 'On' : 'Off')
+                    html[`spBuy1auto`].changeStyle('background-color', player.buyableAuto[6] ? '#00400080' : '#40000080')
+                    html[`spBuy1auto`].changeStyle('border', `3px solid ${player.buyableAuto[6] ? '#00ff00' : '#ff0000'}`)
+                }
             } else {
                 html[`spBuy1`].setDisplay(false);
                 html[`spBuy1all`].setDisplay(false);
@@ -1443,6 +1460,9 @@ function genPointFunc(xp, inv, genID) {
             eff = inverseFact(xp);
         }
         eff = eff.root(tmp.anticap.energyEffs[1]);
+        if (Decimal.gte(player.cheats.bullshit.ascendExtr, 6)) {
+            eff = eff.mul(tmp.energyEffs[1].recip().log10().pow(8));
+        }
         if (hasSetbackUpgrade('c12')) {
             eff = eff.mul(Decimal.max(tmp.buyables[genID].tierLevels, 1).log10().mul(0.02).add(1))
         }
@@ -1512,6 +1532,9 @@ function genPointFunc(xp, inv, genID) {
         }
         if (hasSetbackUpgrade('c12')) {
             eff = eff.div(Decimal.max(tmp.buyables[genID].tierLevels, 1).log10().mul(0.02).add(1))
+        }
+        if (Decimal.gte(player.cheats.bullshit.ascendExtr, 6)) {
+            eff = eff.div(tmp.energyEffs[1].recip().log10().pow(8));
         }
         eff = eff.pow(tmp.anticap.energyEffs[1]);
 

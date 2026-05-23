@@ -147,6 +147,9 @@ const ASCENSION_UPGRADES = [
                 return D(1);
             }
             if (player.transcendUpgrades.includes('ascend6')) {
+                if (Decimal.gte(player.cheats.bullshit.ascendExtr, 2)) {
+                    return Decimal.mul(bought, 0.1).add(1);
+                }
                 return Decimal.div(bought, 6).ceil().mul(0.1).add(1);
             }
             return D(1.1);
@@ -222,12 +225,18 @@ const ASCENSION_UPGRADES = [
                     if (!player.transcendUpgrades.includes('ascend6')) {
                         cost = cost.add(1).pow(1.5).sub(1);
                     }
+                    if (Decimal.gte(player.cheats.bullshit.ascendExtr, 3)) {
+                        cost = cost.sqrt();
+                    }
                     cost = cost.exp().sub(1).mul(6).pow(2).mul(2).pow_base(i + 2).mul(100 * (2 ** i));
                     return cost;
                 },
                 target(resource) {
                     let target = D(resource);
                     target = target.div(100 * (2 ** i)).max(1).log(i + 2).div(2).root(2).div(6).add(1).ln();
+                    if (Decimal.gte(player.cheats.bullshit.ascendExtr, 3)) {
+                        target = target.pow(2);
+                    }
                     if (!player.transcendUpgrades.includes('ascend6')) {
                         target = target.add(1).root(1.5).sub(1);
                     }
@@ -421,12 +430,18 @@ const ASCENSION_UPGRADES = [
             if (!player.transcendUpgrades.includes('ascend6')) {
                 cost = cost.add(1).pow(2).sub(1)
             }
+            if (Decimal.gte(player.cheats.bullshit.ascendExtr, 3)) {
+                cost = cost.sqrt();
+            }
             cost = cost.exp().sub(1).mul(6).pow(2).mul(2).pow_base(1e8).mul(1e60);
             return cost;
         },
         target(resource) {
             let target = D(resource);
-            target = target.div(1e60).max(1).log(1e8).div(2).root(2).div(6).add(1).ln()
+            target = target.div(1e60).max(1).log(1e8).div(2).root(2).div(6).add(1).ln();
+            if (Decimal.gte(player.cheats.bullshit.ascendExtr, 3)) {
+                target = target.pow(2);
+            }
             if (!player.transcendUpgrades.includes('ascend6')) {
                 target = target.add(1).root(2).sub(1);
             }
@@ -469,12 +484,18 @@ const ASCENSION_UPGRADES = [
             if (!player.transcendUpgrades.includes('ascend6')) {
                 cost = cost.add(1).pow(2).sub(1);
             }
+            if (Decimal.gte(player.cheats.bullshit.ascendExtr, 3)) {
+                cost = cost.sqrt();
+            }
             cost = cost.exp().sub(1).mul(6).pow(2).mul(2).pow_base(1e10).mul(1e70);
             return cost;
         },
         target(resource) {
             let target = D(resource);
             target = target.div(1e70).max(1).log(1e10).div(2).root(2).div(6).add(1).ln();
+            if (Decimal.gte(player.cheats.bullshit.ascendExtr, 3)) {
+                target = target.pow(2);
+            }
             if (!player.transcendUpgrades.includes('ascend6')) {
                 target = target.add(1).root(2).sub(1);
             }
@@ -663,7 +684,11 @@ function updateGame_ascend() {
     tmp.ascendPointEffect = getAscendEff(player.ascend);
     tmp.ascendPointEffectNext = getAscendEff(Decimal.add(player.ascend, tmp.ascendPointGain));
 
-    player.ascendGems = Decimal.add(player.ascendGems, tmp.ascendPointEffect.mul(delta));
+    if (Decimal.gte(player.cheats.bullshit.ascendExtr, 10)) {
+        player.ascendGems = Decimal.mul(player.ascendGems, tmp.ascendPointEffect.max(1).pow(delta)).max(1.0001);
+    } else {
+        player.ascendGems = Decimal.add(player.ascendGems, tmp.ascendPointEffect.mul(delta));
+    }
 }
 
 function getAscendEff(ascend) {
@@ -681,6 +706,9 @@ function getAscendEff(ascend) {
         if (tmp.hinderances[4].depth.gt(0)) {
             eff = eff.pow(tmp.hinderances[4].effects.resource);
         }
+        if (Decimal.gt(player.cheats.bullshit.ascendExtr, 0)) {
+            eff = eff.add(1).log10().add(1).pow(BULLSHIT.ascendExtr(player.cheats.bullshit.ascendExtr)).sub(1).pow10().sub(1);
+        }
     }
 
     if (tmp.prestigeRepeatChal[1].depth.gt(0)) {
@@ -688,7 +716,11 @@ function getAscendEff(ascend) {
     }
 
     eff = cheatDilateBoost(eff);
-    eff = eff.mul(tmp.timeSpeedTiers[0]);
+    if (Decimal.gte(player.cheats.bullshit.ascendExtr, 10)) {
+        eff = eff.pow(tmp.timeSpeedTiers[1]);
+    } else {
+        eff = eff.mul(tmp.timeSpeedTiers[0]);
+    }
     return eff;
 }
 

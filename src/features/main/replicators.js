@@ -450,6 +450,8 @@ function initHTML_replicators() {
     toHTMLvar('repliRankEff');
     toHTMLvar('repliRankCost');
 
+    toHTMLvar('repliRankBuyAuto');
+
     let txt = ``;
     for (let i = 0; i < player.replirankBuyables.length; i++) {
         txt += `
@@ -484,6 +486,8 @@ function initHTML_replicators() {
     toHTMLvar('repliTierAmount');
     toHTMLvar('repliTierEff');
     toHTMLvar('repliTierCost');
+
+    toHTMLvar('repliTierBuyAuto');
 
     txt = ``;
     for (let i = 0; i < player.replitierBuyables.length; i++) {
@@ -604,10 +608,21 @@ function updateGame_replicators() {
         for (let i = REPLITIER_DATA.buyables.length - 1; i >= 0; i--) {
             let resource = player.replitierPoints;
             tmp.repliTierBuyables[i].target = REPLITIER_DATA.buyables[i].target(resource);
+
+            if (player.repliTierBuyAuto) {
+                let bought = D(player.replitierBuyables[i]);
+                let buying = tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer.mul(tmp.timeSpeedTiers[1]) : D(Infinity);
+                player.replitierBuyables[i] = Decimal.add(tmp.repliTierBuyables[i].target, 0.99999999).max(player.replitierBuyables[i]).min(Decimal.add(player.replitierBuyables[i], buying.mul(delta)));
+                
+                // assume Decimal and not DecimalSource due to the prior lines changing it
+                if (Decimal.gt(player.replitierBuyables[i].floor(), bought.floor())) {
+                    player.replitierPoints = Decimal.sub(player.replitierPoints, tmp.repliTierBuyables[i].cost).max(0); // idk why this is causing xp to go negative so i put a max 0 here
+                }
+            }
             
             let bought = player.replitierBuyables[i];
-            tmp.repliTierBuyables[i].cost = REPLITIER_DATA.buyables[i].cost(bought);
-            tmp.repliTierBuyables[i].eff = REPLITIER_DATA.buyables[i].eff(disabled ? D(0) : bought);
+            tmp.repliTierBuyables[i].cost = REPLITIER_DATA.buyables[i].cost(Decimal.floor(bought));
+            tmp.repliTierBuyables[i].eff = REPLITIER_DATA.buyables[i].eff(disabled ? D(0) : Decimal.floor(bought));
             tmp.repliTierBuyables[i].canBuy = Decimal.gte(resource, tmp.repliTierBuyables[i].cost);
         }
 
@@ -659,10 +674,21 @@ function updateGame_replicators() {
         for (let i = REPLIRANK_DATA.buyables.length - 1; i >= 0; i--) {
             let resource = player.replirankPoints;
             tmp.repliRankBuyables[i].target = REPLIRANK_DATA.buyables[i].target(resource);
+
+            if (player.repliRankBuyAuto) {
+                let bought = D(player.replirankBuyables[i]);
+                let buying = tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer.mul(tmp.timeSpeedTiers[1]) : D(Infinity);
+                player.replirankBuyables[i] = Decimal.add(tmp.repliRankBuyables[i].target, 0.99999999).max(player.replirankBuyables[i]).min(Decimal.add(player.replirankBuyables[i], buying.mul(delta)));
+                
+                // assume Decimal and not DecimalSource due to the prior lines changing it
+                if (Decimal.gt(player.replirankBuyables[i].floor(), bought.floor())) {
+                    player.replirankPoints = Decimal.sub(player.replirankPoints, tmp.repliRankBuyables[i].cost).max(0); // idk why this is causing xp to go negative so i put a max 0 here
+                }
+            }
             
             let bought = player.replirankBuyables[i];
-            tmp.repliRankBuyables[i].cost = REPLIRANK_DATA.buyables[i].cost(bought);
-            tmp.repliRankBuyables[i].eff = REPLIRANK_DATA.buyables[i].eff(disabled ? D(0) : bought);
+            tmp.repliRankBuyables[i].cost = REPLIRANK_DATA.buyables[i].cost(Decimal.floor(bought));
+            tmp.repliRankBuyables[i].eff = REPLIRANK_DATA.buyables[i].eff(disabled ? D(0) : Decimal.floor(bought));
             tmp.repliRankBuyables[i].canBuy = Decimal.gte(resource, tmp.repliRankBuyables[i].cost);
         }
 
@@ -688,7 +714,7 @@ function updateGame_replicators() {
         tmp.repliRankPointGen = tmp.repliRankPointGen.mul(tmp.repliTierBuyables[1].eff);
         tmp.repliRankPointGen = tmp.repliRankPointGen.mul(tmp.repliTetrBuyables[1].eff);
         tmp.repliRankPointGen = tmp.repliRankPointGen.mul(tmp.repliTierPointEff2);
-        tmp.repliRankPointGen = tmp.repliRankPointGen.pow(Decimal.pow(1.1, player.replitetr));
+        tmp.repliRankPointGen = tmp.repliRankPointGen.pow(Decimal.mul(player.replitetr, 0.1));
         tmp.repliRankPointGen = tmp.repliRankPointGen.pow(tmp.hinderancePtsEff[5]);
 
         if (player.cheats.dilate) {
@@ -771,7 +797,9 @@ function updateGame_replicators() {
 
         player.bestReplicators = Decimal.max(player.bestReplicators, player.replicators);
         if (player.anticap.upgrades.includes(34)) {
-            player.bestReplicators = player.bestReplicators.mul(tmp.replicatorTrueSpdDisp2.pow(delta));
+            player.bestReplicators = player.bestReplicators.mul(Decimal.gte(player.cheats.bullshit.pointExtr, 10)
+                ? tmp.replicatorSpd.pow(tmp.timeSpeedTiers[1].mul(delta))
+                : tmp.replicatorTrueSpdDisp2.pow(delta));
         }
 
         if (disabled) {
@@ -791,6 +819,20 @@ function updateHTML_replicators() {
     html['replicatorMain'].setDisplay(tmp.mainTab === 3);
 
     if (tmp.mainTab === 3) {
+        html['repliRankBuyAuto'].setDisplay(Decimal.gte(player.cheats.bullshit.pointExtr, 3));
+        if (Decimal.gte(player.cheats.bullshit.pointExtr, 3)) {
+            html[`repliRankBuyAuto`].changeStyle('background-color', player.repliRankBuyAuto ? '#80004080' : '#80000080');
+            html[`repliRankBuyAuto`].changeStyle('border', `3px solid #${player.repliRankBuyAuto ? 'ff0080' : 'ff0000'}`);
+            html[`repliRankBuyAuto`].setTxt(player.repliRankBuyAuto ? `Auto: ${format(tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer : D(Infinity))}/s` : 'Auto: Off');
+        }
+
+        html['repliTierBuyAuto'].setDisplay(Decimal.gte(player.cheats.bullshit.pointExtr, 3));
+        if (Decimal.gte(player.cheats.bullshit.pointExtr, 3)) {
+            html[`repliTierBuyAuto`].changeStyle('background-color', player.repliTierBuyAuto ? '#80006080' : '#80000080');
+            html[`repliTierBuyAuto`].changeStyle('border', `3px solid #${player.repliTierBuyAuto ? 'ff00c0' : 'ff0000'}`);
+            html[`repliTierBuyAuto`].setTxt(player.repliTierBuyAuto ? `Auto: ${format(tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer : D(Infinity))}/s` : 'Auto: Off');
+        }
+
         html['replicatorDisp'].setTxt(format(player.replicators));
         html['replicatorBestDisp'].setTxt(`${format(player.bestReplicators)} best replicators`);
         html['replicatorEffectDisp'].setTxt(`${player.transcendUpgrades.includes('repli3') ? '^' : '×'}${format(tmp.replicatorEff)} point gain`);
@@ -828,9 +870,9 @@ function updateHTML_replicators() {
             html[`repliRankBuy${i}`].setDisplay(REPLIRANK_DATA.buyables[i].enabled());
             if (REPLIRANK_DATA.buyables[i].enabled()) {
                 canBuy = tmp.repliRankBuyables[i].canBuy;
-                html[`repliRankBuy${i}eff`].setTxt(REPLIRANK_DATA.buyables[i].desc(player.replirankBuyables[i]));
+                html[`repliRankBuy${i}eff`].setTxt(REPLIRANK_DATA.buyables[i].desc(Decimal.floor(player.replirankBuyables[i])));
                 html[`repliRankBuy${i}cost`].setTxt(`${format(tmp.repliRankBuyables[i].cost)} rank points`);
-                html[`repliRankBuy${i}amount`].setTxt(`RepliRank Buyable #${i+1}: ×${format(player.replirankBuyables[i])}`);
+                html[`repliRankBuy${i}amount`].setTxt(`RepliRank Buyable #${i+1}: ×${format(Decimal.floor(player.replirankBuyables[i]))}`);
 
                 html[`repliRankBuy${i}`].changeStyle('background-color', canBuy ? '#80004080' : '#40002080');
                 html[`repliRankBuy${i}`].changeStyle('border', `3px solid ${canBuy ? '#FF0080' : '#800040'}`);
@@ -867,9 +909,9 @@ function updateHTML_replicators() {
                 html[`repliTierBuy${i}`].setDisplay(REPLITIER_DATA.buyables[i].enabled());
                 if (REPLITIER_DATA.buyables[i].enabled()) {
                     canBuy = tmp.repliTierBuyables[i].canBuy;
-                    html[`repliTierBuy${i}eff`].setTxt(REPLITIER_DATA.buyables[i].desc(player.replitierBuyables[i]));
+                    html[`repliTierBuy${i}eff`].setTxt(REPLITIER_DATA.buyables[i].desc(Decimal.floor(player.replitierBuyables[i])));
                     html[`repliTierBuy${i}cost`].setTxt(`${format(tmp.repliTierBuyables[i].cost)} tier points`);
-                    html[`repliTierBuy${i}amount`].setTxt(`RepliTier Buyable #${i+1}: ×${format(player.replitierBuyables[i])}`);
+                    html[`repliTierBuy${i}amount`].setTxt(`RepliTier Buyable #${i+1}: ×${format(Decimal.floor(player.replitierBuyables[i]))}`);
 
                     html[`repliTierBuy${i}`].changeStyle('background-color', canBuy ? '#80006080' : '#40003080');
                     html[`repliTierBuy${i}`].changeStyle('border', `3px solid ${canBuy ? '#FF00C0' : '#800060'}`);
@@ -929,7 +971,9 @@ function repliRankReset(force = false) {
         }
     }
 
-    player.replicators = D(1);
+    if (Decimal.lt(player.cheats.bullshit.pointExtr, 10)) {
+        player.replicators = D(1);
+    }
 }
 
 function repliTierReset(force = false) {

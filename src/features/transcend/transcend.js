@@ -1276,6 +1276,12 @@ function updateGame_transcend() {
 
     for (let i = 0; i < TRANSCENSION_UPGRADES.length; i++) {
         for (let j = 0; j < TRANSCENSION_UPGRADES[i].length; j++) {
+            if (Decimal.gte(player.cheats.bullshit.transExtr, 2)) {
+                if (i < 19 && !player.transcendUpgrades.includes(TRANSCENSION_UPGRADES[i][j].id) && Decimal.gte(player.transcendPointTotal, TRANSCENSION_UPGRADES[i][j].cost)) {
+                    player.transcendUpgrades.push(TRANSCENSION_UPGRADES[i][j].id);
+                }
+            }
+
             tmp.transEffs[i][j] = TRANSCENSION_UPGRADES[i][j].eff;
         }
     }
@@ -1334,6 +1340,12 @@ function transcendPtsEff(points) {
     if (player.anticap.upgrades.includes(12)) {
         eff = eff.log10().mul(4).add(1).pow(1.25).sub(1).pow10()
     }
+    if (Decimal.gt(player.cheats.bullshit.transExtr, 0)) {
+        eff = eff.add(1).log10().add(1).pow(BULLSHIT.transExtr(player.cheats.bullshit.transExtr)).sub(1).pow10().sub(1);
+    }
+    if (Decimal.gte(player.cheats.bullshit.transExtr, 3)) {
+        eff = passiveLogSlowdown(eff.max(1).log10().add(1).log10(), decay.log(50).log10().add(1).ln().add(1), false).pow10();
+    }
     return eff;
 }
 
@@ -1344,8 +1356,8 @@ function updateHTML_transcend() {
     if (tmp.tab === 0 && tmp.mainTab === 0) {
         html['transcendAmount'].setTxt(`${format(tmp.transcendAmount)}`);
 
-        let show = Decimal.lt(tmp.transcendAmount, 100)
-        html['transcendNext'].setDisplay(show)
+        let show = Decimal.lt(tmp.transcendAmount, 100);
+        html['transcendNext'].setDisplay(show);
         if (show) {
             html['transcendNext'].setTxt(`Next transcension point at ${format(tmp.transcendNext)} points.`);
         }
@@ -1355,7 +1367,7 @@ function updateHTML_transcend() {
 
     if (tmp.tab === 4) {
         html['transcendPoints'].setTxt(`${format(player.transcendPoints)}`);
-        html['transcendPointEffect'].setTxt(`Multiplying point gain by ${format(tmp.transcendEffect, 2)}`);
+        html['transcendPointEffect'].setTxt(`${Decimal.gte(player.cheats.bullshit.transExtr, 3) ? 'Raising' : 'Multiplying'} point gain by ${format(tmp.transcendEffect, 2)}`);
         html['transcendPointEffectNext'].setTxt(`×${format(tmp.transcendEffectNext.div(tmp.transcendEffect), 2)} upon next reset`);
         html['transcendResets'].setTxt(`${format(player.transcendResetCount)}`);
         html['transcendResetEffect'].setTxt(`Multiplying point gain by ${format(tmp.transcendResetEffect, 2)}`);

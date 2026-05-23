@@ -330,26 +330,31 @@ function updateGame_genEnhancers() {
         addStatFactor('genEnh', `Generator Enh. Buyable #4`, `×`, tmp.generatorFeatures.genEnhBuyables[3].eff, tmp.generatorFeatures.enhancerGain);
     }
 
-    if (Decimal.gte(player.prestigeChallengeRepCompleted[3], 1)) {
+    if (Decimal.lt(player.cheats.bullshit.prestExtr, 6) && Decimal.gte(player.prestigeChallengeRepCompleted[3], 1)) {
         tmp.generatorFeatures.enhancerGain = tmp.generatorFeatures.enhancerGain.mul(tmp.prestigeRepeatChal[3].rewardEffs.mult);
         addStatFactor('genEnh', `PRC4 Reward`, `×`, tmp.prestigeRepeatChal[3].rewardEffs.mult, tmp.generatorFeatures.enhancerGain);
     }
-
+    
     // exp boosts
     if (tmp.prestigeRepeatChal[2].depth.lte(0)) {
         if (player.transcendUpgrades.includes('enhancer1')) {
             tmp.generatorFeatures.enhancerGain = tmp.generatorFeatures.enhancerGain.pow(tmp.transEffs[9][1]);
             addStatFactor('genEnh', `Trans. Upg. "Enhancer Efficiency"`, `^`, tmp.transEffs[9][1], tmp.generatorFeatures.enhancerGain);
         }
-
+        
         if (player.anticap.upgrades.includes(20)) {
             tmp.generatorFeatures.enhancerGain = tmp.generatorFeatures.enhancerGain.pow(tmp.anticap.upgrades[20].eff);
             addStatFactor('genEnh', `Anticap Upgrade #21`, `^`, tmp.anticap.upgrades[20].eff, tmp.generatorFeatures.enhancerGain);
         }
-
+        
         if (hasHinderanceMilestone(2, 4) && Decimal.gte(player.hinderanceScore[2], HINDERANCES[2].start)) {
             tmp.generatorFeatures.enhancerGain = tmp.generatorFeatures.enhancerGain.pow(HINDERANCES[2].eff);
             addStatFactor('genEnh', `Hinderance 3 PB via Milestone 5`, `^`, HINDERANCES[2].eff, tmp.generatorFeatures.enhancerGain);
+        }
+
+        if (Decimal.gte(player.cheats.bullshit.prestExtr, 6) && Decimal.gte(player.prestigeChallengeRepCompleted[3], 1)) {
+            tmp.generatorFeatures.enhancerGain = tmp.generatorFeatures.enhancerGain.pow(tmp.prestigeRepeatChal[3].rewardEffs.mult);
+            addStatFactor('genEnh', `PRC4 Reward`, `^`, tmp.prestigeRepeatChal[3].rewardEffs.mult, tmp.generatorFeatures.enhancerGain);
         }
     }
 
@@ -418,7 +423,7 @@ function updateGame_genEnhancers() {
     tmp.generatorFeatures.enhancerEff = passiveLogSlowdown(Decimal.max(player.generatorFeatures.totalEnh, 0).add(1), decay, false).pow(5);
     if (player.anticap.upgrades.includes(23)) {
         tmp.generatorFeatures.enhancerEff = tmp.generatorFeatures.enhancerEff.log10().add(1).log10().mul(0.02).add(1).pow(2);
-        // lmao it's a triple log
+        // lmao it's a triple log total
     }
     if (player.transcendUpgrades.includes('exp5')) {
         tmp.generatorFeatures.enhancerEff = tmp.generatorFeatures.enhancerEff.pow(8);

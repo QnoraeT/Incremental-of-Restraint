@@ -23,6 +23,9 @@ const PRESTIGE_CHALLENGES_REPEAT = [
         rewardEff(comp) {
             const obj = { exponent: D(4) };
             obj.exponent = obj.exponent.pow(comp);
+            if (Decimal.gte(player.cheats.bullshit.prestExtr, 6)) {
+                obj.exponent = obj.exponent.log10().add(1).pow(2).sub(1).pow10();
+            }
 
             return obj;
         },
@@ -72,11 +75,16 @@ const PRESTIGE_CHALLENGES_REPEAT = [
         },
         goal(comp) {
             // tl;dr: req starts at 1e14, multiplied by 200 per comp, but then that multiplier also gets multiplied by 3 per comp
-            let goal = linearAdd(comp, Math.log10(200), Math.log10(3), false).pow10().mul(1e14);
+            // also FUUUUUUCK this will blow up with auto PRC completions because of A.B. #2's effect if i don't put this passive scaling
+            let goal = comp;
+            goal = Decimal.mul(goal, Decimal.div(goal, 100).pow_base(2));
+            goal = linearAdd(goal, Math.log10(200), Math.log10(3), false).pow10().mul(1e14);
             return goal;
         },
         target(essence) {
+            // target inverse of x*2^(x/100)
             let target = linearAdd(Decimal.div(essence, 1e14).max(1).log10(), Math.log10(200), Math.log10(3), true);
+            target = target.mul(Math.LN2).div(100).lambertw().mul(100).div(Math.LN2);
             return target;
         },
         name: "Arduous Traditions",
@@ -84,7 +92,7 @@ const PRESTIGE_CHALLENGES_REPEAT = [
         eff(comp, next) {
             return `Blue setback dimensions scale -10% slower, and A.B. #2's increasing cost scaling is 2× slower. Currently: -${formatPerc(this.rewardEff(comp).costSpeed, 2)}, ${format(this.rewardEff(comp).ascendCost)}× → -${formatPerc(this.rewardEff(Decimal.add(comp, next)).costSpeed, 2)}, ${format(this.rewardEff(Decimal.add(comp, next)).ascendCost)}×`;
         },
-        // it's actually closer to 11.1% but formatPerc makes this "9.09%" because its multiplicative and i do not want to have to put a cap on something like this because i'll have nothing to resolve it with
+        // it's actually closer to 11.1% but formatPerc makes 10.0% turn into "9.09%" because its multiplicative and i do not want to have to put a cap on something like this because i'll have nothing to resolve it with
         rewardEff(comp) {
             const obj = { costSpeed: D(10/9), ascendCost: D(2) };
             obj.costSpeed = obj.costSpeed.pow(comp);
@@ -115,12 +123,17 @@ const PRESTIGE_CHALLENGES_REPEAT = [
         name: "Generator Competence",
         desc: "Generators and tier levels' requirements scale ^2 as fast. Each prestige point requires at least 1 total generator level, alongside the point requirement.",
         eff(comp, next) {
-            return `Prestige Points give a large boost to Generator Enhancers. Currently: ×${format(this.rewardEff(comp).mult)} → ×${format(this.rewardEff(Decimal.add(comp, next)).mult)}`;
+            return `Prestige Points give a large boost to Generator Enhancers. Currently: ${Decimal.gte(player.cheats.bullshit.prestExtr, 6) ? '^' : '×'}${format(this.rewardEff(comp).mult)} → ${Decimal.gte(player.cheats.bullshit.prestExtr, 6) ? '^' : '×'}${format(this.rewardEff(Decimal.add(comp, next)).mult)}`;
         },
         rewardEff(comp) {
             const obj = { mult: D(1) };
-            obj.mult = Decimal.max(player.prestige, 1).pow(5);
-            obj.mult = obj.mult.pow(comp);
+
+            if (Decimal.gte(player.cheats.bullshit.prestExtr, 6)) {
+                obj.mult = Decimal.max(player.prestige, 10).log10().ln().mul(Decimal.ln(comp)).exp();
+            } else {
+                obj.mult = Decimal.max(player.prestige, 1).pow(5);
+                obj.mult = obj.mult.pow(comp);
+            }
 
             return obj;
         },

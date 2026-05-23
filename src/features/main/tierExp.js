@@ -89,6 +89,7 @@ function initHTML_tierXP() {
     toHTMLvar('tierXPGain');
     toHTMLvar('tierXPSpdEff');
     toHTMLvar('tierXPPtsEff');
+    toHTMLvar('tierXPAuto');
     toHTMLvar('tierXPUpgList');
 
     let txt = ``;
@@ -122,17 +123,17 @@ function updateGame_tierXP() {
             resource = player.tierFeatures.xp;
             tmp.tierFeatures.xpBuy[i].target = TIER_XP_BUYABLES[i].target(resource);
 
-            // if (false && tmp.tierFeatures.xpBuy[i].show) {
-            //     let bought = D(player.tierFeatures.buyable[i]);
-            //     // do not use timespeed changes here because the only time this "buying" var is used is in PRC3, which already disabled T1 time speed from doing anything
-            //     let buying = tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer : D(Infinity);
-            //     player.tierFeatures.buyable[i] = Decimal.add(tmp.tierFeatures.xpBuy[i].target, 0.99999999).max(player.tierFeatures.buyable[i]).min(Decimal.add(player.tierFeatures.buyable[i], buying.mul(delta)));
+            if (player.tierXPAuto && tmp.tierFeatures.xpBuy[i].show) {
+                let bought = D(player.tierFeatures.buyable[i]);
+
+                let buying = tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer.mul(tmp.timeSpeedTiers[1]) : D(Infinity);
+                player.tierFeatures.buyable[i] = Decimal.add(tmp.tierFeatures.xpBuy[i].target, 0.99999999).max(player.tierFeatures.buyable[i]).min(Decimal.add(player.tierFeatures.buyable[i], buying.mul(delta)));
                 
-            //     // assume Decimal and not DecimalSource due to the prior lines changing it
-            //     if (Decimal.gt(player.tierFeatures.buyable[i].floor(), bought.floor())) {
-            //         player.tierFeatures.xp = Decimal.sub(player.tierFeatures.xp, tmp.tierFeatures.xpBuy[i].cost).max(0); // idk why this is causing xp to go negative so i put a max 0 here
-            //     }
-            // }
+                // assume Decimal and not DecimalSource due to the prior lines changing it
+                if (Decimal.gt(player.tierFeatures.buyable[i].floor(), bought.floor())) {
+                    player.tierFeatures.xp = Decimal.sub(player.tierFeatures.xp, tmp.tierFeatures.xpBuy[i].cost).max(0); // idk why this is causing xp to go negative so i put a max 0 here
+                }
+            }
 
             tmp.tierFeatures.xpBuy[i].eff = TIER_XP_BUYABLES[i].eff(tmp.tierFeatures.xpBuy[i].show && tmp.prestigeRepeatChal[5].depth.lte(0)
                 ? Decimal.floor(player.tierFeatures.buyable[i])
@@ -195,6 +196,13 @@ function updateHTML_tierXP() {
     html['tierMain'].setDisplay(tmp.mainTab === 4)
 
     if (tmp.mainTab === 4) {
+        html['tierXPAuto'].setDisplay(Decimal.gte(player.cheats.bullshit.pointExtr, 6));
+        if (Decimal.gte(player.cheats.bullshit.pointExtr, 6)) {
+            html[`tierXPAuto`].changeStyle('background-color', player.tierXPAuto ? '#80400080' : '#80000080');
+            html[`tierXPAuto`].changeStyle('border', `3px solid #${player.tierXPAuto ? 'ff8000' : 'ff0000'}`);
+            html[`tierXPAuto`].setTxt(player.tierXPAuto ? `Auto: ${format(tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer.mul(tmp.timeSpeedTiers[1]) : D(Infinity))}/s` : 'Auto: Off');
+        }
+
         html['tierXP'].setTxt(format(player.tierFeatures.xp, 2));
         html['tierXPGain'].setTxt(format(tmp.tierFeatures.gain, 2));
         html['tierXPSpdEff'].setTxt(format(tmp.tierFeatures.xpEffTiers, 3));

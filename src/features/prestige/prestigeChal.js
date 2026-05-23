@@ -378,6 +378,12 @@ function updateGame_prestigeChallenges() {
         }
 
         tmp.prestigeChal[i].effects = PRESTIGE_CHALLENGES[i].chalEffects(tmp.prestigeChal[i].depth);
+
+        if (Decimal.gte(player.cheats.bullshit.prestExtr, 2)) {
+            if (!player.prestigeChallengeCompleted.includes(i) && Decimal.gte(player.points, PRESTIGE_CHALLENGES[i].goal)) {
+                player.prestigeChallengeCompleted.push(i);
+            }
+        }
     }
 }
 

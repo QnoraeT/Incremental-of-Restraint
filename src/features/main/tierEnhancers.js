@@ -160,6 +160,8 @@ function initHTML_tierEnhancers() {
     toHTMLvar('tierEnhAmount');
     toHTMLvar('tierEnhNext');
     toHTMLvar('tierEnhXPEff');
+    toHTMLvar('tierEnhGenerate');
+    toHTMLvar('tierEnhAuto');
     toHTMLvar('tierEnhUpgList');
 
     let txt = ``;
@@ -192,10 +194,10 @@ function updateGame_tierEnhancers() {
         resource = player.tierFeatures.enhancer;
         tmp.tierFeatures.enhancerBuyables[i].target = TIER_ENH_BUYABLES[i].target(resource);
 
-        if (false && TIER_ENH_BUYABLES[i].show) {
+        if (player.tierEnhAuto && tmp.tierFeatures.enhancerBuyables[i].show) {
             let bought = D(player.tierFeatures.enhancerBuyables[i]);
-            // do not use timespeed changes here because the only time this "buying" var is used is in PRC3, which already disabled T1 time speed from doing anything
-            let buying = tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer : D(Infinity);
+
+            let buying = tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer.mul(tmp.timeSpeedTiers[1]) : D(Infinity);
             player.tierFeatures.enhancerBuyables[i] = Decimal.add(tmp.tierFeatures.enhancerBuyables[i].target, 0.99999999).max(player.tierFeatures.enhancerBuyables[i]).min(Decimal.add(player.tierFeatures.enhancerBuyables[i], buying.mul(delta)));
 
             // assume Decimal and not DecimalSource due to the prior lines changing it
@@ -222,6 +224,11 @@ function updateGame_tierEnhancers() {
     
     tmp.tierFeatures.enhancerGain = cheatDilateBoost(tmp.tierFeatures.enhancerGain).floor();
 
+    if (player.tierEnhGenerate && Decimal.gte(player.cheats.bullshit.pointExtr, 7)) {
+        player.tierFeatures.enhancer = Decimal.add(player.tierFeatures.enhancer, tmp.tierFeatures.enhancerGain.mul(0.01).mul(delta).mul(tmp.timeSpeedTiers[1]));
+        player.tierFeatures.totalEnh = Decimal.add(player.tierFeatures.totalEnh, tmp.tierFeatures.enhancerGain.mul(0.01).mul(delta).mul(tmp.timeSpeedTiers[1]));
+    }
+
     if (colorAmountTotal(3).gt(0) || (player.transcendInSpecialReq === "prest4" && Decimal.gte(player.tierFeatures.enhanceCount, 1))) {
         tmp.tierFeatures.enhancerNext = D(Infinity);
     } else {
@@ -241,6 +248,19 @@ function updateGame_tierEnhancers() {
 function updateHTML_tierEnhancers() {
     let canBuy;
     if (tmp.mainTab === 4) {
+        html['tierEnhGenerate'].setDisplay(Decimal.gte(player.cheats.bullshit.pointExtr, 7));
+        if (Decimal.gte(player.cheats.bullshit.pointExtr, 7)) {
+            html[`tierEnhGenerate`].changeStyle('background-color', player.tierEnhGenerate ? '#80800080' : '#80000080');
+            html[`tierEnhGenerate`].changeStyle('border', `3px solid #${player.tierEnhGenerate ? 'ffff00' : 'ff0000'}`);
+            html[`tierEnhGenerate`].setTxt(player.tierEnhGenerate ? 'Generate: 1%/s' : 'Generate: Off');
+        }
+        html['tierEnhAuto'].setDisplay(Decimal.gte(player.cheats.bullshit.pointExtr, 8));
+        if (Decimal.gte(player.cheats.bullshit.pointExtr, 8)) {
+            html[`tierEnhAuto`].changeStyle('background-color', player.tierEnhAuto ? '#80800080' : '#80000080');
+            html[`tierEnhAuto`].changeStyle('border', `3px solid #${player.tierEnhAuto ? 'ffff00' : 'ff0000'}`);
+            html[`tierEnhAuto`].setTxt(player.tierEnhAuto ? `Auto: ${format(tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer.mul(tmp.timeSpeedTiers[1]) : D(Infinity))}/s` : 'Auto: Off');
+        }
+
         html['tierEnhAmount'].setTxt(format(tmp.tierFeatures.enhancerGain));
         let show = Decimal.lt(tmp.tierFeatures.enhancerGain, 100)
         html['tierEnhNext'].setDisplay(show);

@@ -27,16 +27,25 @@ const PRESTIGE_FLUID = {
         if (Decimal.lt(bought, 0)) {
             return D(0);
         }
-        if (hasHinderanceMilestone(4, 2)) {
-            return Decimal.pow(2, bought).sub(1).pow10();
+        let effBought = bought;
+        if (Decimal.gte(player.cheats.bullshit.prestExtr, 7)) {
+            effBought = Decimal.div(effBought, 2);
         }
-        return this.costArr[i].mul(Decimal.pow(2, bought).sub(1).pow10());
+        if (hasHinderanceMilestone(4, 2)) {
+            return Decimal.pow(2, effBought).sub(1).pow10();
+        }
+        return this.costArr[i].mul(Decimal.pow(2, effBought).sub(1).pow10());
     },
     buyTarget(i, resource) {
         if (Decimal.lt(resource, this.costArr[i])) {
             return D(0);
         }
-        return Decimal.div(resource, this.costArr[i]).log10().add(1).log2();
+        let target = resource;
+        target = Decimal.div(resource, hasHinderanceMilestone(4, 2) ? D(1) : this.costArr[i]).log10().add(1).log2();
+        if (Decimal.gte(player.cheats.bullshit.prestExtr, 7)) {
+            target = target.mul(2);
+        }
+        return target;
     }
 }
 
@@ -82,14 +91,20 @@ function updateGame_prestigeFluid() {
     }
 
     tmp.pfUsed = D(0);
-    for (let i = 0; i < player.prestigeUpgrades.length; i++) {
-        tmp.pfUsed = tmp.pfUsed.add(tmp.pfUpgData[i].priorCost);
+    if (Decimal.lt(player.cheats.bullshit.prestExtr, 7)) {
+        for (let i = 0; i < player.prestigeUpgrades.length; i++) {
+            tmp.pfUsed = tmp.pfUsed.add(tmp.pfUpgData[i].priorCost);
+        }
     }
 
     for (let i = 0; i < player.prestigeUpgrades.length; i++) {
         let resource = Decimal.sub(player.prestigeFluid, tmp.pfUsed);
-        tmp.pfUpgData[i].canBuy = Decimal.gte(resource, tmp.pfUpgData[i].cost);
+        tmp.pfUpgData[i].canBuy = Decimal.gte(resource, tmp.pfUpgData[i].cost) && Decimal.lt(player.cheats.bullshit.prestExtr, 7);
         tmp.pfUpgData[i].target = PRESTIGE_FLUID.buyTarget(i, resource);
+
+        if (Decimal.gte(player.cheats.bullshit.prestExtr, 7)) {
+            player.prestigeFluidUpgs[i] = Decimal.max(player.prestigeFluidUpgs[i], tmp.pfUpgData[i].target);
+        }
     }
 
     tmp.pfGain = PRESTIGE_FLUID.gain(player.prestigeEssence).sub(player.prestigeFluid).floor().max(0);
@@ -118,7 +133,7 @@ function updateHTML_prestigeFluid() {
         html['prestigeFluidDisp'].setDisplay(hasSetbackUpgrade(`b6`));
         if (hasSetbackUpgrade(`b6`)) {
             html['prestigeFluid'].setTxt(format(Decimal.sub(player.prestigeFluid, tmp.pfUsed)));
-            html['prestigeFluidEffect'].setTxt(`Boosting prestige essence effect by ^${format(tmp.pfEffect, 2)}`);
+            html['prestigeFluidEffect'].setTxt(`Boosting prestige essence effect ${Decimal.gte(player.cheats.bullshit.prestExtr, 5) ? 'and prestige generator gain' : ''} by ^${format(tmp.pfEffect, 2)}`);
 
             html['prestigeFluidEffectNext'].setTxt(`×${format(tmp.pfEffectNext.div(tmp.pfEffect), 2)} upon next reset`);
         }

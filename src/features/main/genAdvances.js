@@ -14,6 +14,8 @@ const GEN_ADV_UPGRADES = [
 ]
 
 function initHTML_genAdvances() {
+    toHTMLvar('genAdvAuto');
+
     toHTMLvar('genAdvArea');
     toHTMLvar('genAdvance');
     toHTMLvar('generatorAdvance');
@@ -48,6 +50,11 @@ function updateGame_genAdvances() {
     tmp.generatorFeatures.advanceGain = cheatDilateBoost(tmp.generatorFeatures.advanceGain).floor();
     tmp.generatorFeatures.advanceGain = tmp.generatorFeatures.advanceGain.sub(player.generatorFeatures.totalAdv).max(0);
 
+    if (player.genAdvAuto) {
+        player.generatorFeatures.advance = Decimal.add(player.generatorFeatures.advance, tmp.generatorFeatures.advanceGain);
+        player.generatorFeatures.totalAdv = Decimal.add(player.generatorFeatures.totalAdv, tmp.generatorFeatures.advanceGain);
+    }
+
     if (Decimal.lte(player.generatorFeatures.enhancerBuyables[5], 0)) {
         tmp.generatorFeatures.advanceNext = D(Infinity);
     } else {
@@ -56,21 +63,34 @@ function updateGame_genAdvances() {
         tmp.generatorFeatures.advanceNext = tmp.generatorFeatures.advanceNext.factorial().pow_base(Number.MAX_VALUE);
     }
 
-    tmp.generatorFeatures.advanceEff = player.transcendUpgrades.includes('exp3')
-        ? Decimal.max(player.generatorFeatures.totalAdv, 0).mul(Decimal.max(player.generatorFeatures.enhancerBuyables[5], 1)).add(1)
-        : D(1);
+    tmp.generatorFeatures.advanceEff = Decimal.gte(player.cheats.bullshit.pointExtr, 5)
+        ? (player.transcendUpgrades.includes('exp3')
+            ? Decimal.max(player.generatorFeatures.totalAdv, 0).mul(Decimal.max(player.generatorFeatures.enhancerBuyables[5], 1)).add(1).log10().add(1)
+            : D(1))
+        : (player.transcendUpgrades.includes('exp3')
+            ? Decimal.max(player.generatorFeatures.totalAdv, 0).mul(Decimal.max(player.generatorFeatures.enhancerBuyables[5], 1)).add(1)
+            : D(1));
 }
 
 function updateHTML_genAdvances() {
     let canBuy;
     if (tmp.mainTab === 1) {
+        html['genAdvAuto'].setDisplay((Decimal.gt(player.generatorFeatures.enhancerBuyables[5], 0) || Decimal.gt(player.generatorFeatures.totalAdv, 0)) && Decimal.gte(player.cheats.bullshit.pointExtr, 5));
+        if ((Decimal.gt(player.generatorFeatures.enhancerBuyables[5], 0) || Decimal.gt(player.generatorFeatures.totalAdv, 0)) && Decimal.gte(player.cheats.bullshit.pointExtr, 5)) {
+            html[`genAdvAuto`].changeStyle('background-color', player.genAdvAuto ? '#00808080' : '#80000080');
+            html[`genAdvAuto`].changeStyle('border', `3px solid #${player.genAdvAuto ? '00ffff' : 'ff0000'}`);
+            html[`genAdvAuto`].setTxt(player.genAdvAuto ? 'Generate: All Possible' : 'Generate: Off');
+        }
+
         html['generatorAdvance'].setDisplay(Decimal.gt(player.generatorFeatures.enhancerBuyables[5], 0) || Decimal.gt(player.generatorFeatures.totalAdv, 0));
         html['generatorAdvance'].changeStyle('cursor', Decimal.gt(tmp.generatorFeatures.advanceGain, 0) ? 'pointer' : 'not-allowed');
 
         html['genAdvArea'].setDisplay(Decimal.gt(player.generatorFeatures.enhancerBuyables[5], 0) || Decimal.gt(player.generatorFeatures.totalAdv, 0));
         if (Decimal.gt(player.generatorFeatures.enhancerBuyables[5], 0) || Decimal.gt(player.generatorFeatures.totalAdv, 0)) {
             html['genAdvance'].setTxt(format(player.generatorFeatures.advance));
-            html['genAdvEff'].setTxt(format(tmp.generatorFeatures.advanceEff, 2));
+            html['genAdvEff'].setTxt(Decimal.gte(player.cheats.bullshit.pointExtr, 5)
+                ? `${format(tmp.generatorFeatures.advanceEff, 3)} to OoM`
+                : format(tmp.generatorFeatures.advanceEff, 2));
             html['advAmount'].setTxt(format(tmp.generatorFeatures.advanceGain));
 
             let show = Decimal.lt(tmp.generatorFeatures.advanceGain, 100);

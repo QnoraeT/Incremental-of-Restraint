@@ -260,6 +260,10 @@ const UPDATE_LOG = [
         buyables: [D(0), D(0), D(0), D(0), D(0)],
         upgrades: []
     }
+
+    player.tierXPAuto = false
+    player.tierEnhGenerate = false
+    player.tierEnhAuto = false
     
     player.tierFeatures = {
         xp: D(0),
@@ -269,4 +273,32 @@ const UPDATE_LOG = [
         enhancerBuyables: [D(0), D(0), D(0), D(0), D(0), D(0)],
         enhanceCount: D(0),
     }
+
+    player.anticapBuyAuto = false;
+
+
+    cheats
+
+    player.cheats.bullshit = {
+        pointExtr: 0,
+        prestExtr: 0,
+        ascendExtr: 0,
+        transExtr: 0
+    }
 */
+
+
+const BULLSHIT = {
+    pointExtr() {
+        return Decimal.sub(player.cheats.bullshit.pointExtr, 1).mul(0.01).add(1);
+    },
+    prestExtr() {
+        return Decimal.pow(1.001, Decimal.sub(player.cheats.bullshit.prestExtr, 1));
+    },
+    ascendExtr() {
+        return Decimal.mul(Decimal.sub(player.cheats.bullshit.ascendExtr, 1), 0.04).add(1);
+    },
+    transExtr() {
+        return Decimal.mul(Decimal.sub(player.cheats.bullshit.transExtr, 1), 0.01).add(1);
+    },
+}

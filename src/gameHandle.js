@@ -22,7 +22,14 @@ function initPlayer() {
             autoDim: false,
             dilate: false,
             dilateStage: 0,
-            dilateValue: D(1)
+            dilateValue: D(1),
+            // used in-place of an incoming mechanic for testing
+            bullshit: {
+                pointExtr: 0,
+                prestExtr: 0,
+                ascendExtr: 0,
+                transExtr: 0
+            }
         },
         lastTick: Date.now(),
         version: 0,
@@ -128,6 +135,9 @@ function initPlayer() {
         setbackPriority: [D(0), D(0), D(0), D(0)],
         bestSetbackPriority: [D(0), D(0), D(0), D(0)],
         genXPAuto: false,
+        genEnhGenerate: false,
+        genEnhAuto: false,
+        genAdvAuto: false,
         generatorFeatures: {
             xp: D(0),
             buyable: [D(0), D(0), D(0), D(0), D(0), D(0)],
@@ -139,6 +149,9 @@ function initPlayer() {
             totalAdv: D(0),
             advanceUpgsChosen: []
         },
+        tierXPAuto: false,
+        tierEnhGenerate: false,
+        tierEnhAuto: false,
         tierFeatures: {
             xp: D(0),
             buyable: [D(0), D(0), D(0)],
@@ -151,21 +164,25 @@ function initPlayer() {
         transcendPointTotal: D(0),
         transcendResetCount: D(0),
         transcendUpgrades: [],
-        transcendUpgradesUnlocked: {}, // FILL THIS WITH VALUES
+        // TODO: when completing transcend upgrade requirements, push it onto this object. when resetting transcend upgrades, clear this object too
+        transcendUpgradesUnlocked: {}, 
         transcendInSpecialReq: null,
         replicators: D(1),
         bestReplicators: D(1),
         replirank: D(0),
         replirankPoints: D(0),
         replirankBuyables: [D(0), D(0), D(0), D(0)],
+        repliRankBuyAuto: false,
         replitier: D(0),
         replitierPoints: D(0),
         replitierBuyables: [D(0), D(0), D(0), D(0), D(0)],
+        repliTierBuyAuto: false,
         replitetr: D(0),
         replitetrPoints: D(0),
         replitetrBuyables: [D(0), D(0), D(0), D(0), D(0), D(0)],
         replispawns: D(0),
         repliupgrades: [],
+        anticapBuyAuto: false,
         anticap: {
             active: false,
             savedTotalTP: null,
@@ -201,7 +218,7 @@ function initTmp() {
         setbackDimTab: 0,
         transTab: 0,
         factors: {},
-        timeSpeedTiers: [D(1), D(1)],
+        timeSpeedTiers: [D(1), D(1), D(1)],
         inAnyChallenge: false,
         pointGen: D(1),
         buyables: resetMainBuyables(),
@@ -888,8 +905,65 @@ function updatePlayer() {
         player.version = 34;
     }
     if (player.version === 34) {
+        // first test if it does exist already to not cause a crash upon load but also not reset the save
+        if (!player.anticap) {
+            player.prestigeChallengeRepCompleted[5] = D(0)
+            
+            player.time2ndInTranscend = D(0)
+    
+            player.generatorFeatures.buyable[3] = D(0);
+            player.generatorFeatures.buyable[4] = D(0);
+            player.generatorFeatures.buyable[5] = D(0);
+    
+            player.buyableAccumulated = [D(0), D(0), D(0), D(0), D(0), D(0)];
+    
+            player.hinderanceScore[5] = D(0);
+            player.bestHinderanceScore[5] = D(0);
+            player.hinderancePts[5] = D(0);
+            player.hinderancePts = [D(0), D(0), D(0), D(0), D(0), D(0)];
+            
+            player.replitierBuyables = [D(0), D(0), D(0), D(0), D(0)];
+            player.replitetrBuyables = [D(0), D(0), D(0), D(0), D(0), D(0)];
+    
+            player.anticap = {
+                active: false,
+                savedTotalTP: null,
+                savedTranscensionTimes: null,
+                bestPoints: D(0),
+                power: D(0),
+                energy: D(0),
+                bestEnergy: D(0),
+                buyables: [D(0), D(0), D(0), D(0), D(0)],
+                upgrades: []
+            }
+    
+            player.tierXPAuto = false;
+            player.tierEnhGenerate = false;
+            player.tierEnhAuto = false;
+            
+            player.tierFeatures = {
+                xp: D(0),
+                buyable: [D(0), D(0), D(0)],
+                enhancer: D(0),
+                totalEnh: D(0),
+                enhancerBuyables: [D(0), D(0), D(0), D(0), D(0), D(0)],
+                enhanceCount: D(0),
+            }
+    
+            player.anticapBuyAuto = false;
+        }
 
-        // player.version = 35;
+        player.cheats.bullshit = {
+            pointExtr: 0,
+            prestExtr: 0,
+            ascendExtr: 0,
+            transExtr: 0
+        }
+        player.version = 35;
+    }
+    if (player.version === 35) {
+
+        // player.version = 36;
     }
 }
 
@@ -1224,8 +1298,9 @@ function gameLoop() {
         calcTimeSpeed();
         updateGame_hinderanceResources();
         updateGame_anticapResources();
-        updateGame_replicators();
         updateGame_transcend();
+        // put replicators after transcend because transcend does some shit when removing transcend upgrade repli3, and replicators updates its value into a non-log value but points raises it when it only multiplies, causing the game to blow up
+        updateGame_replicators();
         updateGame_tierEnhancers();
         updateGame_tierXP();
         updateGame_genAdvances();
@@ -1378,7 +1453,11 @@ function updateHTML() {
 }
 
 function calcTimeSpeed() {
-    // tier 2 timespeed multiplies tier 1 timespeed
+    // tier 2 timespeed multiplies tier 1 timespeed, etc.
+
+    tmp.factors.tier3Time = [];
+    tmp.timeSpeedTiers[2] = D(1);
+    addStatFactor('tier3Time', `Base`, `×`, 1, tmp.timeSpeedTiers[2]);
 
     tmp.factors.tier2Time = [];
     tmp.timeSpeedTiers[1] = D(1);

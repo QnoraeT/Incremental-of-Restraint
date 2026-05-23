@@ -142,6 +142,9 @@ const ANTICAP = {
             if (tmp.anticap.upgrades[35].eff != null && player.anticap.upgrades.includes(35)) {
                 arr[4].pow = arr[4].pow.mul(tmp.anticap.upgrades[35].eff.sc);
             }
+            if (Decimal.gte(player.cheats.bullshit.transExtr, 7)) {
+                arr[4].pow = arr[4].pow.mul(Decimal.sub(player.cheats.bullshit.transExtr, 6).pow_base(1.1));
+            }
             return arr;
         },
         prestigePts() {
@@ -409,13 +412,21 @@ const ANTICAP = {
         {
             enabled() { return true; },
             cost(bought) {
-                return Decimal.pow(2, bought).pow10().mul(10000);
+                let eff = D(bought);
+                if (Decimal.gte(player.cheats.bullshit.transExtr, 8)) {
+                    eff = eff.div(2);
+                }
+                return Decimal.pow(2, eff).pow10().mul(10000);
             },
             target(resource) {
                 if (Decimal.lt(resource, 10000)) {
                     return D(0);
                 }
-                return Decimal.div(resource, 10000).log10().log2();
+                let eff = Decimal.div(resource, 10000).log10().log2();
+                if (Decimal.gte(player.cheats.bullshit.transExtr, 8)) {
+                    eff = eff.mul(2);
+                }
+                return eff;
             },
             eff(bought) {
                 return Decimal.mul(0.01, bought);
@@ -796,10 +807,11 @@ const ANTICAP = {
         {
             cost: D('e10000'),
             desc(eff) {
+                // antiCRAP power
                 return `Tier 2 Time speed is multiplied based on your anticap power. (after >1.000e1,000) Currently: ${format(eff, 2)}×`;
             },
             eff() {
-                return Decimal.gte(player.anticap.power, 'ee3') ? Decimal.log10(player.anticap.power).log10().sub(2).pow_base(2) : D(1);
+                return Decimal.gte(player.anticap.power, 'ee3') ? Decimal.log10(player.anticap.power).log10().sub(2) : D(1);
             },
             onBought() {
                 return null;
@@ -890,7 +902,7 @@ const ANTICAP = {
             eff() {
                 return {
                     repli: Decimal.max(player.anticap.energy, 10).log10().log10().mul(0.025).add(1).pow(2),
-                    sc: Decimal.max(player.bestReplicators, 1).log10().root(50)
+                    sc: Decimal.max(player.bestReplicators, 1).log10().root(50).div(10).add(1).ln().mul(10)
                 };
             },
             onBought() {
@@ -921,6 +933,7 @@ function initHTML_anticap() {
 
     toHTMLvar('anticapBuyableScaling');
     toHTMLvar('anticapBuyableList');
+    toHTMLvar('anticapBuyAuto');
     let txt = ``;
     for (let i = 0; i < player.anticap.buyables.length; i++) {
         txt += `
@@ -974,6 +987,11 @@ function updateGame_anticap() {
         tmp.anticap.upgrades[i].desc = ANTICAP.upgrades[i].desc(tmp.anticap.upgrades[i].eff);
     }
 
+    if (!player.anticap.active && Decimal.gte(player.cheats.bullshit.transExtr, 10)) {
+        tmp.anticap.softcaps["points"] = ANTICAP.softcaps["points"]();
+        tmp.anticap.softcaps["points"][4].effPow = tmp.anticap.softcaps["points"][4].pow.recip() 
+    }
+
     if (player.anticap.active) {
         for (let index in ANTICAP.softcaps) {
             tmp.anticap.softcaps[index] = ANTICAP.softcaps[index]();
@@ -1017,6 +1035,18 @@ function updateGame_anticapResources() {
         target = smoothExp(target.div(tmp.anticap.buyableScaling), 1.01, true).mul(tmp.anticap.buyableScaling);
         tmp.anticap.buyables[i].target = target;
 
+        if (player.anticapBuyAuto) {
+            let bought = D(player.anticap.buyables[i]);
+
+            let buying = tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer.mul(tmp.timeSpeedTiers[1]) : D(Infinity);
+            player.anticap.buyables[i] = Decimal.add(tmp.anticap.buyables[i].target, 0.99999999).max(player.anticap.buyables[i]).min(Decimal.add(player.anticap.buyables[i], buying.mul(delta)));
+            
+            // assume Decimal and not DecimalSource due to the prior lines changing it
+            if (Decimal.gt(player.anticap.buyables[i].floor(), bought.floor())) {
+                player.anticap.energy = Decimal.sub(player.anticap.energy, tmp.anticap.buyables[i].cost).max(0); // idk why this is causing xp to go negative so i put a max 0 here
+            }
+        }
+
         let eff = Decimal.floor(player.anticap.buyables[i]);
         let effPlus1 = eff.add(1);
 
@@ -1025,9 +1055,17 @@ function updateGame_anticapResources() {
         tmp.anticap.buyables[i].desc = ANTICAP.buyables[i].desc(tmp.anticap.buyables[i].eff, ANTICAP.buyables[i].eff(effPlus1))
     }
 
+    if (Decimal.gte(player.cheats.bullshit.transExtr, 10)) {
+        player.anticap.bestPoints = Decimal.max(player.anticap.bestPoints, getAnticapSCValue(player.points, "points", 4, false));
+    }
+
     tmp.anticap.powerGain = Decimal.gte(player.anticap.bestPoints, 1e100) ? inverseFact(Decimal.max(player.anticap.bestPoints, 1).log(1e100)).sub(1).pow_base(2).sub(1).pow10().floor() : D(0);
     tmp.anticap.powerGain = cheatDilateBoost(tmp.anticap.powerGain);
     tmp.anticap.powerGain = tmp.anticap.powerGain.sub(player.anticap.power).max(0);
+
+    if (Decimal.gte(player.cheats.bullshit.transExtr, 10)) {
+        player.anticap.power = Decimal.add(player.anticap.power, tmp.anticap.powerGain);
+    }
 
     tmp.anticap.powerNext = tmp.anticap.powerGain.add(player.anticap.power).add(1);
     tmp.anticap.powerNext = cheatDilateBoost(tmp.anticap.powerNext, true);
@@ -1037,6 +1075,12 @@ function updateGame_anticapResources() {
     tmp.anticap.energyExp = tmp.anticap.energyExp.add(tmp.anticap.buyables[2].eff);
     if (Decimal.gte(player.prestigeChallengeRepCompleted[5], 1)) {
         tmp.anticap.energyExp = tmp.anticap.energyExp.mul(tmp.prestigeRepeatChal[5].rewardEffs.exp);
+    }
+    if (Decimal.gte(player.cheats.bullshit.transExtr, 5)) {
+        tmp.anticap.energyExp = tmp.anticap.energyExp.mul(Decimal.max(player.transcendPointTotal, 1e10).log10().log10().log10().add(1));
+    }
+    if (Decimal.gte(player.cheats.bullshit.transExtr, 6)) {
+        tmp.anticap.energyExp = tmp.anticap.energyExp.pow(2);
     }
 
     tmp.anticap.energyGain = getAnticapEnergyGain(player.anticap.power);
@@ -1059,6 +1103,9 @@ function updateGame_anticapResources() {
 function getAnticapEnergyGain(power) {
     let gain = Decimal.max(power, 0);
     gain = gain.mul(tmp.anticap.buyables[0].eff);
+    if (Decimal.gte(player.cheats.bullshit.transExtr, 6)) {
+        gain = gain.add(1).log10().add(1).pow(0.6).sub(1).pow10().sub(1);
+    }
     gain = cheatDilateBoost(gain);
 
     let prev = Decimal.max(player.anticap.energy, 0);
@@ -1083,7 +1130,8 @@ function getAnticapEnergyEffects(i, power) {
     switch (i) {
         case 0:
             eff = Decimal.gte(player.anticap.bestEnergy, 1)
-                ? Decimal.max(player.anticap.bestEnergy, 10).log10().log10().mul(Decimal.max(power, 1).log10().add(1).log10().add(1)).pow_base(1.1).pow(energyStrength)
+                // ANTICRAP POWER!!!!!
+                ? Decimal.max(player.anticap.bestEnergy, 10).log10().log10().mul(Decimal.max(power, 1).log10().add(1).log10().add(1)).div(1000).add(1).ln().mul(1000).pow_base(1.1).pow(energyStrength)
                 // ? Decimal.max(player.anticap.bestEnergy, 10).log10().log10().mul(0.1).mul(Decimal.max(power, 1).log10().add(1).log10().mul(0.25).add(1)).mul(energyStrength).add(1)
                 : D(1);
             break;
@@ -1120,6 +1168,13 @@ function updateHTML_anticap() {
         html['AnticapTransTab'].setDisplay(tmp.transTab === 2);
 
         if (tmp.transTab === 2) {
+            html['anticapBuyAuto'].setDisplay(Decimal.gte(player.cheats.bullshit.transExtr, 4));
+            if (Decimal.gte(player.cheats.bullshit.transExtr, 4)) {
+                html[`anticapBuyAuto`].changeStyle('background-color', player.anticapBuyAuto ? '#40404080' : '#20202080');
+                html[`anticapBuyAuto`].changeStyle('border', `3px solid #${player.anticapBuyAuto ? 'ffffff' : '808080'}`);
+                html[`anticapBuyAuto`].setTxt(player.anticapBuyAuto ? `Auto: ${format(tmp.prestigeRepeatChal[2].depth.gt(0) ? tmp.prestigeRepeatChal[2].effects.autobuyer.mul(tmp.timeSpeedTiers[1]) : D(Infinity))}/s` : 'Auto: Off');
+            }
+            
             let isGaining = player.anticap.active && Decimal.gt(tmp.anticap.powerGain, 0);
 
             html['anticapPower'].setTxt(format(player.anticap.power));

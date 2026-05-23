@@ -372,7 +372,7 @@ function updateGame_genXP() {
             addStatFactor('genXP', `Gen. Enhancer Effect`, `×`, tmp.generatorFeatures.enhancerEff, tmp.generatorFeatures.gain);
         }
         
-        if (Decimal.gt(tmp.energyEffs[3], 1)) {
+        if (Decimal.lt(player.cheats.bullshit.ascendExtr, 8) && Decimal.gt(tmp.energyEffs[3], 1)) {
             tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.mul(tmp.energyEffs[3]);
             addStatFactor('genXP', `Cyan Energy`, `×`, tmp.energyEffs[3], tmp.generatorFeatures.gain);
         }
@@ -382,7 +382,12 @@ function updateGame_genXP() {
             addStatFactor('genXP', `Red S. Upgrade 11`, `×`, SETBACK_UPGRADES[0][10].eff, tmp.generatorFeatures.gain);
         }
 
-        if (tmp.prestigeRepeatChal[2].depth.lte(0)) {            
+        if (tmp.prestigeRepeatChal[2].depth.lte(0)) {    
+            if (Decimal.gte(player.cheats.bullshit.ascendExtr, 8) && Decimal.gt(tmp.energyEffs[3], 1)) {
+                tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.pow(tmp.energyEffs[3]);
+                addStatFactor('genXP', `Cyan Energy`, `^`, tmp.energyEffs[3], tmp.generatorFeatures.gain);
+            }
+                    
             if (tmp.generatorFeatures.genXPBuyables[3].eff.gt(0)) {
                 tmp.generatorFeatures.gain = tmp.generatorFeatures.gain.pow(tmp.generatorFeatures.genXPBuyables[3].eff.add(1));
                 addStatFactor('genXP', `Generator XP Buyable #4`, `^`, tmp.generatorFeatures.genXPBuyables[3].eff.add(1), tmp.generatorFeatures.gain);
