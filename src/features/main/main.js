@@ -412,20 +412,25 @@ function updateGame_main() {
             if (tmp.prestigeChal[0].depth.gt(0)) {
                 tmp.buyables[i].effectBase = tmp.buyables[i].effectBase.div(tmp.prestigeChal[0].effects.effectBase);
             }
+            checkNaN(tmp.buyables[i].effectBase, `NaN detected while trying to calculate effectBase of Buyable #${i+1}`);
+
             tmp.buyables[i].effect = tmp.buyables[i].effective.mul(tmp.buyables[i].effectBase).add(1);
+
             if (tmp.prestigeChal[12].depth.lte(0)) {
                 tmp.buyables[i].effect = tmp.buyables[i].effect.mul(tmp.buyables[i].genEffect);
             }
 
             if (tmp.prestigeChal[3].depth.gt(0) && i !== 0) {
-                tmp.buyables[i].effect = tmp.buyables[i].effect.sub(1);
+                // max 0 because sometimes this goes negative :c
+                tmp.buyables[i].effect = tmp.buyables[i].effect.sub(1).max(0);
             }
 
             tmp.buyables[i].effect = tmp.buyables[i].effect.mul(Decimal.div(player.buyables[i], tmp.bybBoostInterval).floor().pow_base(tmp.bybBoostEffect));
 
             if (Decimal.lt(i, player.ascendUpgrades[2])) {
-                tmp.buyables[i].effect = tmp.buyables[i].effect.pow(tmp.ascendBuyables[2].eff);
+                tmp.buyables[i].effect = tmp.buyables[i].effect.pow(tmp.ascendBuyables[2].eff); 
             }
+
             if (player.anticap.upgrades.includes(8)) {
                 if (i >= 0 && i <= 3) {
                     tmp.buyables[i].effect = tmp.buyables[i].effect.pow(tmp.ascendBuyables[i + 4].eff);
@@ -434,6 +439,7 @@ function updateGame_main() {
                     tmp.buyables[i].effect = tmp.buyables[i].effect.pow(tmp.ascendBuyables[i + 10].eff);
                 }
             }
+
             if (player.anticap.upgrades.includes(25)) {
                 if (i === 5) {
                     tmp.buyables[i].effect = tmp.buyables[i].effect.add(1).log10().add(1).pow(4/3).sub(1).pow10().sub(1);
@@ -718,14 +724,9 @@ function updateGame_main() {
 
                     if (player.transcendInSpecialReq === "enhancer1") {
                         let boost = Decimal.max(upgGen, 10).log10().log10().add(1)
-                        upgGen = Decimal.max(player.generatorFeatures.xp, 1)
+                        upgGen = Decimal.max(player.generatorFeatures.xp, 1).pow(boost).min(upgGen)
                         if (i === 0) {
-                            addStatFactor('generator', `enhancer1 restriction`, ``, Decimal.max(player.generatorFeatures.xp, 0), upgGen)
-                        }
-
-                        upgGen = upgGen.pow(boost)
-                        if (i === 0) {
-                            addStatFactor('generator', `enhancer1 restriction`, `^`, boost, upgGen)
+                            addStatFactor('generator', `enhancer1 restriction`, `${format(Decimal.max(player.generatorFeatures.xp, 1))}<sup>${format(boost, 3)}</sup> → `, Decimal.max(player.generatorFeatures.xp, 1).pow(boost), upgGen)
                         }
                     }
 
@@ -786,6 +787,7 @@ function updateGame_main() {
             if (tmp.prestigeRepeatChal[5].depth.gt(0)) {
                 tmp.buyables[i].genEffect = D(1);
             }
+            checkNaN(tmp.buyables[i].genEffect, `NaN detected while trying to calculate genEffect of Buyable #${i+1}`);
 
             if (i >= 0 && tmp.hinderancePtsEff[2].neq(0)) {
                 if (player.cheats.stupid) {

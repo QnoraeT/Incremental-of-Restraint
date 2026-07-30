@@ -568,7 +568,7 @@ function updateGame_replicators() {
         let bought = player.replitetr;
         tmp.repliTetrReq = REPLITETR_DATA.cost(bought);
 
-        tmp.repliTetrReqRepliNext = REPLIRANK_DATA.cost(REPLITIER_DATA.cost(tmp.repliTetrReq));
+        tmp.repliTetrReqRepliNext = REPLIRANK_DATA.cost(REPLITIER_DATA.cost(tmp.repliTetrReq.sub(1)));
 
         tmp.repliTetrEffect = REPLITETR_DATA.gain(bought);
 
@@ -636,7 +636,7 @@ function updateGame_replicators() {
             ? tmp.repliTierTarget.floor().add(1).max(bought)
             : Decimal.add(bought, 1);
         tmp.repliTierReqNext = REPLITIER_DATA.cost(tmp.repliTierNext);
-        tmp.repliTierReqRepliNext = REPLIRANK_DATA.cost(tmp.repliTierReqNext);
+        tmp.repliTierReqRepliNext = REPLIRANK_DATA.cost(tmp.repliTierReqNext.sub(1));
 
         tmp.repliTierEffect = REPLITIER_DATA.gain(bought);
 
@@ -714,7 +714,7 @@ function updateGame_replicators() {
         tmp.repliRankPointGen = tmp.repliRankPointGen.mul(tmp.repliTierBuyables[1].eff);
         tmp.repliRankPointGen = tmp.repliRankPointGen.mul(tmp.repliTetrBuyables[1].eff);
         tmp.repliRankPointGen = tmp.repliRankPointGen.mul(tmp.repliTierPointEff2);
-        tmp.repliRankPointGen = tmp.repliRankPointGen.pow(Decimal.mul(player.replitetr, 0.1));
+        tmp.repliRankPointGen = tmp.repliRankPointGen.pow(Decimal.mul(player.replitetr, 0.1).add(1));
         tmp.repliRankPointGen = tmp.repliRankPointGen.pow(tmp.hinderancePtsEff[5]);
 
         if (player.cheats.dilate) {

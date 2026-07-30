@@ -151,6 +151,35 @@ const TIER_ENH_BUYABLES = [
             return `Prestige generators' gain is multiplied by themselves. Currently: ~^${format(eff, 2)}.`;
         }
     },
+    {
+        enabled() {
+            return player.transcendUpgrades.includes('enhancer2');
+        },
+        cost(bought) {
+            let cost = D(bought);
+            cost = cost.pow_base(4).mul(1000).pow10();
+            return cost.floor();
+        },
+        target(resource) {
+            if (Decimal.lt(resource, 'ee3')) {
+                return D(0)
+            }
+            let target = D(resource).ceil();
+            target = target.log10().div(1000).log(4);
+            return target;
+        },
+        eff(bought) {
+            if (colorAmountTotal(3).gt(0)) {
+                return D(1);
+            }
+            let eff = D(3);
+            eff = eff.pow(bought);
+            return eff;
+        },
+        desc(eff) {
+            return `T2 time speed is increased by ×${format(eff, 1)}.`;
+        }
+    }
 ]
 
 function initHTML_tierEnhancers() {

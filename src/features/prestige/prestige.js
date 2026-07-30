@@ -907,10 +907,10 @@ function updateHTML_prestige() {
                         }
 
                         html[`prestigeUpgrade${i}amount`].setTxt(txt);
-                        html[`prestigeUpgrade${i}amount`].changeStyle('color', hasPrestigeUpgrade(i) ? '#ffffff' : '#ff8080');
                     } else {
                         html[`prestigeUpgrade${i}amount`].setTxt(`Prestige Upgrade ${i+1}`);
                     }
+                    html[`prestigeUpgrade${i}amount`].changeStyle('color', hasPrestigeUpgrade(i) ? '#ffffff' : '#ff8080');
 
                     html[`prestigeUpgrade${i}`].changeStyle('background-color',
                         !(hasPrestigeUpgrade(i) && !hasSetbackUpgrade(`b2`))

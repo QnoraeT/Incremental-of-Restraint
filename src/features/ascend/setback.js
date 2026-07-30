@@ -387,7 +387,7 @@ const SETBACK_CALC = {
         },
         (x) => {
             let eff = Decimal.max(x, 0).add(1).pow(Decimal.max(x, 0).add(1).log10().floor().mul(0.05).add(1));
-            if (tmp.setbackTotalStacks.length === 0) {
+            if (tmp.setbackTotalStacks.length != 0) {
                 if (player.setbackUpgrades.includes('c15')) {
                     eff = eff.log10().add(1).pow(0.5).sub(1).pow10();
                 } else {

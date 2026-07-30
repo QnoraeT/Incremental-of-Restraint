@@ -740,7 +740,7 @@ function updateHTML_ascend() {
     }
 
     if (tmp.tab === 3) {
-        html['mainAscendTabButton'].setDisplay(Decimal.gte(player.ascend, 10));
+        html['mainAscendTabButton'].setDisplay(Decimal.gte(player.ascend, 10) || hasSetbackUpgrade(`b5`) || hasSetbackUpgrade(`b9`));
         html['mainAscend'].setDisplay(tmp.ascendTab === 0);
         if (tmp.ascendTab === 0) {
             html['ascendBuyRespec'].setDisplay(hasTranscendMilestone(11));

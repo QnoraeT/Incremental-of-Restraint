@@ -905,53 +905,49 @@ function updatePlayer() {
         player.version = 34;
     }
     if (player.version === 34) {
-        // first test if it does exist already to not cause a crash upon load but also not reset the save
-        if (!player.anticap) {
-            player.prestigeChallengeRepCompleted[5] = D(0)
-            
-            player.time2ndInTranscend = D(0)
-    
-            player.generatorFeatures.buyable[3] = D(0);
-            player.generatorFeatures.buyable[4] = D(0);
-            player.generatorFeatures.buyable[5] = D(0);
-    
-            player.buyableAccumulated = [D(0), D(0), D(0), D(0), D(0), D(0)];
-    
-            player.hinderanceScore[5] = D(0);
-            player.bestHinderanceScore[5] = D(0);
-            player.hinderancePts[5] = D(0);
-            player.hinderancePts = [D(0), D(0), D(0), D(0), D(0), D(0)];
-            
-            player.replitierBuyables = [D(0), D(0), D(0), D(0), D(0)];
-            player.replitetrBuyables = [D(0), D(0), D(0), D(0), D(0), D(0)];
-    
-            player.anticap = {
-                active: false,
-                savedTotalTP: null,
-                savedTranscensionTimes: null,
-                bestPoints: D(0),
-                power: D(0),
-                energy: D(0),
-                bestEnergy: D(0),
-                buyables: [D(0), D(0), D(0), D(0), D(0)],
-                upgrades: []
-            }
-    
-            player.tierXPAuto = false;
-            player.tierEnhGenerate = false;
-            player.tierEnhAuto = false;
-            
-            player.tierFeatures = {
-                xp: D(0),
-                buyable: [D(0), D(0), D(0)],
-                enhancer: D(0),
-                totalEnh: D(0),
-                enhancerBuyables: [D(0), D(0), D(0), D(0), D(0), D(0)],
-                enhanceCount: D(0),
-            }
-    
-            player.anticapBuyAuto = false;
+        player.prestigeChallengeRepCompleted[5] = D(0)
+        
+        player.time2ndInTranscend = D(0)
+
+        player.generatorFeatures.buyable[3] = D(0);
+        player.generatorFeatures.buyable[4] = D(0);
+        player.generatorFeatures.buyable[5] = D(0);
+
+        player.buyableAccumulated = [D(0), D(0), D(0), D(0), D(0), D(0)];
+
+        player.hinderanceScore[5] = D(0);
+        player.bestHinderanceScore[5] = D(0);
+        player.hinderancePts = [D(0), D(0), D(0), D(0), D(0), D(0)];
+        
+        player.replitierBuyables = [D(0), D(0), D(0), D(0), D(0)];
+        player.replitetrBuyables = [D(0), D(0), D(0), D(0), D(0), D(0)];
+
+        player.anticap = {
+            active: false,
+            savedTotalTP: null,
+            savedTranscensionTimes: null,
+            bestPoints: D(0),
+            power: D(0),
+            energy: D(0),
+            bestEnergy: D(0),
+            buyables: [D(0), D(0), D(0), D(0), D(0)],
+            upgrades: []
         }
+
+        player.tierXPAuto = false;
+        player.tierEnhGenerate = false;
+        player.tierEnhAuto = false;
+        
+        player.tierFeatures = {
+            xp: D(0),
+            buyable: [D(0), D(0), D(0)],
+            enhancer: D(0),
+            totalEnh: D(0),
+            enhancerBuyables: [D(0), D(0), D(0), D(0), D(0), D(0)],
+            enhanceCount: D(0),
+        }
+
+        player.anticapBuyAuto = false;
 
         player.cheats.bullshit = {
             pointExtr: 0,
@@ -959,11 +955,19 @@ function updatePlayer() {
             ascendExtr: 0,
             transExtr: 0
         }
+
+        // A.B. #1 inflates the fck out of the game, reset it, it's not much of a setback
+        player.ascendUpgrades[0] = D(0)
         player.version = 35;
     }
     if (player.version === 35) {
+        player.tierFeatures.enhancerBuyables[6] = D(0);
 
-        // player.version = 36;
+        player.version = 36;
+    }
+    if (player.version === 36) {
+
+        // player.version = 37;
     }
 }
 
@@ -1329,6 +1333,7 @@ function gameLoop() {
 
         console.error(e) // i have to throw a console error because throwing the error for some reason loses the source of the error
         // rather stupid but oh well
+        setInterval(updateHTML, 50)
         throw Error(e); // throw the same error just in case we happen to be in offline time
         // not the best but oh well
     }
@@ -1476,6 +1481,11 @@ function calcTimeSpeed() {
     if (hasHinderanceMilestone(4, 4) && Decimal.gte(player.hinderanceScore[4], HINDERANCES[4].start)) {
         tmp.timeSpeedTiers[1] = tmp.timeSpeedTiers[1].mul(HINDERANCES[4].eff.max(1).log10().mul(0.01).add(1));
         addStatFactor('tier2Time', `Hinderance 5 PB via Milestone 5`, `×`, HINDERANCES[4].eff.max(1).log10().mul(0.01).add(1), tmp.timeSpeedTiers[1]);
+    }
+
+    if (Decimal.gt(player.tierFeatures.enhancerBuyables[6], 0)) {
+        tmp.timeSpeedTiers[1] = tmp.timeSpeedTiers[1].mul(tmp.tierFeatures.enhancerBuyables[6].eff)
+        addStatFactor('tier2Time', `Tier Enh. Buyable #7`, `×`, tmp.tierFeatures.enhancerBuyables[6].eff, tmp.timeSpeedTiers[1]);
     }
 
     if (tmp.hinderancePtsEff[4].neq(1)) {

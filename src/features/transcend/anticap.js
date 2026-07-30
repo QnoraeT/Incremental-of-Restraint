@@ -222,12 +222,6 @@ const ANTICAP = {
                 { start: D("ee5"), pow: D(1) },
                 { start: D("ee7"), pow: D(1) }
             ];
-            if (player.anticap.upgrades.includes(31)) {
-                arr[0].start = D(Infinity);
-                arr[1].start = D(Infinity);
-                arr[2].start = D(Infinity);
-                arr[3].start = D(Infinity);
-            }
             return arr;
         },
         genEnh() {
@@ -238,12 +232,6 @@ const ANTICAP = {
                 { start: D("ee5"), pow: D(1) },
                 { start: D("ee7"), pow: D(1) }
             ];
-            if (player.anticap.upgrades.includes(31)) {
-                arr[0].start = D(Infinity);
-                arr[1].start = D(Infinity);
-                arr[2].start = D(Infinity);
-                arr[3].start = D(Infinity);
-            }
             return arr;
         },
         transcendPoints() {
@@ -394,13 +382,13 @@ const ANTICAP = {
         {
             enabled() { return true; },
             cost(bought) {
-                return Decimal.pow(100, bought).mul(1000);
+                return Decimal.pow(35, bought).mul(1000);
             },
             target(resource) {
                 if (Decimal.lt(resource, 1000)) {
                     return D(0);
                 }
-                return Decimal.div(resource, 1000).log(100);
+                return Decimal.div(resource, 1000).log(35);
             },
             eff(bought) {
                 return Decimal.mul(0.01, bought);
@@ -833,11 +821,14 @@ const ANTICAP = {
             }
         },
         {
-            cost: D('e25000'),
+            cost: D('e20000'),
             desc(eff) {
                 return `T2 time in transcension weakens 5th point and prestige point softcaps. Remove 1st gen. level and tier level scaling. Currently: ${formatPerc(eff, 2)}`;
             },
             eff() {
+                if (player.anticap.upgrades.includes(31)) {
+                    return Decimal.div(player.time2ndInTranscend, 3600).add(1).ln().add(1);
+                }
                 return Decimal.div(player.time2ndInTranscend, 3600).add(1).ln().add(1).root(3);
             },
             onBought() {
@@ -847,7 +838,7 @@ const ANTICAP = {
         {
             cost: D('e40000'),
             desc(eff) {
-                return `Remove Gen. XP and Gen. Enh. first four softcaps. Tier Enh. Buyable #6 is ^5 stronger, but slightly weaken PG gain to compensate.`;
+                return `Anticap Upgrade #31 has a better formula. Tier Enh. Buyable #6 is ^5 stronger, but slightly weaken PG gain to compensate.`;
             },
             eff() {
                 return null;
@@ -857,7 +848,7 @@ const ANTICAP = {
             }
         },
         {
-            cost: D('e60000'),
+            cost: D('e80000'),
             desc(eff) {
                 return `Remove Tier Enh. Buyable #1's increasing cost scaling. Gen. Enh. Buyable #3's cost scaling is weaker based on Gen. Adv. Currently: -${formatPerc(eff)}`;
             },
@@ -869,7 +860,7 @@ const ANTICAP = {
             }
         },
         {
-            cost: D('e80000'),
+            cost: D('e200000'),
             desc(eff) {
                 return `Outside of any challenge, generator effect to buyables is increased by ■1.5. (Power to 2nd exp.) (Equiv. to ~▲${format(eff, 2)})`;
             },
@@ -883,7 +874,7 @@ const ANTICAP = {
             }
         },
         {
-            cost: D('e100000'),
+            cost: D('e400000'),
             desc(eff) {
                 return `Replicators' effect is based off total* replicanti. *This "total" is increased based off of your total growth. Replicanti strength is multiplied by 1.25×`;
             },
@@ -895,7 +886,7 @@ const ANTICAP = {
             }
         },
         {
-            cost: D('e150000'),
+            cost: D('e750000'),
             desc(eff) {
                 return `Replicanti strength is multiplied based on anticap energy. Points' 5th softcap is weaker based on total* replicators. Currently: ${format(eff.repli, 2)}×, -${formatPerc(eff.sc, 2)}`;
             },

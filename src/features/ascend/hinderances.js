@@ -219,7 +219,7 @@ const HINDERANCES = [
     {
         name: "I replican't.",
         desc: "Your point gain is replaced with your replicator amount, and T1 time speed is stuck at 1×. Replicator speed is reduced by ▲0.50 and strength reduced by /2. Force a transcension and replirank reset.",
-        start: D('e10000'),
+        start: D('e2e6'),
         get reward() {
             return `Replicator strength is ×${format(this.eff, 2)} higher, and repli-resources' effects that boost the previous gains are squared.`;
         },
@@ -227,8 +227,8 @@ const HINDERANCES = [
             if (tmp.prestigeRepeatChal[5].depth.gt(0)) {
                 return D(1);
             }
-            let eff = Decimal.max(player.hinderanceScore[5], 'e10000');
-            eff = eff.log('e10000').log2().add(1).pow(2);
+            let eff = Decimal.max(player.hinderanceScore[5], 'e2e6');
+            eff = eff.log('e2e6').log2().add(1).pow(2);
             return eff;
         },
         chalEffects(depth) {
@@ -238,7 +238,7 @@ const HINDERANCES = [
 
             return obj;
         },
-        threshold: D('e40000'),
+        threshold: D('ee7'),
         pointEff(points) {
             return Decimal.max(points, 0).add(1).log10().add(1).log10().mul(0.05).add(1);
         },
@@ -246,9 +246,9 @@ const HINDERANCES = [
             return `Raising RepliRank, RepliTier, and RepliTetr points by ^${format(eff, 3)}.`;
         },
         milestones: [
-            { req: D('e50000'), desc: `Repli-resources' effects that boost the previous gains are raised ^1.5.` },
-            { req: D('e175000'), desc: `RepliTetr points' effects are squared.` },
-            { req: D('e400000'), desc: `Replicator speed is raised by H6 points' effect.` },
+            { req: D('ee7'), desc: `Repli-resources' effects that boost the previous gains are raised ^1.5.` },
+            { req: D('e2.5e7'), desc: `RepliTetr points' effects are squared.` },
+            { req: D('ee8'), desc: `Replicator speed is raised by H6 points' effect.` },
         ],
         get show() {
             return player.transcendUpgrades.includes('hinderance3');

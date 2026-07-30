@@ -228,64 +228,20 @@ const UPDATE_LOG = [
             "Fixed PRC3 working on all dimensions instead of only Blue dimensions."
         ]
     },
+    {
+        tooSmall: false,
+        version: 36,
+        changes: [
+            "Added a new Tier Enhancer buyable to help with progression in ee40 levels."
+        ],
+        features: [
+
+        ],
+        bugfixes: [
+
+        ]
+    },
 ]
-
-/*
-    player.prestigeChallengeRepCompleted[5] = D(0)
-    
-    player.time2ndInTranscend = D(0)
-
-    player.generatorFeatures.buyable[3] = D(0);
-    player.generatorFeatures.buyable[4] = D(0);
-    player.generatorFeatures.buyable[5] = D(0);
-
-    player.buyableAccumulated = [D(0), D(0), D(0), D(0), D(0), D(0)]
-
-    player.hinderanceScore[5] = D(0)
-    player.bestHinderanceScore[5] = D(0)
-    player.hinderancePts[5] = D(0)
-    player.hinderancePts = [D(0), D(0), D(0), D(0), D(0), D(0)]
-    
-    player.replitierBuyables = [D(0), D(0), D(0), D(0), D(0)]
-    player.replitetrBuyables = [D(0), D(0), D(0), D(0), D(0), D(0)]
-
-    player.anticap = {
-        active: false,
-        savedTotalTP: null,
-        savedTranscensionTimes: null,
-        bestPoints: D(0),
-        power: D(0),
-        energy: D(0),
-        bestEnergy: D(0),
-        buyables: [D(0), D(0), D(0), D(0), D(0)],
-        upgrades: []
-    }
-
-    player.tierXPAuto = false
-    player.tierEnhGenerate = false
-    player.tierEnhAuto = false
-    
-    player.tierFeatures = {
-        xp: D(0),
-        buyable: [D(0), D(0), D(0)],
-        enhancer: D(0),
-        totalEnh: D(0),
-        enhancerBuyables: [D(0), D(0), D(0), D(0), D(0), D(0)],
-        enhanceCount: D(0),
-    }
-
-    player.anticapBuyAuto = false;
-
-
-    cheats
-
-    player.cheats.bullshit = {
-        pointExtr: 0,
-        prestExtr: 0,
-        ascendExtr: 0,
-        transExtr: 0
-    }
-*/
 
 
 const BULLSHIT = {

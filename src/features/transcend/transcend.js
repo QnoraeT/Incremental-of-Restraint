@@ -655,7 +655,7 @@ const TRANSCENSION_UPGRADES = [
                 },
                 restriction: true,
                 get desc() {
-                    return `Your generator speed is replaced by generator XP. ${conditionMet(player.transcendInSpecialReq === "enhancer1")} Boosts to generator speed prior to this slightly boosts the final value. (Every OoM^2 of gen. speed increases final speed by +^1.) Reach Generator Level ${conditionMet(tmp.buyables.filter((item) => { return item.genLevels.gte(2000) }).length > 0, format(tmp.buyables.reduce((accumulator, current) => { return Decimal.max(accumulator, current.genLevels) }, tmp.buyables[0].genLevels)) + ' / 2,000')} on any basic buyable.`
+                    return `Your generator speed is replaced by generator XP if it is lower. ${conditionMet(player.transcendInSpecialReq === "enhancer1")} Boosts to generator speed prior to this slightly boosts the generator XP value. (Not boosting generator XP itself) (Every OoM^2 of gen. speed increases final speed by +^1.) Reach Generator Level ${conditionMet(tmp.buyables.filter((item) => { return item.genLevels.gte(2000) }).length > 0, format(tmp.buyables.reduce((accumulator, current) => { return Decimal.max(accumulator, current.genLevels) }, tmp.buyables[0].genLevels)) + ' / 2,000')} on any basic buyable.`
                 }
             },
             name: "Enhancer Efficiency",
@@ -939,7 +939,7 @@ const TRANSCENSION_UPGRADES = [
         {
             id: "ascend6",
             color: "ascend",
-            cost: D('ee15'),
+            cost: D('ee16'),
             prereq: [],
             get shown() {
                 return player.transcendUpgrades.includes('anticap1');
@@ -1015,7 +1015,7 @@ const TRANSCENSION_UPGRADES = [
         {
             id: "setback2",
             color: "basic",
-            cost: D('ee36'),
+            cost: D('ee33'),
             prereq: [],
             get shown() {
                 return player.transcendUpgrades.includes('setback1');
@@ -1034,7 +1034,7 @@ const TRANSCENSION_UPGRADES = [
         {
             id: "enhancer2",
             color: "genEnh",
-            cost: D('ee45'),
+            cost: D('ee38'),
             prereq: [],
             get shown() {
                 return player.transcendUpgrades.includes('enhancer1');
@@ -1050,7 +1050,7 @@ const TRANSCENSION_UPGRADES = [
             },
             name: "Enticing Generators",
             get desc() {
-                return `Gen. XP and Enh. Buyables #1-6 scale 2× slower.`;
+                return `Gen. XP and Enh. Buyables #1-6 scale 2× slower, and unlock a new Tier Enhancer buyable.`;
             },
             eff: null
         },
@@ -1082,7 +1082,7 @@ const TRANSCENSION_UPGRADES = [
         {
             id: "setback3",
             color: "basic",
-            cost: D('ee60'),
+            cost: D('ee66'),
             prereq: [],
             get shown() {
                 return player.transcendUpgrades.includes('setback2');
@@ -1101,7 +1101,7 @@ const TRANSCENSION_UPGRADES = [
         {
             id: "enhancer3",
             color: "genEnh",
-            cost: D('ee65'),
+            cost: D('ee75'),
             prereq: [],
             get shown() {
                 return player.transcendUpgrades.includes('enhancer2');
@@ -1124,7 +1124,7 @@ const TRANSCENSION_UPGRADES = [
         {
             id: "anticap3",
             color: "anticap",
-            cost: D('ee70'),
+            cost: D('ee84'),
             prereq: [],
             get shown() {
                 return player.transcendUpgrades.includes('anticap2');
@@ -1149,7 +1149,7 @@ const TRANSCENSION_UPGRADES = [
         {
             id: "hinderance3",
             color: "hinderance",
-            cost: D('ee75'),
+            cost: D('ee110'),
             prereq: ['setback3', 'enhancer3', 'anticap3'],
             get shown() {
                 return player.transcendUpgrades.includes('setback2') && player.transcendUpgrades.includes('anticap2') && player.transcendUpgrades.includes('enhancer2');
@@ -1170,7 +1170,7 @@ const TRANSCENSION_UPGRADES = [
         {
             id: "prest7",
             color: "prestige",
-            cost: D('ee80'),
+            cost: D('ee150'),
             prereq: [],
             get shown() {
                 return player.transcendUpgrades.includes('hinderance3');
